@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 
 export default clerkMiddleware(async (auth, req) => {
   // List your public routes here
-  const publicRoutes = ["/login", "/signup", "/"];
+  const publicRoutes = ["/login", "/signup", "/", "/forgot-password"];
   if (publicRoutes.includes(req.nextUrl.pathname)) {
     return;
   }

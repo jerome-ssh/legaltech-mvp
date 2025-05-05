@@ -1,83 +1,82 @@
 "use client";
 import React, { useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import AuthLayout from '@/components/AuthLayout';
+import Link from 'next/link';
+import { useClerk } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const { client } = useClerk();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage('');
     setError('');
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/reset-password',
-    });
-    setLoading(false);
-    if (error) {
-      setError(error.message);
-    } else {
-      setMessage('Password reset email sent! Please check your inbox.');
+
+    try {
+      await client.signIn.create({
+        strategy: "reset_password_email_code",
+        identifier: email,
+      });
+      setMessage('Password reset code sent! Please check your email and enter the code on the login page.');
+      // Redirect to login with reset param and email after 2 seconds
+      setTimeout(() => {
+        router.push(`/login?reset=1&email=${encodeURIComponent(email)}`);
+      }, 2000);
+    } catch (err: any) {
+      setError(err.message || 'Failed to send reset code. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-100 to-pink-100">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
+    <AuthLayout title="Forgot Password?" subtitle="Enter your email to reset your password">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Forgot your password?
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Enter your email address and we'll send you a link to reset your password.
-          </p>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            Email address
+          </label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            required
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-400 bg-white/70 text-base"
+            placeholder="Enter your email address"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+          />
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="email-address" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email-address"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-sky-500 focus:border-sky-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            {error}
           </div>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
-
-          {message && (
-            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
-              {message}
-            </div>
-          )}
-
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Sending...' : 'Send reset link'}
-            </button>
+        )}
+        {message && (
+          <div className="p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
+            {message}
           </div>
-        </form>
-      </div>
-    </div>
+        )}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full py-3 bg-gradient-to-r from-sky-400 to-pink-400 hover:from-sky-500 hover:to-pink-500 text-white font-medium rounded-lg shadow-lg !border-0 !border-none transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? 'Sending...' : 'Send reset code'}
+        </button>
+        <div className="text-center mt-2">
+          <Link href="/login" className="text-sm text-sky-600 hover:text-pink-500 font-medium transition">
+            Back to Login
+          </Link>
+        </div>
+      </form>
+    </AuthLayout>
   );
 } 
