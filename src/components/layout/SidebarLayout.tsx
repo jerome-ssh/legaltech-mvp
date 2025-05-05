@@ -38,14 +38,14 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
           </button>
         </div>
         <nav className="space-y-6 text-gray-700">
-          <Link href="/" className="flex items-center gap-2 text-blue-600 font-semibold">
+          <Link href="/dashboard" className="flex items-center gap-2 text-blue-600 font-semibold">
             <LayoutDashboard className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Dashboard</span>
           </Link>
           <Link href="/documents" className="flex items-center gap-2 hover:text-blue-600 cursor-pointer">
             <FileText className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Documents</span>
           </Link>
-          <Link href="/clients" className="flex items-center gap-2 hover:text-blue-600 cursor-pointer">
-            <Users className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Clients</span>
+          <Link href="/crm" className="flex items-center gap-2 hover:text-blue-600 cursor-pointer">
+            <Users className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>CRM</span>
           </Link>
           <Link href="/billing" className="flex items-center gap-2 hover:text-blue-600 cursor-pointer">
             <CreditCard className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Billing</span>

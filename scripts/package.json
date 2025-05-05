@@ -1,0 +1,9 @@
+{
+  "name": "create-admin",
+  "version": "1.0.0",
+  "description": "Script to create admin user in Supabase",
+  "main": "create-admin.js",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  }
+} 
