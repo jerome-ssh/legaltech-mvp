@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 
 export default function LayoutWithSidebar({ children }: { children: React.ReactNode }) {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   return (
     <div className="flex min-h-screen bg-gray-50">
