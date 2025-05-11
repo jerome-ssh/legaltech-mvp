@@ -20,6 +20,7 @@ const publicPaths = [
   "/signup/verify-email-address",
   "/signup/verify",
   "/forgot-password",
+  "/reset-password",
   "/api/check-onboarding",
   "/api/profile/update",
   "/api/profile/check",
