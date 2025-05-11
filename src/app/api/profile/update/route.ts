@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs";
 import { createClient } from '@supabase/supabase-js';
+import { v5 as uuidv5 } from 'uuid';
 
 // Get environment variables
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -20,6 +21,11 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   },
 });
 
+// Function to convert Clerk ID to UUID
+function clerkIdToUUID(clerkId: string): string {
+    return uuidv5(clerkId, '6ba7b810-9dad-11d1-80b4-00c04fd430c8');
+}
+
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
@@ -37,6 +43,10 @@ export async function POST(request: Request) {
         { status: 401 }
       );
     }
+
+    // Convert Clerk ID to UUID for the profile ID
+    const profileId = clerkIdToUUID(userId);
+    console.log('API route: Generated profile ID:', profileId);
 
     // Fetch user data from Clerk
     const clerkUser = await clerkClient.users.getUser(userId);
@@ -71,7 +81,8 @@ export async function POST(request: Request) {
       phoneNumber,
       gender,
       onboarding_completed = false,
-      professionalIds = []
+      professionalIds = [],
+      role = 'attorney'
     } = body;
 
     // First, get the Supabase user ID from the profiles table
@@ -101,8 +112,9 @@ export async function POST(request: Request) {
       const { data: newProfile, error: createError } = await supabase
         .from('profiles')
         .insert({
-          clerk_id: userId,
-          user_id: userId,
+          id: profileId, // Use the generated UUID
+          user_id: profileId, // Use the same UUID for user_id
+          clerk_id: userId, // Store the original Clerk ID
           email: email || clerkUser.emailAddresses[0]?.emailAddress || null,
           phone_number: phoneNumber || clerkUser.phoneNumbers[0]?.phoneNumber || null,
           first_name: firstName || clerkUser.firstName || null,
@@ -114,6 +126,7 @@ export async function POST(request: Request) {
           address: address || null,
           home_address: homeAddress || null,
           gender: gender || null,
+          role: role,
           onboarding_completed: onboarding_completed,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
@@ -136,7 +149,7 @@ export async function POST(request: Request) {
       // Insert professional IDs for new profile
       if (professionalIds && Array.isArray(professionalIds) && professionalIds.length > 0) {
         const profIdRows = professionalIds.map((entry: any) => ({
-          user_id: userId,
+          user_id: profileId,
           country: entry.country,
           state: entry.state || null,
           professional_id: entry.id || null,
@@ -179,6 +192,7 @@ export async function POST(request: Request) {
         address: address || null,
         home_address: homeAddress || null,
         gender: gender || null,
+        role: role,
         onboarding_completed: onboarding_completed,
         updated_at: new Date().toISOString()
       })
@@ -209,75 +223,66 @@ export async function POST(request: Request) {
 
     if (professionalIds && Array.isArray(professionalIds) && professionalIds.length > 0) {
         try {
-            // Log the first entry in detail
-            console.log('API route: First professional ID entry:', {
-                raw: professionalIds[0],
-                country: professionalIds[0].country,
-                state: professionalIds[0].state,
-                id: professionalIds[0].id,
-                yearIssued: professionalIds[0].yearIssued,
-                noId: professionalIds[0].noId
-            });
+            // Get the first professional ID entry (we only want one per profile)
+            const entry = professionalIds[0];
+            console.log('API route: Processing professional ID entry:', entry);
 
-            // Only delete existing records if we have new ones to insert
-            console.log('API route: Deleting existing professional IDs for profile:', existingProfile.id);
-            const { error: deleteError, count: deleteCount } = await supabase
+            // Check if an entry already exists for this profile
+            const { data: existingEntry, error: lookupError } = await supabase
                 .from('professional_ids')
-                .delete()
+                .select('id')
                 .eq('profile_id', existingProfile.id)
-                .select('count');
-            
-            console.log('API route: Delete operation result:', { error: deleteError, count: deleteCount });
+                .single();
 
-            // Prepare and insert new professional IDs
-            const profIdRows = professionalIds.map((entry: any) => {
-                const row = {
-                    profile_id: existingProfile.id,
-                    country: entry.country,
-                    state: entry.state || null,
-                    professional_id: entry.id || null,
-                    year_issued: entry.yearIssued ? parseInt(entry.yearIssued) : null,
-                    verification_status: 'not_verified',
-                    no_id: !!entry.noId
-                };
-                console.log('API route: Prepared row for insertion:', row);
-                return row;
-            });
+            if (lookupError && lookupError.code !== 'PGRST116') {
+                console.error('API route: Error looking up existing professional ID:', lookupError);
+            }
 
-            console.log('API route: Attempting to insert professional IDs:', JSON.stringify(profIdRows, null, 2));
-            const { data: insertedIds, error: insertError } = await supabase
-                .from('professional_ids')
-                .insert(profIdRows)
-                .select();
+            const profIdData = {
+                profile_id: existingProfile.id,
+                country: entry.country,
+                state: entry.state || null,
+                professional_id: entry.id || null,
+                year_issued: entry.yearIssued ? parseInt(entry.yearIssued) : null,
+                verification_status: 'not_verified',
+                no_id: !!entry.noId
+            };
 
-            if (insertError) {
-                console.error('API route: Error inserting professional IDs:', {
-                    error: insertError,
-                    code: insertError.code,
-                    message: insertError.message,
-                    details: insertError.details
-                });
+            if (existingEntry) {
+                // Update existing entry
+                console.log('API route: Updating existing professional ID entry:', existingEntry.id);
+                const { error: updateError } = await supabase
+                    .from('professional_ids')
+                    .update(profIdData)
+                    .eq('id', existingEntry.id);
+
+                if (updateError) {
+                    console.error('API route: Error updating professional ID:', updateError);
+                } else {
+                    console.log('API route: Successfully updated professional ID entry');
+                }
             } else {
-                console.log('API route: Successfully inserted professional IDs:', {
-                    count: insertedIds?.length,
-                    firstInserted: insertedIds?.[0],
-                    allInserted: insertedIds
-                });
+                // Create new entry
+                console.log('API route: Creating new professional ID entry');
+                const { error: insertError } = await supabase
+                    .from('professional_ids')
+                    .insert(profIdData);
+
+                if (insertError) {
+                    console.error('API route: Error inserting professional ID:', insertError);
+                } else {
+                    console.log('API route: Successfully created professional ID entry');
+                }
             }
         } catch (error) {
-            console.error('API route: Unexpected error handling professional IDs:', {
+            console.error('API route: Unexpected error handling professional ID:', {
                 error,
                 message: error instanceof Error ? error.message : 'Unknown error',
                 stack: error instanceof Error ? error.stack : undefined
             });
         }
     } else {
-        console.log('API route: No professional IDs provided in update, skipping professional IDs update. Details:', {
-            professionalIds,
-            type: typeof professionalIds,
-            isArray: Array.isArray(professionalIds),
-            length: professionalIds?.length
-        });
+        console.log('API route: No professional IDs provided in update, skipping professional IDs update');
     }
 
     console.log('API route: Profile updated successfully:', updatedProfile);

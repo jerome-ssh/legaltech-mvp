@@ -12,6 +12,7 @@ import { ProgressIndicator } from "@/components/onboarding/ProgressIndicator";
 import { ProfileStrength } from "@/components/onboarding/ProfileStrength";
 import { getSpecializationsByBarNumber, getFirmSuggestions, socialProofData, specializationsByBar } from "@/lib/onboarding-utils";
 import countryList from 'react-select-country-list';
+import { v5 as uuidv5 } from 'uuid';
 
 interface OnboardingForm {
     firm_name: string;
@@ -69,6 +70,11 @@ interface ProfessionalIdEntry {
     noId: boolean;
 }
 
+// Function to convert Clerk ID to UUID
+function clerkIdToUUID(clerkId: string): string {
+    return uuidv5(clerkId, '6ba7b810-9dad-11d1-80b4-00c04fd430c8');
+}
+
 export default function Onboarding() {
     const router = useRouter();
     const { user, isLoaded } = useUser();
@@ -115,6 +121,30 @@ export default function Onboarding() {
     const [showValidationPrompt, setShowValidationPrompt] = useState(false);
 
     useEffect(() => {
+        // Disable all dashboard-related API calls while on onboarding page
+        const originalFetch = window.fetch;
+        window.fetch = async (...args) => {
+            const [resource] = args;
+            if (typeof resource === 'string' &&
+                (resource.includes('/tasks') ||
+                    resource.includes('/messages') ||
+                    resource.includes('/billing') ||
+                    resource.includes('/activity'))) {
+                return new Response(JSON.stringify({ data: [], error: null }), {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            }
+            return originalFetch(...args);
+        };
+
+        // Cleanup function to restore original fetch
+        return () => {
+            window.fetch = originalFetch;
+        };
+    }, []);
+
+    useEffect(() => {
         if (isLoaded && user) {
             // Pre-fill form with Clerk user data
             setForm(prev => ({
@@ -155,12 +185,14 @@ export default function Onboarding() {
 
                     if (!checkData.exists) {
                         console.log('Creating initial profile for user...');
+                        const profileId = clerkIdToUUID(user.id);
                         // Create a minimal profile with basic user info
                         const response = await fetch('/api/profile/update', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                                barNumber: '',
+                                user_id: profileId, // Use the generated UUID
+                                clerk_id: user.id, // Store the original Clerk ID
                                 firmName: '',
                                 specialization: '',
                                 yearsOfPractice: '',
@@ -173,7 +205,8 @@ export default function Onboarding() {
                                 lastName: user.lastName || '',
                                 email: user.primaryEmailAddress?.emailAddress || '',
                                 phoneNumber: user.phoneNumbers[0]?.phoneNumber || '',
-                                onboarding_completed: false // Explicitly set to false for new profiles
+                                onboarding_completed: false,
+                                role: 'attorney'
                             }),
                         });
 
