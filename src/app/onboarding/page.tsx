@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { toast } from "react-hot-toast";
 import { Plus, Upload, MapPin, Home } from "lucide-react";
 import { ProgressIndicator } from "@/components/onboarding/ProgressIndicator";
 import { ProfileStrength } from "@/components/onboarding/ProfileStrength";
-import { getSpecializationsByBarNumber, getFirmSuggestions, socialProofData } from "@/lib/onboarding-utils";
+import { getSpecializationsByBarNumber, getFirmSuggestions, socialProofData, specializationsByBar } from "@/lib/onboarding-utils";
 
 interface OnboardingForm {
     bar_number: string;
@@ -69,6 +69,9 @@ export default function Onboarding() {
     const [specializationSuggestions, setSpecializationSuggestions] = useState<string[]>([]);
     const [avatarUploading, setAvatarUploading] = useState(false);
     const [showNameErrors, setShowNameErrors] = useState(false);
+    const [specializationFocused, setSpecializationFocused] = useState(false);
+    const [specializationSearch, setSpecializationSearch] = useState("");
+    const specializationDropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (isLoaded && user) {
@@ -350,6 +353,68 @@ export default function Onboarding() {
         }
     };
 
+    // Replace allSpecializations with the provided list
+    const allSpecializations = [
+        "Administrative Law",
+        "Admiralty (Maritime) Law",
+        "Animal Law",
+        "Antitrust Law",
+        "Aviation and Space Law",
+        "Banking and Finance Law",
+        "Bankruptcy Law",
+        "Business (Corporate) Law",
+        "Civil Rights Law",
+        "Commercial Law",
+        "Constitutional Law",
+        "Consumer Protection Law",
+        "Contract Law",
+        "Criminal Law",
+        "Cybersecurity (Cyber) Law",
+        "Education Law",
+        "Elder Law",
+        "Employment and Labor Law",
+        "Energy and Infrastructure Law",
+        "Entertainment Law",
+        "Environmental Law",
+        "Estate Planning (Wills and Trusts)",
+        "Family Law",
+        "Gaming Law",
+        "Health Law",
+        "Human Rights Law",
+        "Immigration Law",
+        "Intellectual Property (IP) Law",
+        "International Law",
+        "Media Law",
+        "Personal Injury Law",
+        "Product Liability Law",
+        "Public Interest Law",
+        "Real Estate (Property) Law",
+        "Sports Law",
+        "Tax Law",
+        "Technology Law (Fintech, Blockchain, AI)",
+        "Tort Law"
+    ];
+    const filteredSpecializations = allSpecializations.filter(s => s.toLowerCase().includes(specializationSearch.toLowerCase()));
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (
+                specializationDropdownRef.current &&
+                !specializationDropdownRef.current.contains(event.target as Node)
+            ) {
+                setSpecializationFocused(false);
+            }
+        }
+        if (specializationFocused) {
+            document.addEventListener("mousedown", handleClickOutside);
+        } else {
+            document.removeEventListener("mousedown", handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [specializationFocused]);
+
     if (!isLoaded) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -553,7 +618,7 @@ export default function Onboarding() {
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Area of Practice
                                         </label>
-                                        <div className="relative">
+                                        <div className="relative" ref={specializationDropdownRef}>
                                             <Input
                                                 type="text"
                                                 name="specialization"
@@ -561,18 +626,35 @@ export default function Onboarding() {
                                                 onChange={handleChange}
                                                 placeholder="Enter your specialization"
                                                 className="w-full"
+                                                onFocus={() => setSpecializationFocused(true)}
                                             />
-                                            {specializationSuggestions.length > 0 && (
-                                                <div className="absolute z-10 w-full mt-1 bg-white rounded-md shadow-lg">
-                                                    {specializationSuggestions.map((suggestion, index) => (
-                                                        <div
-                                                            key={index}
-                                                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                                            onClick={() => handleSpecializationSuggestionClick(suggestion)}
-                                                        >
-                                                            {suggestion}
-                                                        </div>
-                                                    ))}
+                                            {specializationFocused && allSpecializations.length > 0 && (
+                                                <div className="absolute z-10 w-full mt-1 bg-white rounded-md shadow-lg max-h-60 overflow-y-auto border border-gray-200">
+                                                    <input
+                                                        type="text"
+                                                        value={specializationSearch}
+                                                        onChange={e => setSpecializationSearch(e.target.value)}
+                                                        placeholder="Search specialization..."
+                                                        className="w-full px-3 py-2 border-b border-gray-200 focus:outline-none"
+                                                        autoFocus
+                                                        onClick={e => e.stopPropagation()}
+                                                    />
+                                                    {filteredSpecializations.length > 0 ? (
+                                                        filteredSpecializations.map((specialization, index) => (
+                                                            <div
+                                                                key={index}
+                                                                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                                                onMouseDown={() => {
+                                                                    handleSpecializationSuggestionClick(specialization);
+                                                                    setSpecializationSearch("");
+                                                                }}
+                                                            >
+                                                                {specialization}
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <div className="px-4 py-2 text-gray-400">No results found</div>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>
