@@ -110,6 +110,7 @@ export default function Onboarding() {
         email: true,
         country: professionalIds[0]?.country ? true : false,
         professionalId: professionalIds[0]?.id || professionalIds[0]?.noId ? true : false,
+        gender: true,
     });
     const [showValidationPrompt, setShowValidationPrompt] = useState(false);
 
@@ -280,6 +281,8 @@ export default function Onboarding() {
 
     const handleSpecializationSuggestionClick = (suggestion: string) => {
         setForm(prev => ({ ...prev, specialization: suggestion }));
+        setSpecializationSearch("");
+        setSpecializationFocused(false);
         setSpecializationSuggestions([]);
     };
 
@@ -294,17 +297,28 @@ export default function Onboarding() {
 
     function allRequiredFieldsValid() {
         const entry = professionalIds[0];
-        return (
-            validateField('firstName', form.first_name) &&
-            validateField('lastName', form.last_name) &&
-            validateField('email', form.email) &&
-            validateField('country', entry.country) &&
-            validateField('professionalId', entry.noId ? true : entry.id)
-        );
+        if (currentStep === 1) {
+            return (
+                validateField('firstName', form.first_name) &&
+                validateField('lastName', form.last_name) &&
+                validateField('gender', form.gender)
+            );
+        }
+        if (currentStep === 2) {
+            return (
+                validateField('firstName', form.first_name) &&
+                validateField('lastName', form.last_name) &&
+                validateField('email', form.email) &&
+                validateField('country', entry.country) &&
+                validateField('professionalId', entry.noId ? true : entry.id) &&
+                validateField('gender', form.gender)
+            );
+        }
+        return true;
     }
 
     const handleNextWithValidation = () => {
-        if (currentStep === 2 && !allRequiredFieldsValid()) {
+        if (!allRequiredFieldsValid()) {
             setShowValidationPrompt(true);
             setValidation({
                 firstName: validateField('firstName', form.first_name),
@@ -312,6 +326,7 @@ export default function Onboarding() {
                 email: validateField('email', form.email),
                 country: validateField('country', professionalIds[0].country),
                 professionalId: validateField('professionalId', professionalIds[0].noId ? true : professionalIds[0].id),
+                gender: validateField('gender', form.gender),
             });
             return;
         }
@@ -351,21 +366,21 @@ export default function Onboarding() {
                 }
                 // Update profile in Supabase
                 console.log('Client: Sending profile update request to API...');
+                const payload = {
+                    firmName: form.firm_name,
+                    specialization: form.specialization,
+                    yearsOfPractice: form.years_of_practice,
+                    avatarUrl: form.avatar_url,
+                    address: form.address,
+                    homeAddress: form.home_address,
+                    gender: form.gender,
+                    professionalIds,
+                };
+                console.log("Client: Payload sent to /api/profile/update:", payload);
                 const response = await fetch('/api/profile/update', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        firmName: form.firm_name,
-                        specialization: form.specialization,
-                        yearsOfPractice: form.years_of_practice,
-                        avatarUrl: form.avatar_url,
-                        address: form.address,
-                        homeAddress: form.home_address,
-                        gender: form.gender,
-                        professionalIds,
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
                 console.log('Client: Received response status:', response.status);
                 const responseText = await response.text();
@@ -473,7 +488,8 @@ export default function Onboarding() {
         ));
     }
     function addProfessionalId() {
-        setProfessionalIds(prev => [...prev, { country: '', state: '', id: '', yearIssued: '', noId: false }]);
+        const currentYear = new Date().getFullYear();
+        setProfessionalIds(prev => [...prev, { country: '', state: '', id: '', yearIssued: currentYear.toString(), noId: false }]);
     }
     function removeProfessionalId(idx: number) {
         setProfessionalIds(prev => prev.filter((_, i) => i !== idx));
@@ -491,6 +507,8 @@ export default function Onboarding() {
                 return !!value && value.toString().trim().length > 0;
             case 'professionalId':
                 return (typeof value === 'string' && value.trim().length > 0 && value.length <= 50 && /^[a-zA-Z0-9\-/ ]*$/.test(value)) || value === true;
+            case 'gender':
+                return !!value && value.toString().trim().length > 0;
             default:
                 return true;
         }
@@ -583,9 +601,14 @@ export default function Onboarding() {
                                         <select
                                             name="gender"
                                             value={form.gender}
-                                            onChange={handleChange}
+                                            onChange={e => {
+                                                handleChange(e);
+                                                if (showValidationPrompt) {
+                                                    setValidation(v => ({ ...v, gender: validateField('gender', e.target.value) }));
+                                                }
+                                            }}
                                             required
-                                            className="w-full border rounded px-3 py-2"
+                                            className={`w-full border rounded px-3 py-2${showValidationPrompt && !validateField('gender', form.gender) ? ' border-red-500' : ''}`}
                                         >
                                             <option value="">Select gender</option>
                                             <option value="Male">Male</option>
@@ -593,6 +616,9 @@ export default function Onboarding() {
                                             <option value="Other">Other</option>
                                             <option value="Prefer not to say">Prefer not to say</option>
                                         </select>
+                                        {showValidationPrompt && !validateField('gender', form.gender) && (
+                                            <span className="text-red-500 text-xs">Gender is required</span>
+                                        )}
                                     </div>
                                 </div>
                             </CardContent>
@@ -655,7 +681,7 @@ export default function Onboarding() {
                                                 <div className="mb-2">
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">Country/Jurisdiction <span className="text-red-500">*</span></label>
                                                     <select
-                                                        className={`w-full border rounded px-3 py-2 ${!validateField('country', entry.country) ? 'border-red-500' : ''}`}
+                                                        className={`w-full border rounded px-3 py-2 ${showValidationPrompt && !validateField('country', entry.country) ? 'border-red-500' : ''}`}
                                                         value={entry.country}
                                                         onChange={e => {
                                                             handleProfessionalIdChange(idx, 'country', e.target.value);
@@ -668,7 +694,7 @@ export default function Onboarding() {
                                                             <option key={c.value} value={c.label}>{c.label}</option>
                                                         ))}
                                                     </select>
-                                                    {!validateField('country', entry.country) && <span className="text-xs text-red-500">Country is required</span>}
+                                                    {showValidationPrompt && !validateField('country', entry.country) && <span className="text-xs text-red-500">Country is required</span>}
                                                 </div>
                                                 {entry.country === 'United States' && (
                                                     <div className="mb-2">
@@ -692,7 +718,7 @@ export default function Onboarding() {
                                                 </div>
                                                 <input
                                                     type="text"
-                                                    className={`w-full border rounded px-3 py-2 mb-1 ${!validateField('professionalId', entry.noId ? true : entry.id) ? 'border-red-500' : ''}`}
+                                                    className={`w-full border rounded px-3 py-2 mb-1 ${showValidationPrompt && !validateField('professionalId', entry.noId ? true : entry.id) ? 'border-red-500' : ''}`}
                                                     value={entry.id}
                                                     onChange={e => {
                                                         handleProfessionalIdChange(idx, 'id', e.target.value);
@@ -703,6 +729,7 @@ export default function Onboarding() {
                                                     placeholder="Enter your professional ID or leave blank"
                                                     required={!entry.noId}
                                                 />
+                                                {showValidationPrompt && !validateField('professionalId', entry.noId ? true : entry.id) && <span className="text-xs text-red-500">Professional ID is required or check the box</span>}
                                                 <div className="flex items-center mb-2">
                                                     <input
                                                         type="checkbox"
@@ -716,18 +743,23 @@ export default function Onboarding() {
                                                     />
                                                     <label htmlFor={`noid-${idx}`} className="text-sm">My jurisdiction does not issue a professional ID</label>
                                                 </div>
-                                                {!validateField('professionalId', entry.noId ? true : entry.id) && <span className="text-xs text-red-500">Professional ID is required or check the box</span>}
                                                 <div className="mb-2">
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">Year Issued (optional)</label>
-                                                    <input
-                                                        type="number"
+                                                    <select
                                                         className="w-full border rounded px-3 py-2"
-                                                        value={entry.yearIssued}
-                                                        onChange={e => handleProfessionalIdChange(idx, 'yearIssued', e.target.value)}
-                                                        placeholder="e.g., 2022"
-                                                        min={1900}
-                                                        max={new Date().getFullYear()}
-                                                    />
+                                                        value={entry.yearIssued || new Date().getFullYear().toString()}
+                                                        onChange={e => handleProfessionalIdChange(idx, "yearIssued", e.target.value)}
+                                                    >
+                                                        <option value="">Select year</option>
+                                                        {Array.from({ length: new Date().getFullYear() - 1900 + 1 }, (_, i) => {
+                                                            const year = new Date().getFullYear() - i;
+                                                            return (
+                                                                <option key={year} value={year}>
+                                                                    {year}
+                                                                </option>
+                                                            );
+                                                        })}
+                                                    </select>
                                                 </div>
                                                 {professionalIds.length > 1 && (
                                                     <button type="button" className="text-red-500 text-xs underline" onClick={() => removeProfessionalId(idx)}>Remove</button>
