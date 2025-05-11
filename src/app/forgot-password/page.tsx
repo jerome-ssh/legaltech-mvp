@@ -45,10 +45,13 @@ export default function ForgotPasswordPage() {
       // Store attempt timestamp and email for the reset page
       localStorage.setItem('lastPasswordResetAttempt', Date.now().toString());
       localStorage.setItem('resetEmail', email);
+      console.log('[ForgotPassword] Set resetEmail in localStorage:', email);
 
       toast.success('Password reset code sent! Please check your email.');
-      // Use router.push for client-side navigation
-      router.push('/reset-password');
+      // Add a small delay to ensure localStorage is set before redirect
+      setTimeout(() => {
+        router.push('/reset-password');
+      }, 100);
     } catch (err: any) {
       console.error('Password reset request error:', err);
       toast.error(err.message || 'Failed to send reset code. Please try again.');

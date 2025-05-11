@@ -95,7 +95,10 @@ export default function ResetPasswordPage() {
 
     // Check if we have a valid reset session
     useEffect(() => {
+        // Only run on client
+        if (typeof window === 'undefined') return;
         const email = localStorage.getItem('resetEmail');
+        console.log('[ResetPassword] resetEmail in localStorage:', email);
         if (!email) {
             toast.error('Reset session expired. Please request a new reset code.');
             router.push('/forgot-password');
