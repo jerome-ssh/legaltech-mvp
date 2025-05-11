@@ -345,10 +345,12 @@ export default function Onboarding() {
         try {
             setLoading(true);
             console.log('Client: Starting profile update...');
+
             // Update user metadata in Clerk
             console.log('Client: Updating Clerk metadata...');
+            let metadataUpdate;
             try {
-                const metadataUpdate = await user.update({
+                metadataUpdate = await user.update({
                     unsafeMetadata: {
                         firmName: form.firm_name,
                         specialization: form.specialization,
@@ -362,37 +364,33 @@ export default function Onboarding() {
                     unsafeMetadata: metadataUpdate?.unsafeMetadata
                 });
                 if (!metadataUpdate?.unsafeMetadata?.onboardingCompleted) {
-                    throw new Error('Failed to update onboarding status');
+                    throw new Error('Failed to update onboarding status in Clerk');
                 }
-                // Update profile in Supabase
-                console.log('Client: Sending profile update request to API...');
-                // Add detailed logging for professional IDs
-                console.log('Client: Professional IDs before submission:', {
-                    raw: professionalIds,
-                    length: professionalIds.length,
-                    firstEntry: professionalIds[0],
-                    allEntries: professionalIds.map(entry => ({
-                        country: entry.country,
-                        state: entry.state,
-                        id: entry.id,
-                        yearIssued: entry.yearIssued,
-                        noId: entry.noId
-                    }))
-                });
-                const payload = {
-                    firmName: form.firm_name,
-                    specialization: form.specialization,
-                    yearsOfPractice: form.years_of_practice,
-                    avatarUrl: form.avatar_url,
-                    address: form.address,
-                    homeAddress: form.home_address,
-                    gender: form.gender,
-                    professionalIds,
-                    firstName: form.first_name,
-                    lastName: form.last_name,
-                };
-                console.log("Client: Full payload sent to /api/profile/update:", JSON.stringify(payload, null, 2));
-                const response = await fetch('/api/profile/update', {
+            } catch (error) {
+                console.error('Client: Error updating Clerk metadata:', error);
+                throw new Error('Failed to update Clerk metadata');
+            }
+
+            // Update profile in Supabase
+            console.log('Client: Sending profile update request to API...');
+            const payload = {
+                firmName: form.firm_name,
+                specialization: form.specialization,
+                yearsOfPractice: form.years_of_practice,
+                avatarUrl: form.avatar_url,
+                address: form.address,
+                homeAddress: form.home_address,
+                gender: form.gender,
+                professionalIds,
+                firstName: form.first_name,
+                lastName: form.last_name,
+                onboarding_completed: true
+            };
+            console.log("Client: Full payload sent to /api/profile/update:", JSON.stringify(payload, null, 2));
+
+            let response;
+            try {
+                response = await fetch('/api/profile/update', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -411,27 +409,66 @@ export default function Onboarding() {
                 }
 
                 if (!response.ok || !responseData.success) {
-                    throw new Error(responseData.error || 'Failed to update profile');
+                    throw new Error(responseData.error || 'Failed to update profile in Supabase');
                 }
-
-                toast.success('Profile completed successfully!');
-
-                // Wait for Clerk's session to be refreshed with the new metadata
-                console.log('Client: Waiting for Clerk session to update...');
-                await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
-
-                // Force a hard navigation to dashboard
-                console.log('Client: Redirecting to dashboard...');
-                window.location.href = '/dashboard';
             } catch (error) {
-                console.error('Client: Error updating profile:', error);
-                toast.error(error instanceof Error ? error.message : 'Failed to complete profile');
-            } finally {
-                setLoading(false);
+                console.error('Client: Error updating Supabase profile:', error);
+                throw new Error('Failed to update Supabase profile');
             }
+
+            // Verify both updates are complete
+            console.log('Client: Verifying updates...');
+            let verificationAttempts = 0;
+            const maxAttempts = 5;
+            let verificationSuccessful = false;
+
+            while (verificationAttempts < maxAttempts && !verificationSuccessful) {
+                try {
+                    // Check profile status
+                    const checkResponse = await fetch('/api/profile/check');
+                    const checkData = await checkResponse.json();
+
+                    // Check Clerk metadata
+                    const clerkOnboardingCompleted = user.unsafeMetadata?.onboardingCompleted;
+
+                    console.log('Client: Verification attempt', verificationAttempts + 1, {
+                        profileStatus: checkData.onboarding_completed,
+                        clerkStatus: clerkOnboardingCompleted
+                    });
+
+                    if (checkData.onboarding_completed && clerkOnboardingCompleted) {
+                        verificationSuccessful = true;
+                        console.log('Client: Both updates verified successfully');
+                    } else {
+                        verificationAttempts++;
+                        if (verificationAttempts < maxAttempts) {
+                            console.log('Client: Updates not yet complete, waiting...');
+                            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second between attempts
+                        }
+                    }
+                } catch (error) {
+                    console.error('Client: Error during verification:', error);
+                    verificationAttempts++;
+                    if (verificationAttempts < maxAttempts) {
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+                }
+            }
+
+            if (!verificationSuccessful) {
+                throw new Error('Failed to verify updates after multiple attempts');
+            }
+
+            toast.success('Profile completed successfully!');
+
+            // Force a hard navigation to dashboard
+            console.log('Client: Redirecting to dashboard...');
+            window.location.href = '/dashboard';
         } catch (error) {
-            console.error('Client: Error updating profile:', error);
+            console.error('Client: Error in onboarding completion:', error);
             toast.error(error instanceof Error ? error.message : 'Failed to complete profile');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -503,8 +540,13 @@ export default function Onboarding() {
         ));
     }
     function addProfessionalId() {
-        const currentYear = new Date().getFullYear();
-        setProfessionalIds(prev => [...prev, { country: '', state: '', id: '', yearIssued: currentYear.toString(), noId: false }]);
+        setProfessionalIds(prev => [...prev, {
+            country: '',
+            state: '',
+            id: '',
+            yearIssued: '',
+            noId: false
+        }]);
     }
     function removeProfessionalId(idx: number) {
         setProfessionalIds(prev => prev.filter((_, i) => i !== idx));
