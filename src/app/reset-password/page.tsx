@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AuthLayout from '@/components/AuthLayout';
 import Link from 'next/link';
 import { useSignIn } from '@clerk/nextjs';
@@ -16,35 +16,91 @@ export default function ResetPasswordPage() {
     const { signIn } = useSignIn();
     const router = useRouter();
 
+    // Validate password strength
+    const validatePassword = (password: string) => {
+        const minLength = 8;
+        const hasUpperCase = /[A-Z]/.test(password);
+        const hasLowerCase = /[a-z]/.test(password);
+        const hasNumbers = /\d/.test(password);
+        const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+        if (password.length < minLength) {
+            return 'Password must be at least 8 characters long';
+        }
+        if (!hasUpperCase) {
+            return 'Password must contain at least one uppercase letter';
+        }
+        if (!hasLowerCase) {
+            return 'Password must contain at least one lowercase letter';
+        }
+        if (!hasNumbers) {
+            return 'Password must contain at least one number';
+        }
+        if (!hasSpecialChar) {
+            return 'Password must contain at least one special character';
+        }
+        return null;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
 
         try {
+            // Validate code
+            if (!code.trim()) {
+                throw new Error('Please enter the reset code');
+            }
+
             // Validate password
-            if (newPassword.length < 8) {
-                throw new Error('Password must be at least 8 characters long');
+            const passwordError = validatePassword(newPassword);
+            if (passwordError) {
+                throw new Error(passwordError);
+            }
+
+            // Get the email from localStorage
+            const email = localStorage.getItem('resetEmail');
+            if (!email) {
+                throw new Error('Reset session expired. Please request a new reset code.');
             }
 
             // Attempt to reset the password
             const result = await signIn?.attemptFirstFactor({
                 strategy: "reset_password_email_code",
                 code,
-                password: newPassword,
+                password: newPassword
             });
 
-            if (result?.status === 'complete') {
-                toast.success('Password reset successful!');
+            if (!result) {
+                throw new Error('Failed to reset password. Please try again.');
+            }
+
+            if (result.status === 'complete') {
+                // Clear reset-related data from localStorage
+                localStorage.removeItem('resetEmail');
+                localStorage.removeItem('lastPasswordResetAttempt');
+
+                toast.success('Password reset successful! Please sign in with your new password.');
                 router.push('/login');
             } else {
                 throw new Error('Failed to reset password. Please try again.');
             }
         } catch (err: any) {
+            console.error('Password reset error:', err);
             toast.error(err.message || 'Failed to reset password. Please try again.');
         } finally {
             setLoading(false);
         }
     };
+
+    // Check if we have a valid reset session
+    useEffect(() => {
+        const email = localStorage.getItem('resetEmail');
+        if (!email) {
+            toast.error('Reset session expired. Please request a new reset code.');
+            router.push('/forgot-password');
+        }
+    }, [router]);
 
     return (
         <AuthLayout
@@ -60,11 +116,12 @@ export default function ResetPasswordPage() {
                         type="text"
                         id="code"
                         value={code}
-                        onChange={(e) => setCode(e.target.value)}
+                        onChange={(e) => setCode(e.target.value.trim())}
                         required
                         className="mt-1 block w-full h-11 px-4 rounded-lg border border-gray-200 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20 bg-white/70 text-base dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 transition-colors"
                         placeholder="Enter reset code"
                         disabled={loading}
+                        maxLength={8}
                     />
                 </div>
                 <div>
@@ -96,6 +153,9 @@ export default function ResetPasswordPage() {
                             )}
                         </button>
                     </div>
+                    <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                        Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.
+                    </p>
                 </div>
                 <button
                     type="submit"

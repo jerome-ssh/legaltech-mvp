@@ -85,6 +85,34 @@ export default function ProfileSettings() {
         lastName: formData.lastName,
       });
 
+      // Update profile in Supabase
+      const response = await fetch('/api/profile/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          phoneNumber: formData.phoneNumber,
+          firmName: formData.firmName,
+          specialization: formData.specialization,
+          yearsOfPractice: formData.yearsOfPractice,
+          gender: formData.gender,
+        })
+      });
+
+      const responseData = await response.json();
+
+      // Add new error handling for phone number duplicates
+      if (!responseData.success && responseData.code === 'PHONE_NUMBER_IN_USE') {
+        toast.error('This phone number is already associated with another account. Please use a different phone number.');
+        setLoading(false);
+        return;
+      }
+
+      if (!response.ok || !responseData.success) {
+        throw new Error(responseData.error || 'Failed to update profile');
+      }
+
       // Update public metadata
       await user.update({
         unsafeMetadata: {

@@ -26,6 +26,19 @@ function clerkIdToUUID(clerkId: string): string {
     return uuidv5(clerkId, '6ba7b810-9dad-11d1-80b4-00c04fd430c8');
 }
 
+// Helper to determine if user is a social (Google) sign-in
+function isSocialSignIn(userData: any): boolean {
+  if (!userData) return false;
+  if (Array.isArray(userData.externalAccounts) && userData.externalAccounts.length > 0) {
+    return userData.externalAccounts.some((acc: any) => acc.provider && acc.provider.startsWith('oauth_'));
+  }
+  // Fallback for Clerk API v1: external_accounts
+  if (Array.isArray(userData.external_accounts) && userData.external_accounts.length > 0) {
+    return userData.external_accounts.some((acc: any) => acc.provider && acc.provider.startsWith('oauth_'));
+  }
+  return false;
+}
+
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
@@ -84,6 +97,28 @@ export async function POST(request: Request) {
       professionalIds = [],
       role = 'attorney'
     } = body;
+
+    // Check for duplicate phone number if phone number is being updated
+    if (phoneNumber && !isSocialSignIn(clerkUser)) {
+      const { data: existingPhoneProfile } = await supabase
+        .from('profiles')
+        .select('clerk_id')
+        .eq('phone_number', phoneNumber)
+        .neq('clerk_id', userId)
+        .single();
+
+      if (existingPhoneProfile) {
+        console.log('API route: Phone number already in use by another account');
+        return NextResponse.json(
+          { 
+            success: false,
+            error: "Phone number is already associated with another account",
+            code: "PHONE_NUMBER_IN_USE"
+          },
+          { status: 400 }
+        );
+      }
+    }
 
     // First, get the Supabase user ID from the profiles table
     console.log('API route: Looking up Supabase user ID for Clerk ID:', userId);
@@ -176,8 +211,54 @@ export async function POST(request: Request) {
       );
     }
 
+    // Process professional IDs if provided
+    if (professionalIds && Array.isArray(professionalIds)) {
+      console.log('API route: Processing professional IDs update:', {
+        hasProfessionalIds: true,
+        isArray: true,
+        length: professionalIds.length,
+        data: JSON.stringify(professionalIds, null, 2),
+        clerkId: userId
+      });
+
+      // Get the UUID for the user
+      const profileId = clerkIdToUUID(userId);
+
+      // Delete existing professional IDs for this user
+      const { error: deleteError } = await supabase
+        .from('professional_ids')
+        .delete()
+        .eq('user_id', profileId);
+
+      if (deleteError) {
+        console.error('API route: Error deleting existing professional IDs:', deleteError);
+      }
+
+      // Insert new professional IDs
+      for (const entry of professionalIds) {
+        console.log('API route: Processing professional ID entry:', entry);
+        
+        if (entry.noId || entry.id) {
+          const { error: insertError } = await supabase
+            .from('professional_ids')
+            .insert({
+              user_id: profileId,
+              country: entry.country,
+              state: entry.state || null,
+              id: entry.id || null,
+              year_issued: entry.yearIssued || null,
+              no_id: entry.noId
+            });
+
+          if (insertError) {
+            console.error('API route: Error inserting professional ID:', insertError);
+          }
+        }
+      }
+    }
+
     // Update existing profile
-    console.log('API route: Updating existing profile for Supabase ID:', existingProfile.id);
+    console.log('API route: Updating existing profile for Clerk ID:', userId);
     const { data: updatedProfile, error: updateError } = await supabase
       .from('profiles')
       .update({
@@ -196,7 +277,7 @@ export async function POST(request: Request) {
         onboarding_completed: onboarding_completed,
         updated_at: new Date().toISOString()
       })
-      .eq('id', existingProfile.id)
+      .eq('clerk_id', userId)
       .select()
       .single();
 
@@ -210,79 +291,6 @@ export async function POST(request: Request) {
         },
         { status: 500 }
       );
-    }
-
-    // Handle professional IDs update
-    console.log('API route: Processing professional IDs update:', {
-        hasProfessionalIds: !!professionalIds,
-        isArray: Array.isArray(professionalIds),
-        length: professionalIds?.length || 0,
-        data: JSON.stringify(professionalIds, null, 2),
-        profileId: existingProfile.id
-    });
-
-    if (professionalIds && Array.isArray(professionalIds) && professionalIds.length > 0) {
-        try {
-            // Get the first professional ID entry (we only want one per profile)
-            const entry = professionalIds[0];
-            console.log('API route: Processing professional ID entry:', entry);
-
-            // Check if an entry already exists for this profile
-            const { data: existingEntry, error: lookupError } = await supabase
-                .from('professional_ids')
-                .select('id')
-                .eq('profile_id', existingProfile.id)
-                .single();
-
-            if (lookupError && lookupError.code !== 'PGRST116') {
-                console.error('API route: Error looking up existing professional ID:', lookupError);
-            }
-
-            const profIdData = {
-                profile_id: existingProfile.id,
-                country: entry.country,
-                state: entry.state || null,
-                professional_id: entry.id || null,
-                year_issued: entry.yearIssued ? parseInt(entry.yearIssued) : null,
-                verification_status: 'not_verified',
-                no_id: !!entry.noId
-            };
-
-            if (existingEntry) {
-                // Update existing entry
-                console.log('API route: Updating existing professional ID entry:', existingEntry.id);
-                const { error: updateError } = await supabase
-                    .from('professional_ids')
-                    .update(profIdData)
-                    .eq('id', existingEntry.id);
-
-                if (updateError) {
-                    console.error('API route: Error updating professional ID:', updateError);
-                } else {
-                    console.log('API route: Successfully updated professional ID entry');
-                }
-            } else {
-                // Create new entry
-                console.log('API route: Creating new professional ID entry');
-                const { error: insertError } = await supabase
-                    .from('professional_ids')
-                    .insert(profIdData);
-
-                if (insertError) {
-                    console.error('API route: Error inserting professional ID:', insertError);
-                } else {
-                    console.log('API route: Successfully created professional ID entry');
-                }
-            }
-        } catch (error) {
-            console.error('API route: Unexpected error handling professional ID:', {
-                error,
-                message: error instanceof Error ? error.message : 'Unknown error',
-                stack: error instanceof Error ? error.stack : undefined
-            });
-        }
-    } else {
-        console.log('API route: No professional IDs provided in update, skipping professional IDs update');
     }
 
     console.log('API route: Profile updated successfully:', updatedProfile);

@@ -369,14 +369,19 @@ export default function Dashboard() {
           <Card className="lg:col-span-1 shadow-md bg-gradient-to-br from-sky-50 to-white">
             <CardContent className="p-4">
               <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
-              <ul className="space-y-3 text-sm text-gray-600">
-                {dashboardData.activity.length === 0 && <li>No activity yet.</li>}
-                {dashboardData.activity.map((a: Activity, i: number) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <span className="text-blue-600">•</span> {a.description}
-                  </li>
-                ))}
-              </ul>
+              {(() => {
+                const activity = Array.isArray(dashboardData.activity) ? dashboardData.activity : [];
+                return (
+                  <ul className="space-y-3 text-sm text-gray-600">
+                    {activity.length === 0 && <li>No activity yet.</li>}
+                    {activity.map((a: Activity, i: number) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="text-blue-600">•</span> {a.description}
+                      </li>
+                    ))}
+                  </ul>
+                );
+              })()}
             </CardContent>
           </Card>
 
@@ -440,8 +445,8 @@ export default function Dashboard() {
                       size="sm"
                       variant="outline"
                       className={`gap-1 transition-colors duration-200 ${selectedUseCase === label
-                          ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
-                          : 'bg-white border-0 shadow-sm hover:bg-blue-50'
+                        ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
+                        : 'bg-white border-0 shadow-sm hover:bg-blue-50'
                         }`}
                       onClick={() => setSelectedUseCase(selectedUseCase === label ? null : label)}
                     >
@@ -492,10 +497,10 @@ export default function Dashboard() {
                       Due: {new Date(due).toLocaleDateString()} • Priority: {" "}
                       <span
                         className={`font-semibold ${priority === "High"
-                            ? "text-red-500"
-                            : priority === "Medium"
-                              ? "text-yellow-500"
-                              : "text-green-500"
+                          ? "text-red-500"
+                          : priority === "Medium"
+                            ? "text-yellow-500"
+                            : "text-green-500"
                           }`}
                       >
                         {priority}
