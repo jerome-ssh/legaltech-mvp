@@ -366,6 +366,19 @@ export default function Onboarding() {
                 }
                 // Update profile in Supabase
                 console.log('Client: Sending profile update request to API...');
+                // Add detailed logging for professional IDs
+                console.log('Client: Professional IDs before submission:', {
+                    raw: professionalIds,
+                    length: professionalIds.length,
+                    firstEntry: professionalIds[0],
+                    allEntries: professionalIds.map(entry => ({
+                        country: entry.country,
+                        state: entry.state,
+                        id: entry.id,
+                        yearIssued: entry.yearIssued,
+                        noId: entry.noId
+                    }))
+                });
                 const payload = {
                     firmName: form.firm_name,
                     specialization: form.specialization,
@@ -375,8 +388,10 @@ export default function Onboarding() {
                     homeAddress: form.home_address,
                     gender: form.gender,
                     professionalIds,
+                    firstName: form.first_name,
+                    lastName: form.last_name,
                 };
-                console.log("Client: Payload sent to /api/profile/update:", payload);
+                console.log("Client: Full payload sent to /api/profile/update:", JSON.stringify(payload, null, 2));
                 const response = await fetch('/api/profile/update', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
