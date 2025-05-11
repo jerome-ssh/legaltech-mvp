@@ -29,6 +29,7 @@ import {
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { supabase } from "@/lib/supabase";
+import { toast } from "react-hot-toast";
 
 // Types
 interface CaseData {
@@ -80,10 +81,18 @@ interface ChartConfig {
   data: any[];
 }
 
+interface Filters {
+  attorney: string;
+  client: string;
+  date: string;
+}
+
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
 
 export default function Analytics() {
-  const [filters, setFilters] = useState({ attorney: "", client: "", date: "" });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<Filters>({ attorney: "", client: "", date: "" });
   const [timePeriod, setTimePeriod] = useState("monthly");
   const [dateRange, setDateRange] = useState<{ start: Date | null; end: Date | null }>({ start: null, end: null });
   const [focusedChartIndex, setFocusedChartIndex] = useState<number | null>(null);
@@ -108,52 +117,41 @@ export default function Analytics() {
   }, [timePeriod, dateRange]);
 
   const fetchAnalyticsData = async () => {
+    setIsLoading(true);
+    setError(null);
     try {
-      // Fetch cases data
-      const { data: cases, error: casesError } = await supabase
-        .from('cases')
-        .select('*')
-        .order('created_at', { ascending: true });
+      // Fetch all data in parallel
+      const [
+        { data: cases, error: casesError },
+        { data: types, error: typesError },
+        { data: billing, error: billingError },
+        { data: tasks, error: tasksError },
+        { data: statusData, error: statusError },
+        { data: feedbackData, error: feedbackError }
+      ] = await Promise.all([
+        supabase.from('cases').select('*').order('created_at', { ascending: true }),
+        supabase.from('case_types').select('*'),
+        supabase.from('billing').select('*').order('created_at', { ascending: true }),
+        supabase.from('tasks').select('*').eq('is_recurring', true),
+        supabase.from('cases').select('status'),
+        supabase.from('client_feedback').select('rating')
+      ]);
 
-      if (casesError) throw casesError;
+      // Handle errors
+      if (casesError) throw new Error('Failed to fetch cases data');
+      if (typesError) throw new Error('Failed to fetch case types');
+      if (billingError) throw new Error('Failed to fetch billing data');
+      if (tasksError) throw new Error('Failed to fetch tasks');
+      if (statusError) throw new Error('Failed to fetch case statuses');
+      if (feedbackError) throw new Error('Failed to fetch client feedback');
 
-      // Process cases data for charts
-      const processedCaseData = processCaseData(cases || []);
-      setCaseData(processedCaseData);
-
-      // Fetch case types
-      const { data: types, error: typesError } = await supabase
-        .from('case_types')
-        .select('*');
-
-      if (typesError) throw typesError;
+      // Process and set data
+      setCaseData(processCaseData(cases || []));
       setCaseTypes(types || []);
-
-      // Fetch billing data
-      const { data: billing, error: billingError } = await supabase
-        .from('billing')
-        .select('*')
-        .order('date', { ascending: true });
-
-      if (billingError) throw billingError;
       setBillingPerformance(processBillingData(billing || []));
-
-      // Fetch recurring tasks
-      const { data: tasks, error: tasksError } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('is_recurring', true);
-
-      if (tasksError) throw tasksError;
       setRecurringTasks(processTasksData(tasks || []));
 
-      // Fetch case statuses
-      const { data: statusData, error: statusError } = await supabase
-        .from('cases')
-        .select('status');
-
-      if (statusError) throw statusError;
-
+      // Process status data
       const statusCounts = (statusData ?? []).reduce((acc: Record<string, number>, item: any) => {
         acc[item.status] = (acc[item.status] || 0) + 1;
         return acc;
@@ -165,13 +163,7 @@ export default function Analytics() {
       }));
       setCaseStatuses(statuses);
 
-      // Fetch client feedback
-      const { data: feedbackData, error: feedbackError } = await supabase
-        .from('client_feedback')
-        .select('rating');
-
-      if (feedbackError) throw feedbackError;
-
+      // Process feedback data
       const feedbackCounts = (feedbackData ?? []).reduce((acc: Record<number, number>, item: any) => {
         acc[item.rating] = (acc[item.rating] || 0) + 1;
         return acc;
@@ -189,6 +181,10 @@ export default function Analytics() {
 
     } catch (error) {
       console.error('Error fetching analytics data:', error);
+      setError(error instanceof Error ? error.message : 'An error occurred while fetching data');
+      toast.error('Failed to load analytics data');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -196,7 +192,7 @@ export default function Analytics() {
     return cases.reduce((acc: CaseData[], case_: any) => {
       const month = new Date(case_.created_at).toLocaleString('default', { month: 'short' });
       const existingMonth = acc.find(item => item.name === month);
-      
+
       if (existingMonth) {
         existingMonth.cases++;
         existingMonth.revenue += case_.revenue || 0;
@@ -215,9 +211,9 @@ export default function Analytics() {
 
   const processBillingData = (billing: any[]): BillingData[] => {
     return billing.reduce((acc: BillingData[], bill: any) => {
-      const month = new Date(bill.date).toLocaleString('default', { month: 'short' });
+      const month = bill.month;
       const existingMonth = acc.find(item => item.month === month);
-      
+
       if (existingMonth) {
         existingMonth.paid += bill.paid || 0;
         existingMonth.outstanding += bill.outstanding || 0;
@@ -269,23 +265,55 @@ export default function Analytics() {
   };
 
   const exportToCSV = () => {
-    const csvContent = [
-      ['Metric', 'Value'],
-      ['Total Cases', summaryStats.totalCases],
-      ['Active Cases', summaryStats.activeCases],
-      ['Total Revenue', summaryStats.totalRevenue],
-      ['Average Case Duration', summaryStats.averageCaseDuration],
-      ['Client Satisfaction', summaryStats.clientSatisfaction],
-      ['Total Clients', summaryStats.totalClients],
-      ['Success Rate', `${summaryStats.successRate.toFixed(1)}%`],
-    ].map(row => row.join(',')).join('\n');
+    try {
+      const csvContent = [
+        ['Metric', 'Value'],
+        ['Total Cases', summaryStats.totalCases],
+        ['Active Cases', summaryStats.activeCases],
+        ['Total Revenue', summaryStats.totalRevenue],
+        ['Average Case Duration', summaryStats.averageCaseDuration],
+        ['Client Satisfaction', summaryStats.clientSatisfaction],
+        ['Total Clients', summaryStats.totalClients],
+        ['Success Rate', `${summaryStats.successRate.toFixed(1)}%`],
+      ].map(row => row.join(',')).join('\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'analytics_report.csv';
-    link.click();
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'analytics_report.csv';
+      link.click();
+      toast.success('Report exported successfully');
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      toast.error('Failed to export report');
+    }
   };
+
+  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilters({ ...filters, [e.target.name]: e.target.value });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading analytics data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button onClick={fetchAnalyticsData}>Retry</Button>
+        </div>
+      </div>
+    );
+  }
 
   const chartConfigs: ChartConfig[] = [
     {
@@ -372,10 +400,6 @@ export default function Analytics() {
       data: clientFeedback,
     }
   ];
-
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilters({ ...filters, [e.target.name]: e.target.value });
-  };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -468,11 +492,10 @@ export default function Analytics() {
           {chartConfigs.map(({ title, chart, data }, i) => (
             <Card
               key={i}
-              className={`bg-white transition-all duration-300 cursor-pointer ${
-                focusedChartIndex === i 
-                  ? "shadow-[0_0_25px_rgba(59,130,246,0.5)] border-2 border-blue-500 scale-[1.01]" 
-                  : "hover:shadow-md"
-              }`}
+              className={`bg-white transition-all duration-300 cursor-pointer ${focusedChartIndex === i
+                ? "shadow-[0_0_25px_rgba(59,130,246,0.5)] border-2 border-blue-500 scale-[1.01]"
+                : "hover:shadow-md"
+                }`}
               onClick={() => setFocusedChartIndex(focusedChartIndex === i ? null : i)}
             >
               <CardContent className="p-6">

@@ -1,9 +1,12 @@
 {
-  "name": "create-admin",
+  "name": "legaltech-scripts",
   "version": "1.0.0",
-  "description": "Script to create admin user in Supabase",
-  "main": "create-admin.js",
+  "type": "module",
+  "description": "Scripts for LegalTech MVP",
+  "private": true,
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.0"
+    "@clerk/clerk-sdk-node": "latest",
+    "@supabase/supabase-js": "latest",
+    "dotenv": "latest"
   }
-} 
+}

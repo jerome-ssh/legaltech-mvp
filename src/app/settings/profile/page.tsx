@@ -1,14 +1,15 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { supabase } from "@/lib/supabase";
 import { Camera, Loader2, UserCircle2, X, Check, Trash2, Phone, MapPin, Building, Briefcase, Crop } from "lucide-react";
 import Image from "next/image";
 import ReactCrop, { type Crop as CropType, centerCrop, makeAspectCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
+import { useUser } from '@clerk/nextjs';
+import { toast } from 'react-hot-toast';
 
 interface UserProfile {
   id: string;
@@ -43,495 +44,232 @@ function centerAspectCrop(
 }
 
 export default function ProfileSettings() {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [showCrop, setShowCrop] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState<Partial<UserProfile>>({});
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [crop, setCrop] = useState<CropType>();
-  const [completedCrop, setCompletedCrop] = useState<CropType>();
-  const [aspect, setAspect] = useState<number>(1);
-  const imgRef = useRef<HTMLImageElement>(null);
-  const previewCanvasRef = useRef<HTMLCanvasElement>(null);
+  const { user, isLoaded } = useUser();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phoneNumber: '',
+    barNumber: '',
+    firmName: '',
+    specialization: '',
+    yearsOfPractice: '',
+    gender: '',
+  });
+  const [avatarUrl, setAvatarUrl] = useState(user?.imageUrl || '');
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  useEffect(() => {
-    if (profile) {
+    if (user) {
       setFormData({
-        phone_number: profile.phone_number || '',
-        address: profile.address || '',
-        firm_name: profile.firm_name || '',
-        specialization: profile.specialization || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.primaryEmailAddress?.emailAddress || '',
+        phoneNumber: user.phoneNumbers[0]?.phoneNumber || '',
+        barNumber: (user.publicMetadata?.barNumber as string) || '',
+        firmName: (user.publicMetadata?.firmName as string) || '',
+        specialization: (user.publicMetadata?.specialization as string) || '',
+        yearsOfPractice: (user.publicMetadata?.yearsOfPractice as string) || '',
+        gender: (user.publicMetadata?.gender as string) || '',
       });
     }
-  }, [profile]);
+  }, [user]);
 
-  const fetchProfile = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
+      // Update user profile
+      await user.update({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+      });
 
-        if (error) throw error;
-        setProfile(data);
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      setError('Failed to load profile');
+      // Update public metadata
+      await user.update({
+        unsafeMetadata: {
+          barNumber: formData.barNumber,
+          firmName: formData.firmName,
+          specialization: formData.specialization,
+          yearsOfPractice: formData.yearsOfPractice,
+          gender: formData.gender,
+        },
+      });
+
+      toast.success('Profile updated successfully');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update profile');
     } finally {
       setLoading(false);
     }
   };
 
-  function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
-    if (aspect) {
-      const { width, height } = e.currentTarget;
-      setCrop(centerAspectCrop(width, height, aspect));
-    }
-  }
-
-  useEffect(() => {
-    if (!completedCrop || !previewCanvasRef.current || !imgRef.current) {
-      return;
-    }
-
-    const image = imgRef.current;
-    const canvas = previewCanvasRef.current;
-    const crop = completedCrop;
-
-    const scaleX = image.naturalWidth / image.width;
-    const scaleY = image.naturalHeight / image.height;
-    const ctx = canvas.getContext('2d');
-    const pixelRatio = window.devicePixelRatio;
-
-    canvas.width = crop.width * pixelRatio;
-    canvas.height = crop.height * pixelRatio;
-
-    if (ctx) {
-      ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-      ctx.imageSmoothingQuality = 'high';
-
-      ctx.drawImage(
-        image,
-        crop.x * scaleX,
-        crop.y * scaleY,
-        crop.width * scaleX,
-        crop.height * scaleY,
-        0,
-        0,
-        crop.width,
-        crop.height,
-      );
-    }
-  }, [completedCrop]);
-
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check file type
-    if (!file.type.startsWith('image/')) {
-      setError('Please upload an image file');
-      return;
-    }
-
-    // Check file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError('File size should be less than 5MB');
-      return;
-    }
-
-    // Create preview URL
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
-    setShowCrop(true);
-  };
-
-  const handleUpload = async () => {
-    if (!completedCrop || !previewCanvasRef.current) return;
-
     try {
-      setUploading(true);
-      setError(null);
+      const formData = new FormData();
+      formData.append('file', file);
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user logged in');
+      const response = await fetch('/api/avatar/upload', {
+        method: 'POST',
+        body: formData,
+      });
 
-      // Convert canvas to blob
-      previewCanvasRef.current.toBlob(async (blob) => {
-        if (!blob) {
-          throw new Error('Failed to create blob');
-        }
+      const result = await response.json();
 
-        const file = new File([blob], 'profile-picture.jpg', { type: 'image/jpeg' });
-
-        // Upload file to Supabase Storage
-        const fileName = `${user.id}-${Date.now()}.jpg`;
-        const { error: uploadError } = await supabase.storage
-          .from('profile-pictures')
-          .upload(fileName, file);
-
-        if (uploadError) throw uploadError;
-
-        // Get the public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('profile-pictures')
-          .getPublicUrl(fileName);
-
-        // Update profile with new picture URL
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ profile_picture: publicUrl })
-          .eq('id', user.id);
-
-        if (updateError) throw updateError;
-
-        // Update local state
-        setProfile(prev => prev ? { ...prev, profile_picture: publicUrl } : null);
-        setShowCrop(false);
-        setPreviewUrl(null);
-        setCrop(undefined);
-        setCompletedCrop(undefined);
-      }, 'image/jpeg', 0.95);
+      if (result.success) {
+        setAvatarUrl(result.url);
+        toast.success('Avatar updated successfully');
+        // Optionally refresh the page or update the UI
+        window.location.reload();
+      } else {
+        throw new Error(result.error || 'Failed to upload avatar');
+      }
     } catch (error) {
-      console.error('Error uploading profile picture:', error);
-      setError('Failed to upload profile picture');
-    } finally {
-      setUploading(false);
+      console.error('Avatar upload error:', error);
+      toast.error('Failed to upload avatar. Please try again.');
     }
   };
 
-  const handleDeletePicture = async () => {
-    try {
-      setUploading(true);
-      setError(null);
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user logged in');
-
-      // Update profile to remove picture URL
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ profile_picture: null })
-        .eq('id', user.id);
-
-      if (updateError) throw updateError;
-
-      // Update local state
-      setProfile(prev => prev ? { ...prev, profile_picture: '' } : null);
-    } catch (error) {
-      console.error('Error deleting profile picture:', error);
-      setError('Failed to delete profile picture');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleCancel = () => {
-    setShowCrop(false);
-    setPreviewUrl(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSave = async () => {
-    try {
-      setUploading(true);
-      setError(null);
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user logged in');
-
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update(formData)
-        .eq('id', user.id);
-
-      if (updateError) throw updateError;
-
-      // Update local state
-      setProfile(prev => prev ? { ...prev, ...formData } : null);
-      setIsEditing(false);
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      setError('Failed to update profile');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex-1 p-8">
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
-        </div>
-      </div>
-    );
+  if (!isLoaded) {
+    return <div>Loading...</div>;
   }
 
   return (
-    <div className="flex-1 p-8">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Profile Settings</h1>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="space-y-6">
-              {/* Profile Picture Section */}
-              <div className="flex items-center gap-6">
-                <div className="relative">
-                  {showCrop && previewUrl ? (
-                    <div className="space-y-4">
-                      <div className="relative w-64 h-64">
-                        <ReactCrop
-                          crop={crop}
-                          onChange={(c) => setCrop(c)}
-                          onComplete={(c) => setCompletedCrop(c)}
-                          aspect={aspect}
-                          className="max-w-full max-h-[400px]"
-                        >
-                          <img
-                            ref={imgRef}
-                            src={previewUrl}
-                            alt="Profile preview"
-                            onLoad={onImageLoad}
-                            className="max-w-full max-h-[400px]"
-                          />
-                        </ReactCrop>
-                      </div>
-                      <div className="flex items-center justify-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={handleUpload}
-                          disabled={uploading || !completedCrop}
-                        >
-                          {uploading ? (
-                            <>
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Uploading...
-                            </>
-                          ) : (
-                            <>
-                              <Check className="w-4 h-4 mr-2" />
-                              Apply Crop
-                            </>
-                          )}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={handleCancel}
-                        >
-                          <X className="w-4 h-4 mr-2" />
-                          Cancel
-                        </Button>
-                      </div>
-                      <canvas
-                        ref={previewCanvasRef}
-                        className="hidden"
-                      />
-                    </div>
-                  ) : profile?.profile_picture ? (
-                    <div className="relative group">
-                      <Avatar className="w-24 h-24">
-                        <AvatarImage 
-                          src={profile.profile_picture} 
-                          alt={profile.full_name || 'Profile'} 
-                        />
-                        <AvatarFallback>
-                          {profile.full_name?.charAt(0) || 'P'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 rounded-full flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-white hover:text-white hover:bg-white/20"
-                          onClick={handleDeletePicture}
-                          disabled={uploading}
-                        >
-                          {uploading ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="w-4 h-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center">
-                      <UserCircle2 className="w-12 h-12 text-gray-400" />
-                    </div>
-                  )}
-                  {!showCrop && (
-                    <label 
-                      htmlFor="profile-picture"
-                      className="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-md cursor-pointer hover:bg-gray-50"
-                    >
-                      <Camera className="w-5 h-5 text-gray-600" />
-                    </label>
-                  )}
-                  <input
-                    id="profile-picture"
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                  />
-                </div>
-                <div>
-                  <h2 className="text-lg font-medium text-gray-900">{profile?.full_name || 'User'}</h2>
-                  <p className="text-sm text-gray-500">{profile?.email || ''}</p>
-                  {error && (
-                    <p className="text-sm text-red-500 mt-2">{error}</p>
-                  )}
-                </div>
-              </div>
+    <div className="max-w-2xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-6">Profile Settings</h1>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              First Name
+            </label>
+            <input
+              type="text"
+              value={formData.firstName}
+              onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Last Name
+            </label>
+            <input
+              type="text"
+              value={formData.lastName}
+              onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+              required
+            />
+          </div>
+        </div>
 
-              {/* Profile Information */}
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Full Name</label>
-                  <Input
-                    value={profile?.full_name || ''}
-                    disabled
-                    className="bg-gray-50"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Email</label>
-                  <Input
-                    value={profile?.email || ''}
-                    disabled
-                    className="bg-gray-50"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Role</label>
-                  <Input
-                    value={profile?.role || 'Attorney'}
-                    disabled
-                    className="bg-gray-50"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <Phone className="w-4 h-4" />
-                    Phone Number
-                  </label>
-                  <Input
-                    name="phone_number"
-                    value={formData.phone_number}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    placeholder="Enter your phone number"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <MapPin className="w-4 h-4" />
-                    Address
-                  </label>
-                  <Input
-                    name="address"
-                    value={formData.address}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    placeholder="Enter your address"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <Building className="w-4 h-4" />
-                    Firm Name
-                  </label>
-                  <Input
-                    name="firm_name"
-                    value={formData.firm_name}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    placeholder="Enter your firm name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <Briefcase className="w-4 h-4" />
-                    Specialization
-                  </label>
-                  <Input
-                    name="specialization"
-                    value={formData.specialization}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    placeholder="Enter your legal specialization"
-                  />
-                </div>
-              </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Email
+          </label>
+          <input
+            type="email"
+            value={formData.email}
+            disabled
+            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50"
+          />
+        </div>
 
-              {/* Action Buttons */}
-              <div className="flex justify-end gap-4">
-                {isEditing ? (
-                  <>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setIsEditing(false);
-                        setFormData({
-                          phone_number: profile?.phone_number || '',
-                          address: profile?.address || '',
-                          firm_name: profile?.firm_name || '',
-                          specialization: profile?.specialization || '',
-                        });
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={handleSave}
-                      disabled={uploading}
-                    >
-                      {uploading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        'Save Changes'
-                      )}
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    onClick={() => setIsEditing(true)}
-                  >
-                    Edit Profile
-                  </Button>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Phone Number
+          </label>
+          <input
+            type="tel"
+            value={formData.phoneNumber}
+            onChange={(e) => setFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Bar Number
+          </label>
+          <input
+            type="text"
+            value={formData.barNumber}
+            onChange={(e) => setFormData(prev => ({ ...prev, barNumber: e.target.value }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Firm Name
+          </label>
+          <input
+            type="text"
+            value={formData.firmName}
+            onChange={(e) => setFormData(prev => ({ ...prev, firmName: e.target.value }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Specialization
+          </label>
+          <input
+            type="text"
+            value={formData.specialization}
+            onChange={(e) => setFormData(prev => ({ ...prev, specialization: e.target.value }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Years of Practice
+          </label>
+          <input
+            type="number"
+            value={formData.yearsOfPractice}
+            onChange={(e) => setFormData(prev => ({ ...prev, yearsOfPractice: e.target.value }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Gender
+          </label>
+          <select
+            value={formData.gender}
+            onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+          >
+            <option value="">Select gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+            <option value="prefer_not_to_say">Prefer not to say</option>
+          </select>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-gradient-to-r from-sky-400 to-pink-400 hover:from-sky-500 hover:to-pink-500 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:opacity-50"
+        >
+          {loading ? 'Saving...' : 'Save Changes'}
+        </button>
+      </form>
     </div>
   );
 } 

@@ -1,8 +1,7 @@
 'use client';
 
 import { useUser } from '@clerk/nextjs';
-import { usePathname, useRouter } from "next/navigation";
-import { ThemeProvider } from "@/context/ThemeProvider";
+import { usePathname } from "next/navigation";
 import LayoutWithSidebar from "@/components/LayoutWithSidebar";
 import SplashScreen from "@/components/SplashScreen";
 import { useEffect, useState } from "react";
@@ -13,40 +12,49 @@ const protectedRoutes = [
   // add more protected routes here as needed
 ];
 
+const authRoutes = [
+  '/login',
+  '/signup',
+  '/forgot-password',
+  '/reset-password'
+];
+
+const onboardingRoutes = [
+  '/onboarding',
+  '/sso-callback',
+  '/signup/social-callback'
+];
+
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const { isLoaded, isSignedIn } = useUser();
   const pathname = usePathname();
-  const router = useRouter();
-  const [isChecking, setIsChecking] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
 
+  // Handle initial load and auth state
   useEffect(() => {
-    if (isLoaded) {
-      const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
-      if (isProtectedRoute && !isSignedIn) {
-        router.replace('/login');
-      }
-      setIsChecking(false);
+    if (!isLoaded) {
+      setShowSplash(true);
+      return;
     }
-  }, [isLoaded, isSignedIn, pathname, router]);
 
-  // For authenticated users, always render the dashboard layout
-  if (isSignedIn) {
-    return (
-      <ThemeProvider>
-        <LayoutWithSidebar>{children}</LayoutWithSidebar>
-      </ThemeProvider>
-    );
-  }
+    // Force splash screen to show for at least 2 seconds
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2000);
 
-  // For unauthenticated users, show splash during initial load
-  if (!isLoaded || isChecking) {
+    return () => clearTimeout(timer);
+  }, [isLoaded]);
+
+  // Show splash screen during initial load or when auth is not loaded
+  if (!isLoaded || showSplash) {
     return <SplashScreen />;
   }
 
-  // For public routes (like login), render without the dashboard layout
-  return (
-    <ThemeProvider>
-      {children}
-    </ThemeProvider>
-  );
+  // For authenticated users on protected routes, render the dashboard layout
+  if (isSignedIn && protectedRoutes.some(route => pathname.startsWith(route))) {
+    return <LayoutWithSidebar>{children}</LayoutWithSidebar>;
+  }
+
+  // For onboarding and public routes, render without the dashboard layout
+  return children;
 } 
