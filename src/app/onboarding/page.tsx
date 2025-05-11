@@ -1,0 +1,647 @@
+'use client';
+
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useUser, useAuth } from "@clerk/nextjs";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { toast } from "react-hot-toast";
+import { Plus, Upload, MapPin, Home } from "lucide-react";
+import { ProgressIndicator } from "@/components/onboarding/ProgressIndicator";
+import { ProfileStrength } from "@/components/onboarding/ProfileStrength";
+import { getSpecializationsByBarNumber, getFirmSuggestions, socialProofData } from "@/lib/onboarding-utils";
+
+interface OnboardingForm {
+    bar_number: string;
+    firm_name: string;
+    specialization: string;
+    years_of_practice: string;
+    phone_number: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    avatar_url?: string;
+    address?: string; // office address
+    home_address?: string;
+    gender: string;
+}
+
+const onboardingSteps = [
+    {
+        id: 1,
+        title: "Personal Info",
+        description: "Basic details",
+    },
+    {
+        id: 2,
+        title: "Professional Info",
+        description: "Bar & firm details",
+    },
+    {
+        id: 3,
+        title: "Specialization",
+        description: "Area of practice",
+    }
+];
+
+export default function Onboarding() {
+    const router = useRouter();
+    const { user, isLoaded } = useUser();
+    const { getToken } = useAuth();
+    const [loading, setLoading] = useState(false);
+    const [currentStep, setCurrentStep] = useState(1);
+    const [form, setForm] = useState<OnboardingForm>({
+        bar_number: "",
+        firm_name: "",
+        specialization: "",
+        years_of_practice: "",
+        phone_number: "",
+        email: "",
+        first_name: "",
+        last_name: "",
+        avatar_url: "",
+        address: "",
+        home_address: "",
+        gender: "",
+    });
+    const [firmSuggestions, setFirmSuggestions] = useState<string[]>([]);
+    const [specializationSuggestions, setSpecializationSuggestions] = useState<string[]>([]);
+    const [avatarUploading, setAvatarUploading] = useState(false);
+    const [showNameErrors, setShowNameErrors] = useState(false);
+
+    useEffect(() => {
+        if (isLoaded && user) {
+            // Pre-fill form with Clerk user data
+            setForm(prev => ({
+                ...prev,
+                phone_number: user.phoneNumbers[0]?.phoneNumber || "",
+                email: user.primaryEmailAddress?.emailAddress || "",
+                first_name: user.firstName || "",
+                last_name: user.lastName || "",
+            }));
+
+            // Check if user has already completed onboarding
+            checkOnboardingStatus();
+        }
+    }, [isLoaded, user]);
+
+    useEffect(() => {
+        const ensureProfile = async () => {
+            if (isLoaded && user) {
+                try {
+                    // First check if profile exists
+                    const checkRes = await fetch('/api/profile/check', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+
+                    if (!checkRes.ok) {
+                        throw new Error(`Profile check failed: ${checkRes.status}`);
+                    }
+
+                    const checkData = await checkRes.json();
+                    console.log('Profile check response:', checkData);
+
+                    if (!checkData.success) {
+                        throw new Error(checkData.error || 'Failed to check profile');
+                    }
+
+                    if (!checkData.exists) {
+                        console.log('Creating initial profile for user...');
+                        // Create a minimal profile with basic user info
+                        const response = await fetch('/api/profile/update', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                barNumber: '',
+                                firmName: '',
+                                specialization: '',
+                                yearsOfPractice: '',
+                                avatarUrl: '',
+                                address: '',
+                                homeAddress: '',
+                                gender: '',
+                                // Include basic user info from Clerk
+                                firstName: user.firstName || '',
+                                lastName: user.lastName || '',
+                                email: user.primaryEmailAddress?.emailAddress || '',
+                                phoneNumber: user.phoneNumbers[0]?.phoneNumber || '',
+                                onboarding_completed: false // Explicitly set to false for new profiles
+                            }),
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            console.error('Failed to create initial profile:', errorData);
+                            throw new Error(errorData.error || 'Failed to create initial profile');
+                        }
+
+                        const responseData = await response.json();
+                        if (!responseData.success) {
+                            throw new Error(responseData.error || 'Failed to create initial profile');
+                        }
+
+                        console.log('Initial profile created successfully:', responseData);
+                    } else if (checkData.onboarding_completed) {
+                        // If profile exists and onboarding is completed, redirect to dashboard
+                        router.push('/dashboard');
+                    }
+                } catch (err) {
+                    console.error('Error ensuring profile exists:', err);
+                    toast.error('Failed to create profile. Please try refreshing the page.');
+                }
+            }
+        };
+        ensureProfile();
+    }, [isLoaded, user, router]);
+
+    const checkOnboardingStatus = async () => {
+        if (!user) return;
+
+        const onboardingCompleted = user.unsafeMetadata?.onboardingCompleted;
+        if (onboardingCompleted) {
+            router.push('/dashboard');
+        }
+    };
+
+    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setAvatarUploading(true);
+            try {
+                // Create form data
+                const formData = new FormData();
+                formData.append('file', file);
+
+                console.log('Uploading file:', {
+                    name: file.name,
+                    type: file.type,
+                    size: file.size
+                });
+
+                // Upload using the API route
+                const response = await fetch('/api/profile/avatar', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                // Get the response text first
+                const responseText = await response.text();
+                console.log('Raw response:', responseText);
+
+                // Try to parse the response as JSON
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('Failed to parse response:', parseError);
+                    console.error('Response text:', responseText);
+                    throw new Error(`Invalid response from server: ${responseText.substring(0, 100)}...`);
+                }
+
+                if (!response.ok) {
+                    throw new Error(data.error || `Server error: ${response.status}`);
+                }
+
+                if (!data.success || !data.url) {
+                    throw new Error('Failed to get avatar URL');
+                }
+
+                console.log('Avatar uploaded successfully:', data.url);
+                setForm(prev => ({ ...prev, avatar_url: data.url }));
+                toast.success('Avatar uploaded successfully!');
+            } catch (err) {
+                console.error('Avatar upload error:', err);
+                toast.error(err instanceof Error ? err.message : 'Failed to upload avatar. Please try again.');
+            } finally {
+                setAvatarUploading(false);
+            }
+        }
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setForm(prev => ({ ...prev, [name]: value }));
+
+        // Handle firm name suggestions
+        if (name === 'firm_name') {
+            setFirmSuggestions(getFirmSuggestions(value));
+        }
+
+        // Handle specialization suggestions based on bar number
+        if (name === 'bar_number') {
+            setSpecializationSuggestions(getSpecializationsByBarNumber(value));
+        }
+    };
+
+    const handleFirmSuggestionClick = (suggestion: string) => {
+        setForm(prev => ({ ...prev, firm_name: suggestion }));
+        setFirmSuggestions([]);
+    };
+
+    const handleSpecializationSuggestionClick = (suggestion: string) => {
+        setForm(prev => ({ ...prev, specialization: suggestion }));
+        setSpecializationSuggestions([]);
+    };
+
+    const handleNext = () => {
+        if (currentStep === 1 && (!form.first_name || !form.last_name)) {
+            setShowNameErrors(true);
+            return;
+        }
+        setShowNameErrors(false);
+        setCurrentStep(prev => prev + 1);
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!user) {
+            console.error('Client: No user found');
+            toast.error('User not found. Please try logging in again.');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            console.log('Client: Starting profile update...');
+
+            // Update user metadata in Clerk
+            console.log('Client: Updating Clerk metadata...');
+            try {
+                const metadataUpdate = await user.update({
+                    unsafeMetadata: {
+                        barNumber: form.bar_number,
+                        firmName: form.firm_name,
+                        specialization: form.specialization,
+                        yearsOfPractice: form.years_of_practice,
+                        onboardingCompleted: true
+                    }
+                });
+                console.log('Client: Metadata update response:', {
+                    success: !!metadataUpdate,
+                    updatedUser: metadataUpdate,
+                    unsafeMetadata: metadataUpdate?.unsafeMetadata
+                });
+
+                // Verify the update was successful
+                if (!metadataUpdate?.unsafeMetadata?.onboardingCompleted) {
+                    throw new Error('Failed to update onboarding status');
+                }
+
+                // Update profile in Supabase
+                console.log('Client: Sending profile update request to API...');
+                const response = await fetch('/api/profile/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        barNumber: form.bar_number,
+                        firmName: form.firm_name,
+                        specialization: form.specialization,
+                        yearsOfPractice: form.years_of_practice,
+                        avatarUrl: form.avatar_url,
+                        address: form.address,
+                        homeAddress: form.home_address,
+                        gender: form.gender
+                    })
+                });
+
+                console.log('Client: Received response status:', response.status);
+                const responseText = await response.text();
+                console.log('Client: Raw response:', responseText);
+
+                let responseData;
+                try {
+                    responseData = JSON.parse(responseText);
+                    console.log('Client: Parsed response data:', responseData);
+                } catch (parseError) {
+                    console.error('Client: Failed to parse response:', parseError);
+                    throw new Error('Invalid response from server');
+                }
+
+                if (!response.ok || !responseData.success) {
+                    throw new Error(responseData.error || 'Failed to update profile');
+                }
+
+                toast.success('Profile completed successfully!');
+
+                // Wait for Clerk's session to be refreshed with the new metadata
+                console.log('Client: Waiting for Clerk session to update...');
+                await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+
+                // Force a hard navigation to dashboard
+                console.log('Client: Redirecting to dashboard...');
+                window.location.href = '/dashboard';
+            } catch (error) {
+                console.error('Client: Error updating profile:', error);
+                toast.error(error instanceof Error ? error.message : 'Failed to complete profile');
+            } finally {
+                setLoading(false);
+            }
+        } catch (error) {
+            console.error('Client: Error updating profile:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to complete profile');
+        }
+    };
+
+    if (!isLoaded) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-sky-100 via-white to-pink-100">
+            <div className="w-full max-w-4xl p-8">
+                <div className="text-center mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Complete Your Profile</h1>
+                    <p className="text-gray-600">Let's get you set up with your professional profile</p>
+                </div>
+
+                <ProgressIndicator steps={onboardingSteps} currentStep={currentStep} />
+
+                <form onSubmit={handleSubmit} className="mt-8" noValidate>
+                    {currentStep === 1 && (
+                        <Card>
+                            <CardContent className="p-6">
+                                <h2 className="text-xl font-semibold mb-4">Personal Information</h2>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            First Name
+                                        </label>
+                                        <Input
+                                            type="text"
+                                            name="first_name"
+                                            value={form.first_name}
+                                            onChange={handleChange}
+                                            required
+                                            className={`w-full bg-gray-50${showNameErrors && !form.first_name ? ' border border-red-500' : ''}`}
+                                        />
+                                        {showNameErrors && !form.first_name && (
+                                            <span className="text-red-500 text-xs">First name is required</span>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Last Name
+                                        </label>
+                                        <Input
+                                            type="text"
+                                            name="last_name"
+                                            value={form.last_name}
+                                            onChange={handleChange}
+                                            required
+                                            className={`w-full bg-gray-50${showNameErrors && !form.last_name ? ' border border-red-500' : ''}`}
+                                        />
+                                        {showNameErrors && !form.last_name && (
+                                            <span className="text-red-500 text-xs">Last name is required</span>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Email
+                                        </label>
+                                        <Input
+                                            type="email"
+                                            name="email"
+                                            value={form.email}
+                                            disabled
+                                            className="w-full bg-gray-50"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Phone Number (Optional)
+                                        </label>
+                                        <Input
+                                            type="tel"
+                                            name="phone_number"
+                                            value={form.phone_number}
+                                            onChange={handleChange}
+                                            className="w-full bg-gray-50"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Gender <span className="text-red-500">*</span>
+                                        </label>
+                                        <select
+                                            name="gender"
+                                            value={form.gender}
+                                            onChange={handleChange}
+                                            required
+                                            className="w-full border rounded px-3 py-2"
+                                        >
+                                            <option value="">Select gender</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                            <option value="Other">Other</option>
+                                            <option value="Prefer not to say">Prefer not to say</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {currentStep === 2 && (
+                        <Card>
+                            <CardContent className="p-6">
+                                <h2 className="text-xl font-semibold mb-4">Professional Information</h2>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Bar Number
+                                        </label>
+                                        <Input
+                                            type="text"
+                                            name="bar_number"
+                                            value={form.bar_number}
+                                            onChange={handleChange}
+                                            placeholder="Enter your bar number"
+                                            className="w-full"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Firm Name
+                                        </label>
+                                        <div className="relative">
+                                            <Input
+                                                type="text"
+                                                name="firm_name"
+                                                value={form.firm_name}
+                                                onChange={handleChange}
+                                                placeholder="Enter your firm name"
+                                                className="w-full"
+                                            />
+                                            {firmSuggestions.length > 0 && (
+                                                <div className="absolute z-10 w-full mt-1 bg-white rounded-md shadow-lg">
+                                                    {firmSuggestions.map((suggestion, index) => (
+                                                        <div
+                                                            key={index}
+                                                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                                            onClick={() => handleFirmSuggestionClick(suggestion)}
+                                                        >
+                                                            {suggestion}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Years of Practice
+                                        </label>
+                                        <Input
+                                            type="number"
+                                            name="years_of_practice"
+                                            value={form.years_of_practice}
+                                            onChange={handleChange}
+                                            placeholder="Enter years of practice"
+                                            className="w-full"
+                                        />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {currentStep === 3 && (
+                        <Card>
+                            <CardContent className="p-6">
+                                <h2 className="text-xl font-semibold mb-4">Specialization</h2>
+                                <div className="space-y-4">
+                                    <div className="flex flex-col items-center mb-6">
+                                        <label htmlFor="avatar-upload" className="relative cursor-pointer group">
+                                            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-blue-100 via-white to-pink-100 flex items-center justify-center border-4 border-blue-300 shadow-lg relative overflow-hidden transition-all duration-300 group-hover:scale-105">
+                                                {form.avatar_url ? (
+                                                    <img src={form.avatar_url} alt="Profile" className="object-cover w-full h-full rounded-full" />
+                                                ) : (
+                                                    <>
+                                                        <span className="absolute inset-0 flex flex-col items-center justify-center text-blue-400">
+                                                            <Upload className="w-8 h-8 mb-1 opacity-80" />
+                                                            <span className="font-semibold text-base">Photo</span>
+                                                        </span>
+                                                    </>
+                                                )}
+                                                <span className="absolute bottom-2 right-2 bg-blue-600 text-white rounded-full p-2 shadow-xl border-2 border-white group-hover:bg-blue-700 transition-colors">
+                                                    {avatarUploading ? (
+                                                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                                                        </svg>
+                                                    ) : (
+                                                        <Plus className="w-5 h-5" />
+                                                    )}
+                                                </span>
+                                            </div>
+                                            <input id="avatar-upload" name="avatar" type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} disabled={avatarUploading} />
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Area of Practice
+                                        </label>
+                                        <div className="relative">
+                                            <Input
+                                                type="text"
+                                                name="specialization"
+                                                value={form.specialization}
+                                                onChange={handleChange}
+                                                placeholder="Enter your specialization"
+                                                className="w-full"
+                                            />
+                                            {specializationSuggestions.length > 0 && (
+                                                <div className="absolute z-10 w-full mt-1 bg-white rounded-md shadow-lg">
+                                                    {specializationSuggestions.map((suggestion, index) => (
+                                                        <div
+                                                            key={index}
+                                                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                                            onClick={() => handleSpecializationSuggestionClick(suggestion)}
+                                                        >
+                                                            {suggestion}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <MapPin className="w-5 h-5 text-blue-400" />
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Office Address
+                                        </label>
+                                    </div>
+                                    <Input
+                                        type="text"
+                                        name="address"
+                                        value={form.address}
+                                        onChange={handleChange}
+                                        placeholder="Enter your office address"
+                                        className="w-full mb-4"
+                                    />
+                                    <div className="flex items-center gap-2">
+                                        <Home className="w-5 h-5 text-pink-400" />
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Home Address
+                                        </label>
+                                    </div>
+                                    <Input
+                                        type="text"
+                                        name="home_address"
+                                        value={form.home_address}
+                                        onChange={handleChange}
+                                        placeholder="Enter your home address"
+                                        className="w-full"
+                                    />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    <div className="flex justify-between mt-6">
+                        {currentStep > 1 && (
+                            <Button
+                                type="button"
+                                onClick={() => setCurrentStep(prev => prev - 1)}
+                                variant="outline"
+                            >
+                                Previous
+                            </Button>
+                        )}
+                        {currentStep < onboardingSteps.length ? (
+                            <Button
+                                type="button"
+                                onClick={handleNext}
+                                className="ml-auto"
+                                disabled={currentStep === 1 && (!form.first_name || !form.last_name)}
+                            >
+                                Next
+                            </Button>
+                        ) : (
+                            <Button
+                                type="button"
+                                disabled={loading}
+                                className="ml-auto"
+                                onClick={handleSubmit}
+                            >
+                                {loading ? 'Saving...' : 'Complete Profile'}
+                            </Button>
+                        )}
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+} 

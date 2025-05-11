@@ -19,11 +19,12 @@ export default function AuthLayout({ children, title, subtitle }: AuthLayoutProp
       {/* Main content */}
       <div className="relative w-full max-w-lg p-12 bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-sky-600 to-pink-600 bg-clip-text text-transparent">
+          <h2 className="text-3xl font-extrabold text-blue-600 tracking-tight mb-4">LawMate</h2>
+          <h1 className="text-2xl font-semibold text-gray-800">
             {title}
           </h1>
           {subtitle && (
-            <p className="mt-3 text-sm text-gray-600">{subtitle}</p>
+            <p className="mt-2 text-sm text-gray-600">{subtitle}</p>
           )}
         </div>
         {children}

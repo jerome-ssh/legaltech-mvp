@@ -82,12 +82,56 @@ VALID_MESSAGE_TYPES = ['text', 'file', 'system', 'notification']
 
 # Practice areas
 practice_areas = [
-    "Criminal Law",
-    "Family Law",
+    # Civil Law
+    "Administrative Law",
+    "Bankruptcy Law",
+    "Business Law",
+    "Civil Rights Law",
+    "Class Action Litigation",
+    "Commercial Law",
+    "Construction Law",
+    "Consumer Protection Law",
+    "Contract Law",
     "Corporate Law",
-    "Real Estate Law",
+    "Employment Law",
+    "Environmental Law",
+    "Family Law",
+    "Health Care Law",
     "Immigration Law",
-    "Intellectual Property"
+    "Insurance Law",
+    "Intellectual Property Law",
+    "Labor Law",
+    "Landlord-Tenant Law",
+    "Personal Injury Law",
+    "Product Liability Law",
+    "Real Estate Law",
+    "Tax Law",
+    "Tort Law",
+    "Workers' Compensation Law",
+
+    # Criminal Law
+    "Criminal Defense",
+    "Criminal Prosecution",
+    "DUI/DWI Law",
+    "Juvenile Law",
+    "White Collar Crime",
+
+    # Specialized Areas
+    "Admiralty Law",
+    "Aviation Law",
+    "Banking Law",
+    "Elder Law",
+    "Entertainment Law",
+    "Estate Planning",
+    "International Law",
+    "Military Law",
+    "Nonprofit Law",
+    "Patent Law",
+    "Privacy Law",
+    "Securities Law",
+    "Sports Law",
+    "Technology Law",
+    "Trusts and Estates"
 ]
 
 # User roles

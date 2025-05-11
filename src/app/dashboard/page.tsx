@@ -39,8 +39,15 @@ import dynamic from 'next/dynamic';
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 
-const TopBar = dynamic(() => import('@/components/TopBar'), { ssr: false });
-const HeaderBar = dynamic(() => import('@/components/HeaderBar'), { ssr: false });
+const TopBar = dynamic(() => import('@/components/TopBar'), {
+  ssr: false,
+  loading: () => <div className="h-16 bg-gray-100 dark:bg-gray-800 animate-pulse" />
+});
+
+const HeaderBar = dynamic(() => import('@/components/HeaderBar'), {
+  ssr: false,
+  loading: () => <div className="h-16 bg-gray-100 dark:bg-gray-800 animate-pulse" />
+});
 
 interface Activity {
   description: string;
@@ -184,7 +191,7 @@ export default function Dashboard() {
           ]);
           return;
         }
-        
+
         setCaseStages(data || []);
       } catch (error) {
         console.error('Error fetching case stages:', error);
@@ -428,15 +435,14 @@ export default function Dashboard() {
               <div className="flex justify-between items-center mb-3">
                 <div className="flex gap-2 flex-wrap">
                   {useCases.map(({ icon: Icon, label }) => (
-                    <Button 
-                      key={label} 
-                      size="sm" 
-                      variant="outline" 
-                      className={`gap-1 transition-colors duration-200 ${
-                        selectedUseCase === label 
-                          ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700' 
+                    <Button
+                      key={label}
+                      size="sm"
+                      variant="outline"
+                      className={`gap-1 transition-colors duration-200 ${selectedUseCase === label
+                          ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
                           : 'bg-white border-0 shadow-sm hover:bg-blue-50'
-                      }`}
+                        }`}
                       onClick={() => setSelectedUseCase(selectedUseCase === label ? null : label)}
                     >
                       <Icon className="w-4 h-4" /> {label}
@@ -485,13 +491,12 @@ export default function Dashboard() {
                     <p className="text-sm text-gray-500">
                       Due: {new Date(due).toLocaleDateString()} • Priority: {" "}
                       <span
-                        className={`font-semibold ${
-                          priority === "High"
+                        className={`font-semibold ${priority === "High"
                             ? "text-red-500"
                             : priority === "Medium"
-                            ? "text-yellow-500"
-                            : "text-green-500"
-                        }`}
+                              ? "text-yellow-500"
+                              : "text-green-500"
+                          }`}
                       >
                         {priority}
                       </span>
