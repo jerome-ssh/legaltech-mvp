@@ -33,17 +33,24 @@ export default function ForgotPasswordPage() {
         }
       }
 
-      await signIn?.create({
+      const result = await signIn?.create({
         strategy: "reset_password_email_code",
         identifier: email,
       });
 
-      // Store attempt timestamp
+      if (!result) {
+        throw new Error('Failed to initiate password reset');
+      }
+
+      // Store attempt timestamp and email for the reset page
       localStorage.setItem('lastPasswordResetAttempt', Date.now().toString());
+      localStorage.setItem('resetEmail', email);
 
       toast.success('Password reset code sent! Please check your email.');
+      // Use router.push for client-side navigation
       router.push('/reset-password');
     } catch (err: any) {
+      console.error('Password reset request error:', err);
       toast.error(err.message || 'Failed to send reset code. Please try again.');
     } finally {
       setLoading(false);

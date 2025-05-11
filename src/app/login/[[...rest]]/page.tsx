@@ -3,8 +3,47 @@
 import { SignIn } from '@clerk/nextjs';
 import AuthLayout from '@/components/AuthLayout';
 import Link from 'next/link';
+import { toast } from 'react-hot-toast';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
+function useJsonErrorCatcher() {
+    const router = useRouter();
+    useEffect(() => {
+        // Only run on client
+        if (typeof window === 'undefined') return;
+        // Check if the page is showing a raw JSON error (e.g. from a failed fetch)
+        const pre = document.querySelector('pre');
+        if (pre) {
+            try {
+                const json = JSON.parse(pre.textContent || '');
+                if (json && json.error) {
+                    toast.error(json.error || 'An error occurred.');
+                    // Optionally, redirect to login or clear the error
+                    setTimeout(() => {
+                        router.replace('/login');
+                    }, 2000);
+                }
+            } catch (e) {
+                // Not JSON, ignore
+            }
+        }
+    }, [router]);
+}
 
 export default function Page() {
+    useJsonErrorCatcher();
+    // Custom error handler for Clerk SignIn
+    const handleSignInError = (error: any) => {
+        if (error?.code === 'PHONE_NUMBER_IN_USE' || error?.message?.includes('phone number')) {
+            toast.error('This phone number is already associated with another account. Please use a different phone number.');
+        } else if (error?.message) {
+            toast.error(error.message);
+        } else {
+            toast.error('Sign in failed. Please try again.');
+        }
+    };
+
     return (
         <AuthLayout
             title="Welcome Back"

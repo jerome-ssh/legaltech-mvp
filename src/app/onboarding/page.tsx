@@ -119,6 +119,238 @@ export default function Onboarding() {
         gender: true,
     });
     const [showValidationPrompt, setShowValidationPrompt] = useState(false);
+    const [isCheckingProfile, setIsCheckingProfile] = useState(false);
+    const [authState, setAuthState] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading');
+    const checkTimeoutRef = useRef<NodeJS.Timeout>();
+    const mountedRef = useRef(true);
+
+    // Handle component mount/unmount
+    useEffect(() => {
+        mountedRef.current = true;
+        return () => {
+            mountedRef.current = false;
+            if (checkTimeoutRef.current) {
+                clearTimeout(checkTimeoutRef.current);
+            }
+        };
+    }, []);
+
+    // Update auth state when Clerk loads
+    useEffect(() => {
+        if (!isLoaded) {
+            console.log('[Onboarding] Clerk not yet loaded');
+            return;
+        }
+
+        if (!user) {
+            console.log('[Onboarding] No user found, updating auth state');
+            setAuthState('unauthenticated');
+            return;
+        }
+
+        console.log('[Onboarding] User authenticated, updating auth state');
+        setAuthState('authenticated');
+    }, [isLoaded, user]);
+
+    // Handle unauthenticated state
+    useEffect(() => {
+        if (authState === 'unauthenticated' && mountedRef.current) {
+            console.log('[Onboarding] User unauthenticated, redirecting to login');
+            window.location.href = '/login';
+        }
+    }, [authState]);
+
+    // Single consolidated redirection check with debouncing and auth state
+    useEffect(() => {
+        if (authState !== 'authenticated' || !mountedRef.current) {
+            console.log('[Onboarding] Skipping profile check:', {
+                authState,
+                isMounted: mountedRef.current
+            });
+            return;
+        }
+
+        // If we're already on the onboarding page and the profile exists, don't redirect
+        if (window.location.pathname === '/onboarding') {
+            console.log('[Onboarding] Already on onboarding page, skipping redirect check');
+            return;
+        }
+
+        console.log('[Onboarding] Starting profile check with auth state:', {
+            authState,
+            isCheckingProfile,
+            currentStep,
+            timestamp: new Date().toISOString()
+        });
+
+        // Clear any existing timeout
+        if (checkTimeoutRef.current) {
+            clearTimeout(checkTimeoutRef.current);
+        }
+
+        // Debounce the profile check
+        checkTimeoutRef.current = setTimeout(async () => {
+            if (!mountedRef.current) {
+                console.log('[Onboarding] Component unmounted, skipping profile check');
+                return;
+            }
+
+            if (isCheckingProfile) {
+                console.log('[Onboarding] Profile check already in progress, skipping...');
+                return;
+            }
+
+            setIsCheckingProfile(true);
+            console.log('[Onboarding] Starting debounced profile check');
+
+            const checkAndRedirect = async () => {
+                try {
+                    // Verify auth state is still valid
+                    if (!user || authState !== 'authenticated') {
+                        console.log('[Onboarding] Auth state changed during check, aborting');
+                        return;
+                    }
+
+                    // Check if we're already on the dashboard
+                    if (window.location.pathname === '/dashboard') {
+                        console.log('[Onboarding] Already on dashboard, skipping check');
+                        return;
+                    }
+
+                    console.log('[Onboarding] Checking profile status...');
+                    const token = await getToken();
+                    const checkRes = await fetch('/api/profile/check', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Cache-Control': 'no-cache',
+                            'Pragma': 'no-cache'
+                        }
+                    });
+
+                    console.log('[Onboarding] Profile check response:', {
+                        status: checkRes.status,
+                        statusText: checkRes.statusText,
+                        timestamp: new Date().toISOString()
+                    });
+
+                    if (!checkRes.ok) {
+                        console.error('[Onboarding] Profile check failed:', {
+                            status: checkRes.status,
+                            statusText: checkRes.statusText,
+                            timestamp: new Date().toISOString()
+                        });
+                        throw new Error(`Failed to check profile status: ${checkRes.status} ${checkRes.statusText}`);
+                    }
+
+                    const checkData = await checkRes.json();
+                    console.log('[Onboarding] Profile check data:', {
+                        exists: checkData.exists,
+                        onboarding_completed: checkData.onboarding_completed,
+                        success: checkData.success,
+                        error: checkData.error,
+                        timestamp: new Date().toISOString()
+                    });
+
+                    // Only redirect to dashboard if we're not already on the onboarding page
+                    // and both Clerk and profile show onboarding as completed
+                    if (checkData.onboarding_completed &&
+                        user.unsafeMetadata?.onboardingCompleted &&
+                        window.location.pathname !== '/onboarding') {
+                        console.log('[Onboarding] Onboarding completed, preparing redirect:', {
+                            profileCompleted: checkData.onboarding_completed,
+                            clerkCompleted: user.unsafeMetadata?.onboardingCompleted,
+                            timestamp: new Date().toISOString()
+                        });
+
+                        // Small delay to ensure all state updates are complete
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        window.location.href = '/dashboard';
+                        return;
+                    }
+
+                    // If profile doesn't exist, create it
+                    if (!checkData.exists) {
+                        console.log('[Onboarding] Profile does not exist, creating initial profile...');
+                        const profileId = clerkIdToUUID(user.id);
+                        console.log('[Onboarding] Generated profile ID:', profileId);
+
+                        const response = await fetch('/api/profile/update', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Cache-Control': 'no-cache',
+                                'Pragma': 'no-cache'
+                            },
+                            body: JSON.stringify({
+                                user_id: profileId,
+                                clerk_id: user.id,
+                                firmName: '',
+                                specialization: '',
+                                yearsOfPractice: '',
+                                avatarUrl: '',
+                                address: '',
+                                homeAddress: '',
+                                gender: '',
+                                firstName: user.firstName || '',
+                                lastName: user.lastName || '',
+                                email: user.primaryEmailAddress?.emailAddress || '',
+                                phoneNumber: user.phoneNumbers[0]?.phoneNumber || '',
+                                onboarding_completed: false,
+                                role: 'attorney'
+                            }),
+                        });
+
+                        console.log('[Onboarding] Profile creation response:', {
+                            status: response.status,
+                            statusText: response.statusText,
+                            timestamp: new Date().toISOString()
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json().catch(() => null);
+                            console.error('[Onboarding] Profile creation failed:', {
+                                status: response.status,
+                                statusText: response.statusText,
+                                errorData,
+                                timestamp: new Date().toISOString()
+                            });
+                            throw new Error(`Failed to create initial profile: ${response.status} ${response.statusText}`);
+                        }
+
+                        const responseData = await response.json();
+                        console.log('[Onboarding] Profile creation successful:', {
+                            ...responseData,
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+                } catch (error) {
+                    console.error('[Onboarding] Error in profile check:', {
+                        error,
+                        message: error instanceof Error ? error.message : 'Unknown error',
+                        stack: error instanceof Error ? error.stack : undefined,
+                        timestamp: new Date().toISOString(),
+                        authState
+                    });
+
+                    if (mountedRef.current) {
+                        toast.error('Failed to verify onboarding status. Please try refreshing the page.');
+                    }
+                } finally {
+                    if (mountedRef.current) {
+                        setIsCheckingProfile(false);
+                    }
+                }
+            };
+
+            checkAndRedirect();
+        }, 500);
+
+        return () => {
+            if (checkTimeoutRef.current) {
+                clearTimeout(checkTimeoutRef.current);
+            }
+        };
+    }, [authState, user, isCheckingProfile, currentStep, getToken]);
 
     useEffect(() => {
         // Disable all dashboard-related API calls while on onboarding page
@@ -146,7 +378,7 @@ export default function Onboarding() {
 
     useEffect(() => {
         if (isLoaded && user) {
-            // Pre-fill form with Clerk user data
+            // Only pre-fill form with Clerk user data
             setForm(prev => ({
                 ...prev,
                 phone_number: user.phoneNumbers[0]?.phoneNumber || "",
@@ -154,95 +386,8 @@ export default function Onboarding() {
                 first_name: user.firstName || "",
                 last_name: user.lastName || "",
             }));
-
-            // Check if user has already completed onboarding
-            checkOnboardingStatus();
         }
     }, [isLoaded, user]);
-
-    useEffect(() => {
-        const ensureProfile = async () => {
-            if (isLoaded && user) {
-                try {
-                    // First check if profile exists
-                    const checkRes = await fetch('/api/profile/check', {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        }
-                    });
-
-                    if (!checkRes.ok) {
-                        throw new Error(`Profile check failed: ${checkRes.status}`);
-                    }
-
-                    const checkData = await checkRes.json();
-                    console.log('Profile check response:', checkData);
-
-                    if (!checkData.success) {
-                        throw new Error(checkData.error || 'Failed to check profile');
-                    }
-
-                    if (!checkData.exists) {
-                        console.log('Creating initial profile for user...');
-                        const profileId = clerkIdToUUID(user.id);
-                        // Create a minimal profile with basic user info
-                        const response = await fetch('/api/profile/update', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                user_id: profileId, // Use the generated UUID
-                                clerk_id: user.id, // Store the original Clerk ID
-                                firmName: '',
-                                specialization: '',
-                                yearsOfPractice: '',
-                                avatarUrl: '',
-                                address: '',
-                                homeAddress: '',
-                                gender: '',
-                                // Include basic user info from Clerk
-                                firstName: user.firstName || '',
-                                lastName: user.lastName || '',
-                                email: user.primaryEmailAddress?.emailAddress || '',
-                                phoneNumber: user.phoneNumbers[0]?.phoneNumber || '',
-                                onboarding_completed: false,
-                                role: 'attorney'
-                            }),
-                        });
-
-                        if (!response.ok) {
-                            const errorData = await response.json();
-                            console.error('Failed to create initial profile:', errorData);
-                            throw new Error(errorData.error || 'Failed to create initial profile');
-                        }
-
-                        const responseData = await response.json();
-                        if (!responseData.success) {
-                            throw new Error(responseData.error || 'Failed to create initial profile');
-                        }
-
-                        console.log('Initial profile created successfully:', responseData);
-                    } else if (checkData.onboarding_completed) {
-                        // If profile exists and onboarding is completed, redirect to dashboard
-                        router.push('/dashboard');
-                    }
-                } catch (err) {
-                    console.error('Error ensuring profile exists:', err);
-                    toast.error('Failed to create profile. Please try refreshing the page.');
-                }
-            }
-        };
-        ensureProfile();
-    }, [isLoaded, user, router]);
-
-    const checkOnboardingStatus = async () => {
-        if (!user) return;
-
-        const onboardingCompleted = user.unsafeMetadata?.onboardingCompleted;
-        if (onboardingCompleted) {
-            router.push('/dashboard');
-        }
-    };
 
     const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -369,43 +514,28 @@ export default function Onboarding() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        e.stopPropagation();
-        if (!user) {
-            console.error('Client: No user found');
-            toast.error('User not found. Please try logging in again.');
-            return;
-        }
-        try {
-            setLoading(true);
-            console.log('Client: Starting profile update...');
+        setLoading(true);
+        setShowValidationPrompt(false);
 
-            // Update user metadata in Clerk
-            console.log('Client: Updating Clerk metadata...');
-            let metadataUpdate;
-            try {
-                metadataUpdate = await user.update({
-                    unsafeMetadata: {
-                        firmName: form.firm_name,
-                        specialization: form.specialization,
-                        yearsOfPractice: form.years_of_practice,
-                        onboardingCompleted: true
-                    }
-                });
-                console.log('Client: Metadata update response:', {
-                    success: !!metadataUpdate,
-                    updatedUser: metadataUpdate,
-                    unsafeMetadata: metadataUpdate?.unsafeMetadata
-                });
-                if (!metadataUpdate?.unsafeMetadata?.onboardingCompleted) {
-                    throw new Error('Failed to update onboarding status in Clerk');
+        try {
+            console.log('[Onboarding] Starting form submission:', {
+                hasUser: !!user,
+                userId: user?.id,
+                currentStep,
+                formData: {
+                    ...form,
+                    professionalIds
                 }
-            } catch (error) {
-                console.error('Client: Error updating Clerk metadata:', error);
-                throw new Error('Failed to update Clerk metadata');
+            });
+
+            if (!user) {
+                console.error('[Onboarding] No user found during form submission');
+                toast.error('User not found. Please try logging in again.');
+                return;
             }
 
             // Update profile in Supabase
-            console.log('Client: Sending profile update request to API...');
+            console.log('[Onboarding] Updating profile in Supabase...');
             const payload = {
                 firmName: form.firm_name,
                 specialization: form.specialization,
@@ -419,88 +549,58 @@ export default function Onboarding() {
                 lastName: form.last_name,
                 onboarding_completed: true
             };
-            console.log("Client: Full payload sent to /api/profile/update:", JSON.stringify(payload, null, 2));
 
-            let response;
-            try {
-                response = await fetch('/api/profile/update', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                console.log('Client: Received response status:', response.status);
-                const responseText = await response.text();
-                console.log('Client: Raw response:', responseText);
+            console.log('[Onboarding] Sending profile update payload:', payload);
 
-                let responseData;
-                try {
-                    responseData = JSON.parse(responseText);
-                    console.log('Client: Parsed response data:', responseData);
-                } catch (parseError) {
-                    console.error('Client: Failed to parse response:', parseError);
-                    throw new Error('Invalid response from server');
-                }
+            const response = await fetch('/api/profile/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
 
-                if (!response.ok || !responseData.success) {
-                    throw new Error(responseData.error || 'Failed to update profile in Supabase');
-                }
-            } catch (error) {
-                console.error('Client: Error updating Supabase profile:', error);
-                throw new Error('Failed to update Supabase profile');
+            console.log('[Onboarding] Profile update response:', {
+                status: response.status,
+                statusText: response.statusText
+            });
+
+            const responseData = await response.json();
+            console.log('[Onboarding] Profile update response data:', responseData);
+
+            if (!responseData.success && responseData.code === 'PHONE_NUMBER_IN_USE') {
+                toast.error('This phone number is already associated with another account. Please use a different phone number.');
+                setLoading(false);
+                return;
             }
 
-            // Verify both updates are complete
-            console.log('Client: Verifying updates...');
-            let verificationAttempts = 0;
-            const maxAttempts = 5;
-            let verificationSuccessful = false;
+            if (!response.ok || !responseData.success) {
+                throw new Error(responseData.error || 'Failed to update profile');
+            }
 
-            while (verificationAttempts < maxAttempts && !verificationSuccessful) {
-                try {
-                    // Check profile status
-                    const checkResponse = await fetch('/api/profile/check');
-                    const checkData = await checkResponse.json();
-
-                    // Check Clerk metadata
-                    const clerkOnboardingCompleted = user.unsafeMetadata?.onboardingCompleted;
-
-                    console.log('Client: Verification attempt', verificationAttempts + 1, {
-                        profileStatus: checkData.onboarding_completed,
-                        clerkStatus: clerkOnboardingCompleted
-                    });
-
-                    if (checkData.onboarding_completed && clerkOnboardingCompleted) {
-                        verificationSuccessful = true;
-                        console.log('Client: Both updates verified successfully');
-                    } else {
-                        verificationAttempts++;
-                        if (verificationAttempts < maxAttempts) {
-                            console.log('Client: Updates not yet complete, waiting...');
-                            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second between attempts
-                        }
-                    }
-                } catch (error) {
-                    console.error('Client: Error during verification:', error);
-                    verificationAttempts++;
-                    if (verificationAttempts < maxAttempts) {
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                    }
+            // Update Clerk metadata
+            await user.update({
+                unsafeMetadata: {
+                    onboardingCompleted: true,
+                    firmName: form.firm_name,
+                    specialization: form.specialization,
+                    yearsOfPractice: form.years_of_practice,
+                    gender: form.gender
                 }
-            }
-
-            if (!verificationSuccessful) {
-                throw new Error('Failed to verify updates after multiple attempts');
-            }
+            });
 
             toast.success('Profile completed successfully!');
 
-            // Force a hard navigation to dashboard
-            console.log('Client: Redirecting to dashboard...');
+            // Small delay to ensure all state updates are complete
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Redirect to dashboard
             window.location.href = '/dashboard';
         } catch (error) {
-            console.error('Client: Error in onboarding completion:', error);
+            console.error('[Onboarding] Error in form submission:', {
+                error,
+                message: error instanceof Error ? error.message : 'Unknown error',
+                stack: error instanceof Error ? error.stack : undefined
+            });
             toast.error(error instanceof Error ? error.message : 'Failed to complete profile');
-        } finally {
             setLoading(false);
         }
     };
@@ -604,7 +704,8 @@ export default function Onboarding() {
         }
     }
 
-    if (!isLoaded) {
+    // Show loading state while auth is being determined
+    if (authState === 'loading' || !isLoaded) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>

@@ -1,6 +1,7 @@
 import { authMiddleware } from "@clerk/nextjs";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { supabase } from "@/lib/supabase";
 
 // Debug logging for environment variables
 console.log('Environment variables in middleware:', {
@@ -16,6 +17,8 @@ const publicPaths = [
   "/signup/social-callback",
   "/signup/sso-callback",
   "/signup/continue",
+  "/signup/verify-email-address",
+  "/signup/verify",
   "/forgot-password",
   "/api/check-onboarding",
   "/api/profile/update",
@@ -34,6 +37,17 @@ const isPublic = (path: string) => {
   );
 };
 
+// Helper to determine if user is a social (Google) sign-in
+function isSocialSignIn(userData: any): boolean {
+  if (!userData) return false;
+  // Clerk user object has external_accounts array for social sign-ins
+  if (Array.isArray(userData.external_accounts) && userData.external_accounts.length > 0) {
+    // Check for Google or any OAuth provider
+    return userData.external_accounts.some((acc: any) => acc.provider && acc.provider.startsWith('oauth_'));
+  }
+  return false;
+}
+
 export default authMiddleware({
   publicRoutes: publicPaths,
   debug: true, // Enable Clerk's debug mode
@@ -41,18 +55,134 @@ export default authMiddleware({
     // Enhanced debug logging
     console.log('Auth object:', auth);
 
-    // Handle public routes
+    // Handle public routes and sign-up related routes
     if (isPublic(req.nextUrl.pathname)) {
+      // For sign-up routes, check if user is already authenticated
+      if (req.nextUrl.pathname.startsWith('/signup') && auth.userId) {
+        console.log('Authenticated user attempting sign-up, checking profile status');
+        
+        // Check if user already has a profile
+        try {
+          const token = await auth.getToken();
+          
+          // First check Clerk for phone number
+          if (process.env.CLERK_SECRET_KEY) {
+            const clerkRes = await fetch(`https://api.clerk.dev/v1/users/${auth.userId}`, {
+              headers: {
+                Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+              },
+            });
+            
+            if (clerkRes.ok) {
+              const userData = await clerkRes.json();
+              const phoneNumber = userData.phone_numbers?.[0]?.phone_number;
+              
+              if (phoneNumber && !isSocialSignIn(userData)) {
+                const { data: existingPhoneProfile } = await supabase
+                  .from('profiles')
+                  .select('clerk_id')
+                  .eq('phone_number', phoneNumber)
+                  .neq('clerk_id', auth.userId)
+                  .single();
+
+                if (existingPhoneProfile) {
+                  const isApiRequest = req.nextUrl.pathname.startsWith('/api/');
+                  if (isApiRequest) {
+                    return NextResponse.json(
+                      {
+                        success: false,
+                        error: "Phone number is already associated with another account",
+                        code: "PHONE_NUMBER_IN_USE"
+                      },
+                      { status: 400 }
+                    );
+                  } else {
+                    // Redirect to login with error code for page requests
+                    const loginUrl = new URL('/login', req.url);
+                    loginUrl.searchParams.set('error', 'PHONE_NUMBER_IN_USE');
+                    return NextResponse.redirect(loginUrl);
+                  }
+                }
+              }
+            }
+          }
+
+          // Then check profile status
+          const res = await fetch(new URL('/api/profile/check', req.url), {
+            method: 'GET',
+            headers: {
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache',
+              'Authorization': `Bearer ${token}`,
+              'Cookie': req.headers.get('cookie') || ''
+            }
+          });
+
+          if (res.ok) {
+            const { exists, onboarding_completed } = await res.json();
+            if (exists) {
+              console.log('User already has profile, redirecting to appropriate page');
+              return NextResponse.redirect(new URL(
+                onboarding_completed ? '/dashboard' : '/onboarding',
+                req.url
+              ));
+            }
+          }
+        } catch (err) {
+          console.error('Error checking profile during sign-up:', err);
+          // On error, allow access to sign-up to handle the error case
+        }
+      }
+
+      // Allow access to public routes
       console.log('Public route accessed:', req.nextUrl.pathname);
       return NextResponse.next();
     }
 
-    // Special handling for SSO callback and related routes
-    if (req.nextUrl.pathname.startsWith('/signup/sso-callback') || 
+    // Special handling for auth flow routes
+    if (req.nextUrl.pathname.startsWith('/signup/verify') ||
         req.nextUrl.pathname.startsWith('/signup/continue') ||
+        req.nextUrl.pathname.startsWith('/signup/social-callback') ||
+        req.nextUrl.pathname.startsWith('/signup/sso-callback') ||
         req.nextUrl.pathname.startsWith('/sso-callback') ||
-        req.nextUrl.pathname.startsWith('/signup/social-callback')) {
-      console.log('SSO callback flow detected, allowing access');
+        req.nextUrl.pathname.startsWith('/verify')) {
+      
+      // For verification routes, check if user is authenticated
+      if (auth.userId) {
+        console.log('Auth flow route with authenticated user:', req.nextUrl.pathname);
+        
+        // Check if user already has a profile
+        try {
+          const token = await auth.getToken();
+          const res = await fetch(new URL('/api/profile/check', req.url), {
+            method: 'GET',
+            headers: {
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache',
+              'Authorization': `Bearer ${token}`,
+              'Cookie': req.headers.get('cookie') || ''
+            }
+          });
+
+          if (res.ok) {
+            const { exists, onboarding_completed } = await res.json();
+            if (exists) {
+              console.log('User already has profile during auth flow, redirecting to appropriate page');
+              return NextResponse.redirect(new URL(
+                onboarding_completed ? '/dashboard' : '/onboarding',
+                req.url
+              ));
+            }
+          }
+        } catch (err) {
+          console.error('Error checking profile during auth flow:', err);
+          // On error, allow access to continue the auth flow
+        }
+      }
+
+      console.log('Auth flow route detected, allowing access:', req.nextUrl.pathname);
       return NextResponse.next();
     }
 
@@ -64,16 +194,10 @@ export default authMiddleware({
       return NextResponse.redirect(signInUrl);
     }
 
-    // If user is authenticated and trying to access auth pages, redirect to onboarding
-    if (req.nextUrl.pathname.startsWith('/login') || 
-        req.nextUrl.pathname.startsWith('/signup')) {
-      console.log('Authenticated user accessing auth pages, redirecting to onboarding');
-      return NextResponse.redirect(new URL('/onboarding', req.url));
-    }
-
     // For all other routes, check if user has completed onboarding
     let onboardingCompleted = false;
     let profileOnboardingCompleted = false;
+    let profileExists = false;
 
     if (auth.userId) {
       // Check Clerk metadata first
@@ -82,26 +206,73 @@ export default authMiddleware({
           const res = await fetch(`https://api.clerk.dev/v1/users/${auth.userId}`, {
             headers: {
               Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
             },
           });
+          
+          if (!res.ok) {
+            throw new Error(`Clerk API returned ${res.status}`);
+          }
+
           const userData = await res.json();
           onboardingCompleted =
             userData.unsafe_metadata?.onboardingCompleted ||
             userData.public_metadata?.onboardingCompleted;
-          console.log('Middleware: Clerk API onboardingCompleted:', onboardingCompleted);
+          
+          // Check for duplicate phone number
+          const phoneNumber = userData.phone_numbers?.[0]?.phone_number;
+          if (phoneNumber && !isSocialSignIn(userData)) {
+            const { data: existingPhoneProfile } = await supabase
+              .from('profiles')
+              .select('clerk_id')
+              .eq('phone_number', phoneNumber)
+              .neq('clerk_id', auth.userId)
+              .single();
+
+            if (existingPhoneProfile) {
+              const isApiRequest = req.nextUrl.pathname.startsWith('/api/');
+              if (isApiRequest) {
+                return NextResponse.json(
+                  {
+                    success: false,
+                    error: "Phone number is already associated with another account",
+                    code: "PHONE_NUMBER_IN_USE"
+                  },
+                  { status: 400 }
+                );
+              } else {
+                // Redirect to login with error code for page requests
+                const loginUrl = new URL('/login', req.url);
+                loginUrl.searchParams.set('error', 'PHONE_NUMBER_IN_USE');
+                return NextResponse.redirect(loginUrl);
+              }
+            }
+          }
+          
+          console.log('Middleware: Clerk API onboarding status:', {
+            onboardingCompleted,
+            metadata: {
+              unsafe: userData.unsafe_metadata?.onboardingCompleted,
+              public: userData.public_metadata?.onboardingCompleted
+            },
+            email: userData.email_addresses?.[0]?.email_address,
+            phoneNumber: phoneNumber
+          });
         } catch (err) {
           console.error('Middleware: Error fetching user from Clerk API:', err);
+          // On error, assume onboarding is not completed
+          onboardingCompleted = false;
         }
       }
 
       // Check profile status with retry logic
       let retryCount = 0;
-      const maxRetries = 3;
-      const retryDelay = 1000; // 1 second
+      const maxRetries = 2; // Reduced from 3 to 2
+      const retryDelay = 500; // Reduced from 1000 to 500ms
 
       while (retryCount < maxRetries) {
         try {
-          // Get the session token for the internal request
           const token = await auth.getToken();
           
           const res = await fetch(new URL('/api/profile/check', req.url), { 
@@ -124,20 +295,42 @@ export default authMiddleware({
             throw new Error('Profile check returned unsuccessful');
           }
 
+          profileExists = exists;
+          profileOnboardingCompleted = onboarding_completed;
+          
+          console.log('Middleware: Profile check result:', {
+            exists: profileExists,
+            onboarding_completed: profileOnboardingCompleted,
+            attempt: retryCount + 1,
+            path: req.nextUrl.pathname,
+            userId: auth.userId
+          });
+
+          // If profile doesn't exist, retry once before redirecting to onboarding
           if (!exists) {
-            console.log('Middleware: No profile found, attempt', retryCount + 1);
             if (retryCount < maxRetries - 1) {
               await new Promise(resolve => setTimeout(resolve, retryDelay));
               retryCount++;
               continue;
             }
-            // If we've exhausted retries and still no profile, redirect to onboarding
             console.log('Middleware: No profile found after retries, redirecting to onboarding');
             return NextResponse.redirect(new URL('/onboarding', req.url));
           }
 
-          profileOnboardingCompleted = onboarding_completed;
-          console.log('Middleware: Profile onboarding status:', profileOnboardingCompleted);
+          // If profile exists but onboarding is not completed, and we're not already on the onboarding page,
+          // redirect to onboarding
+          if (exists && !profileOnboardingCompleted && req.nextUrl.pathname !== '/onboarding') {
+            console.log('Middleware: Profile exists but onboarding not completed, redirecting to onboarding');
+            return NextResponse.redirect(new URL('/onboarding', req.url));
+          }
+
+          // If profile exists and onboarding is completed, and we're on the onboarding page,
+          // redirect to dashboard
+          if (exists && profileOnboardingCompleted && req.nextUrl.pathname === '/onboarding') {
+            console.log('Middleware: Profile exists and onboarding completed, redirecting to dashboard');
+            return NextResponse.redirect(new URL('/dashboard', req.url));
+          }
+
           break; // Success, exit retry loop
         } catch (err) {
           console.error('Middleware: Error checking profile, attempt', retryCount + 1, err);
@@ -145,7 +338,6 @@ export default authMiddleware({
             await new Promise(resolve => setTimeout(resolve, retryDelay));
             retryCount++;
           } else {
-            // If we've exhausted retries and still getting errors, redirect to onboarding to be safe
             console.log('Middleware: Profile check failed after retries, redirecting to onboarding');
             return NextResponse.redirect(new URL('/onboarding', req.url));
           }
@@ -153,12 +345,14 @@ export default authMiddleware({
       }
     }
 
-    // If either Clerk metadata or profile shows onboarding is completed, allow access
-    const isOnboardingCompleted = onboardingCompleted || profileOnboardingCompleted;
+    // Use AND logic for onboarding status - both Clerk and profile must agree
+    const isOnboardingCompleted = onboardingCompleted && profileOnboardingCompleted;
     console.log('Middleware: Final onboarding status:', { 
       clerkStatus: onboardingCompleted, 
       profileStatus: profileOnboardingCompleted,
-      finalStatus: isOnboardingCompleted 
+      profileExists,
+      finalStatus: isOnboardingCompleted,
+      path: req.nextUrl.pathname
     });
 
     // If onboarding is not completed and trying to access protected routes, redirect to onboarding
@@ -171,6 +365,12 @@ export default authMiddleware({
     if (isOnboardingCompleted && req.nextUrl.pathname === '/onboarding') {
       console.log('Middleware: Onboarding completed, redirecting to dashboard');
       return NextResponse.redirect(new URL('/dashboard', req.url));
+    }
+
+    // If profile doesn't exist but user is authenticated, ensure they go to onboarding
+    if (!profileExists && auth.userId && !req.nextUrl.pathname.startsWith('/onboarding')) {
+      console.log('Middleware: No profile exists, redirecting to onboarding');
+      return NextResponse.redirect(new URL('/onboarding', req.url));
     }
 
     console.log('Middleware: User authenticated and authorized, proceeding to:', req.nextUrl.pathname);

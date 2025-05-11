@@ -66,7 +66,7 @@ export default function TestPage() {
                     session: result.createdSessionId
                 });
                 toast.success('Signed in successfully');
-                router.push('/dashboard');
+                window.location.href = '/dashboard';
             } else {
                 throw new Error('Sign in failed');
             }
@@ -112,6 +112,7 @@ export default function TestPage() {
                     session: result.createdSessionId
                 });
                 toast.success('Signed up successfully. Please check your email for verification.');
+                window.location.href = '/dashboard';
             } else {
                 throw new Error('Sign up failed');
             }

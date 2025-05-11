@@ -1,0 +1,761 @@
+"sourcePage": "/src/middleware",
+    "experimental_clerkUrl": "http://localhost:3000/api/profile/check"
+      },
+"audience": "",
+    "frontendApi": "enjoyed-pipefish-18.clerk.accounts.dev",
+        "proxyUrl": "",
+            "publishableKey": "pk_test_ZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYk",
+                "isSatellite": false,
+                    "domain": "",
+                        "jwtKey": "",
+                            "searchParams": { },
+"headerToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1NzcsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MTcsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MDcsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.KJhbq-xwkWD7cvRcfXReOOqytTBvUpKUshdFaDK_27zTOo6gP-PJiJ0_g315z1CndCCXu68vj8c5UaiQAlLS0FTdFiCfHbmpTZLIL-7zHYoI0DE9Ev1KrnR5L9qzLxzoMYQyawmAjx6eKvtWCMrBIA4pH8MQQz398rsCc1x7B7Fsy4iFJ7zXncqtjnTn337tQyTZ24rJPYZVAegv1DdAQPHqyMnLcL0C3sak94VO691Yudknr7feK1V5HpB66aMaY7fYf7A1qFIDgCp9pxr5Lk74NvJOIKLaUA-Nq79Zgl4T6z9pYQzD6F25sWMxYBdB0mT3Yb1-fthmxsZhamg_tw",
+    "host": "localhost:3000",
+        "forwardedHost": "localhost:3000",
+            "forwardedPort": "3000",
+                "forwardedProto": "http",
+                    "userAgent": "Next.js Middleware",
+                        "cookieToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1NzcsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MTcsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MDcsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.KJhbq-xwkWD7cvRcfXReOOqytTBvUpKUshdFaDK_27zTOo6gP-PJiJ0_g315z1CndCCXu68vj8c5UaiQAlLS0FTdFiCfHbmpTZLIL-7zHYoI0DE9Ev1KrnR5L9qzLxzoMYQyawmAjx6eKvtWCMrBIA4pH8MQQz398rsCc1x7B7Fsy4iFJ7zXncqtjnTn337tQyTZ24rJPYZVAegv1DdAQPHqyMnLcL0C3sak94VO691Yudknr7feK1V5HpB66aMaY7fYf7A1qFIDgCp9pxr5Lk74NvJOIKLaUA-Nq79Zgl4T6z9pYQzD6F25sWMxYBdB0mT3Yb1-fthmxsZhamg_tw",
+                            "clientUat": "1746966503",
+                                "status": "signed-in"
+    }
+  }
+{
+    "mergedHeaders": "{\"x-middleware-next\":\"1\"}"
+}
+  Added x - clerk - debug on request
+[clerk debug end: authMiddleware](@clerk / nextjs= 4.31.8, next = 14.2.28)
+API route: Starting profile check request
+[clerk debug start: auth()]
+Debug, {
+    "authStatus": "signed-in",
+    "authToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1NzcsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MTcsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MDcsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.KJhbq-xwkWD7cvRcfXReOOqytTBvUpKUshdFaDK_27zTOo6gP-PJiJ0_g315z1CndCCXu68vj8c5UaiQAlLS0FTdFiCfHbmpTZLIL-7zHYoI0DE9Ev1KrnR5L9qzLxzoMYQyawmAjx6eKvtWCMrBIA4pH8MQQz398rsCc1x7B7Fsy4iFJ7zXncqtjnTn337tQyTZ24rJPYZVAegv1DdAQPHqyMnLcL0C3sak94VO691Yudknr7feK1V5HpB66aMaY7fYf7A1qFIDgCp9pxr5Lk74NvJOIKLaUA-Nq79Zgl4T6z9pYQzD6F25sWMxYBdB0mT3Yb1-fthmxsZhamg_tw"
+}
+  Options debug, {
+    "apiKey": "",
+    "authStatus": "signed-in",
+    "secretKey": "sk_test_*********477",
+    "authToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1NzcsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MTcsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MDcsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.KJhbq-xwkWD7cvRcfXReOOqytTBvUpKUshdFaDK_27zTOo6gP-PJiJ0_g315z1CndCCXu68vj8c5UaiQAlLS0FTdFiCfHbmpTZLIL-7zHYoI0DE9Ev1KrnR5L9qzLxzoMYQyawmAjx6eKvtWCMrBIA4pH8MQQz398rsCc1x7B7Fsy4iFJ7zXncqtjnTn337tQyTZ24rJPYZVAegv1DdAQPHqyMnLcL0C3sak94VO691Yudknr7feK1V5HpB66aMaY7fYf7A1qFIDgCp9pxr5Lk74NvJOIKLaUA-Nq79Zgl4T6z9pYQzD6F25sWMxYBdB0mT3Yb1-fthmxsZhamg_tw",
+    "apiUrl": "https://api.clerk.dev",
+    "apiVersion": "v1"
+}
+  JWT debug, eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1NzcsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MTcsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MDcsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.KJhbq - xwkWD7cvRcfXReOOqytTBvUpKUshdFaDK_27zTOo6gP - PJiJ0_g315z1CndCCXu68vj8c5UaiQAlLS0FTdFiCfHbmpTZLIL - 7zHYoI0DE9Ev1KrnR5L9qzLxzoMYQyawmAjx6eKvtWCMrBIA4pH8MQQz398rsCc1x7B7Fsy4iFJ7zXncqtjnTn337tQyTZ24rJPYZVAegv1DdAQPHqyMnLcL0C3sak94VO691Yudknr7feK1V5HpB66aMaY7fYf7A1qFIDgCp9pxr5Lk74NvJOIKLaUA - Nq79Zgl4T6z9pYQzD6F25sWMxYBdB0mT3Yb1 - fthmxsZhamg_tw
+[clerk debug end: auth()](@clerk / nextjs= 4.31.8, next = 14.2.28)
+API route: Auth check - userId: user_2wwvsi8EfH1w6Ac154QaSUeUjFN
+API route: Checking for existing profile with Clerk ID: user_2wwvsi8EfH1w6Ac154QaSUeUjFN
+Auth object: {
+    actor: undefined,
+        sessionClaims: {
+        azp: 'http://localhost:3000',
+            exp: 1746966577,
+                fva: [0, -1],
+                    iat: 1746966517,
+                        iss: 'https://enjoyed-pipefish-18.clerk.accounts.dev',
+                            nbf: 1746966507,
+                                sid: 'sess_2wwxaoz485iigKN3wgqe4EkKgnI',
+                                    sub: 'user_2wwvsi8EfH1w6Ac154QaSUeUjFN'
+    },
+    sessionId: 'sess_2wwxaoz485iigKN3wgqe4EkKgnI',
+        session: undefined,
+            userId: 'user_2wwvsi8EfH1w6Ac154QaSUeUjFN',
+                user: undefined,
+                    orgId: undefined,
+                        orgRole: undefined,
+                            orgSlug: undefined,
+                                orgPermissions: undefined,
+                                    organization: undefined,
+                                        getToken: [Function],
+                                            has: [Function],
+                                                debug: [Function],
+                                                    isPublicRoute: true,
+                                                        isApiRoute: true
+}
+Public or sign - up route accessed: /api/profile / check
+[clerk debug start: authMiddleware]
+  URL debug, {
+    "url": "http://localhost:3000/api/profile/check",
+    "method": "GET",
+    "headers": "{\"accept\":\"*/*\",\"accept-encoding\":\"gzip, deflate, br, zstd\",\"accept-language\":\"en-US,en;q=0.5\",\"authorization\":\"Bearer eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1NzcsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MTcsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MDcsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.KJhbq-xwkWD7cvRcfXReOOqytTBvUpKUshdFaDK_27zTOo6gP-PJiJ0_g315z1CndCCXu68vj8c5UaiQAlLS0FTdFiCfHbmpTZLIL-7zHYoI0DE9Ev1KrnR5L9qzLxzoMYQyawmAjx6eKvtWCMrBIA4pH8MQQz398rsCc1x7B7Fsy4iFJ7zXncqtjnTn337tQyTZ24rJPYZVAegv1DdAQPHqyMnLcL0C3sak94VO691Yudknr7feK1V5HpB66aMaY7fYf7A1qFIDgCp9pxr5Lk74NvJOIKLaUA-Nq79Zgl4T6z9pYQzD6F25sWMxYBdB0mT3Yb1-fthmxsZhamg_tw\",\"cache-control\":\"no-cache\",\"connection\":\"keep-alive\",\"cookie\":\"__client_uat=1746966503; __session=eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1NzcsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MTcsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MDcsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.KJhbq-xwkWD7cvRcfXReOOqytTBvUpKUshdFaDK_27zTOo6gP-PJiJ0_g315z1CndCCXu68vj8c5UaiQAlLS0FTdFiCfHbmpTZLIL-7zHYoI0DE9Ev1KrnR5L9qzLxzoMYQyawmAjx6eKvtWCMrBIA4pH8MQQz398rsCc1x7B7Fsy4iFJ7zXncqtjnTn337tQyTZ24rJPYZVAegv1DdAQPHqyMnLcL0C3sak94VO691Yudknr7feK1V5HpB66aMaY7fYf7A1qFIDgCp9pxr5Lk74NvJOIKLaUA-Nq79Zgl4T6z9pYQzD6F25sWMxYBdB0mT3Yb1-fthmxsZhamg_tw; __clerk_db_jwt=dvb_2wwxZOQzfzj9FKWSX1TUKXxlCqD\",\"dnt\":\"1\",\"host\":\"localhost:3000\",\"pragma\":\"no-cache\",\"priority\":\"u=4\",\"referer\":\"http://localhost:3000/onboarding\",\"sec-fetch-dest\":\"empty\",\"sec-fetch-mode\":\"cors\",\"sec-fetch-site\":\"same-origin\",\"sec-gpc\":\"1\",\"user-agent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0\",\"x-forwarded-for\":\"::ffff:127.0.0.1\",\"x-forwarded-host\":\"localhost:3000\",\"x-forwarded-port\":\"3000\",\"x-forwarded-proto\":\"http\"}",
+    "nextUrl": "http://localhost:3000/api/profile/check",
+    "clerkUrl": "http://localhost:3000/api/profile/check"
+}
+  Options debug, {
+    "debug": true,
+    "beforeAuth": false,
+    "afterAuth": true
+}
+{
+    "auth": "{\"sessionClaims\":{\"azp\":\"http://localhost:3000\",\"exp\":1746966577,\"fva\":[0,-1],\"iat\":1746966517,\"iss\":\"https://enjoyed-pipefish-18.clerk.accounts.dev\",\"nbf\":1746966507,\"sid\":\"sess_2wwxaoz485iigKN3wgqe4EkKgnI\",\"sub\":\"user_2wwvsi8EfH1w6Ac154QaSUeUjFN\"},\"sessionId\":\"sess_2wwxaoz485iigKN3wgqe4EkKgnI\",\"userId\":\"user_2wwvsi8EfH1w6Ac154QaSUeUjFN\",\"isPublicRoute\":true,\"isApiRoute\":true}",
+        "debug": {
+        "secretKey": "sk_test",
+            "apiKey": "",
+                "apiUrl": "https://api.clerk.dev",
+                    "apiVersion": "v1",
+                        "token": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1NzcsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MTcsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MDcsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.KJhbq-xwkWD7cvRcfXReOOqytTBvUpKUshdFaDK_27zTOo6gP-PJiJ0_g315z1CndCCXu68vj8c5UaiQAlLS0FTdFiCfHbmpTZLIL-7zHYoI0DE9Ev1KrnR5L9qzLxzoMYQyawmAjx6eKvtWCMrBIA4pH8MQQz398rsCc1x7B7Fsy4iFJ7zXncqtjnTn337tQyTZ24rJPYZVAegv1DdAQPHqyMnLcL0C3sak94VO691Yudknr7feK1V5HpB66aMaY7fYf7A1qFIDgCp9pxr5Lk74NvJOIKLaUA-Nq79Zgl4T6z9pYQzD6F25sWMxYBdB0mT3Yb1-fthmxsZhamg_tw",
+                            "debug": true,
+                                "signInUrl": "/login",
+                                    "request": {
+            "sourcePage": "/src/middleware",
+                "experimental_clerkUrl": "http://localhost:3000/api/profile/check"
+        },
+        "audience": "",
+            "frontendApi": "enjoyed-pipefish-18.clerk.accounts.dev",
+                "proxyUrl": "",
+                    "publishableKey": "pk_test_ZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYk",
+                        "isSatellite": false,
+                            "domain": "",
+                                "jwtKey": "",
+                                    "searchParams": { },
+        "headerToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1NzcsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MTcsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MDcsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.KJhbq-xwkWD7cvRcfXReOOqytTBvUpKUshdFaDK_27zTOo6gP-PJiJ0_g315z1CndCCXu68vj8c5UaiQAlLS0FTdFiCfHbmpTZLIL-7zHYoI0DE9Ev1KrnR5L9qzLxzoMYQyawmAjx6eKvtWCMrBIA4pH8MQQz398rsCc1x7B7Fsy4iFJ7zXncqtjnTn337tQyTZ24rJPYZVAegv1DdAQPHqyMnLcL0C3sak94VO691Yudknr7feK1V5HpB66aMaY7fYf7A1qFIDgCp9pxr5Lk74NvJOIKLaUA-Nq79Zgl4T6z9pYQzD6F25sWMxYBdB0mT3Yb1-fthmxsZhamg_tw",
+            "host": "localhost:3000",
+                "forwardedHost": "localhost:3000",
+                    "forwardedPort": "3000",
+                        "forwardedProto": "http",
+                            "referrer": "http://localhost:3000/onboarding",
+                                "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0",
+                                    "cookieToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1NzcsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MTcsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MDcsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.KJhbq-xwkWD7cvRcfXReOOqytTBvUpKUshdFaDK_27zTOo6gP-PJiJ0_g315z1CndCCXu68vj8c5UaiQAlLS0FTdFiCfHbmpTZLIL-7zHYoI0DE9Ev1KrnR5L9qzLxzoMYQyawmAjx6eKvtWCMrBIA4pH8MQQz398rsCc1x7B7Fsy4iFJ7zXncqtjnTn337tQyTZ24rJPYZVAegv1DdAQPHqyMnLcL0C3sak94VO691Yudknr7feK1V5HpB66aMaY7fYf7A1qFIDgCp9pxr5Lk74NvJOIKLaUA-Nq79Zgl4T6z9pYQzD6F25sWMxYBdB0mT3Yb1-fthmxsZhamg_tw",
+                                        "clientUat": "1746966503",
+                                            "status": "signed-in"
+    }
+}
+{
+    "mergedHeaders": "{\"x-middleware-next\":\"1\"}"
+}
+  Added x - clerk - debug on request
+[clerk debug end: authMiddleware](@clerk / nextjs= 4.31.8, next = 14.2.28)
+API route: Starting profile check request
+[clerk debug start: auth()]
+Debug, {
+    "authStatus": "signed-in",
+    "authToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1NzcsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MTcsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MDcsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.KJhbq-xwkWD7cvRcfXReOOqytTBvUpKUshdFaDK_27zTOo6gP-PJiJ0_g315z1CndCCXu68vj8c5UaiQAlLS0FTdFiCfHbmpTZLIL-7zHYoI0DE9Ev1KrnR5L9qzLxzoMYQyawmAjx6eKvtWCMrBIA4pH8MQQz398rsCc1x7B7Fsy4iFJ7zXncqtjnTn337tQyTZ24rJPYZVAegv1DdAQPHqyMnLcL0C3sak94VO691Yudknr7feK1V5HpB66aMaY7fYf7A1qFIDgCp9pxr5Lk74NvJOIKLaUA-Nq79Zgl4T6z9pYQzD6F25sWMxYBdB0mT3Yb1-fthmxsZhamg_tw"
+}
+  Options debug, {
+    "apiKey": "",
+    "authStatus": "signed-in",
+    "secretKey": "sk_test_*********477",
+    "authToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1NzcsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MTcsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MDcsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.KJhbq-xwkWD7cvRcfXReOOqytTBvUpKUshdFaDK_27zTOo6gP-PJiJ0_g315z1CndCCXu68vj8c5UaiQAlLS0FTdFiCfHbmpTZLIL-7zHYoI0DE9Ev1KrnR5L9qzLxzoMYQyawmAjx6eKvtWCMrBIA4pH8MQQz398rsCc1x7B7Fsy4iFJ7zXncqtjnTn337tQyTZ24rJPYZVAegv1DdAQPHqyMnLcL0C3sak94VO691Yudknr7feK1V5HpB66aMaY7fYf7A1qFIDgCp9pxr5Lk74NvJOIKLaUA-Nq79Zgl4T6z9pYQzD6F25sWMxYBdB0mT3Yb1-fthmxsZhamg_tw",
+    "apiUrl": "https://api.clerk.dev",
+    "apiVersion": "v1"
+}
+  JWT debug, eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1NzcsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MTcsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MDcsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.KJhbq - xwkWD7cvRcfXReOOqytTBvUpKUshdFaDK_27zTOo6gP - PJiJ0_g315z1CndCCXu68vj8c5UaiQAlLS0FTdFiCfHbmpTZLIL - 7zHYoI0DE9Ev1KrnR5L9qzLxzoMYQyawmAjx6eKvtWCMrBIA4pH8MQQz398rsCc1x7B7Fsy4iFJ7zXncqtjnTn337tQyTZ24rJPYZVAegv1DdAQPHqyMnLcL0C3sak94VO691Yudknr7feK1V5HpB66aMaY7fYf7A1qFIDgCp9pxr5Lk74NvJOIKLaUA - Nq79Zgl4T6z9pYQzD6F25sWMxYBdB0mT3Yb1 - fthmxsZhamg_tw
+[clerk debug end: auth()](@clerk / nextjs= 4.31.8, next = 14.2.28)
+API route: Auth check - userId: user_2wwvsi8EfH1w6Ac154QaSUeUjFN
+API route: Checking for existing profile with Clerk ID: user_2wwvsi8EfH1w6Ac154QaSUeUjFN
+API route: Profile check result: { exists: true, onboarding_completed: false }
+GET / api / profile / check 200 in 294ms
+Middleware: Profile check result: { exists: true, onboarding_completed: false, attempt: 1 }
+Middleware: Final onboarding status: {
+    clerkStatus: true,
+        profileStatus: false,
+            profileExists: true,
+                finalStatus: false,
+                    path: '/dashboard'
+}
+Middleware: Onboarding not completed, redirecting to onboarding
+[clerk debug start: authMiddleware]
+  URL debug, {
+    "url": "http://localhost:3000/dashboard",
+    "method": "GET",
+    "headers": "{\"accept\":\"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\",\"accept-encoding\":\"gzip, deflate, br, zstd\",\"accept-language\":\"en-US,en;q=0.5\",\"connection\":\"keep-alive\",\"cookie\":\"__client_uat=1746966503; __session=eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1NzcsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MTcsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MDcsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.KJhbq-xwkWD7cvRcfXReOOqytTBvUpKUshdFaDK_27zTOo6gP-PJiJ0_g315z1CndCCXu68vj8c5UaiQAlLS0FTdFiCfHbmpTZLIL-7zHYoI0DE9Ev1KrnR5L9qzLxzoMYQyawmAjx6eKvtWCMrBIA4pH8MQQz398rsCc1x7B7Fsy4iFJ7zXncqtjnTn337tQyTZ24rJPYZVAegv1DdAQPHqyMnLcL0C3sak94VO691Yudknr7feK1V5HpB66aMaY7fYf7A1qFIDgCp9pxr5Lk74NvJOIKLaUA-Nq79Zgl4T6z9pYQzD6F25sWMxYBdB0mT3Yb1-fthmxsZhamg_tw; __clerk_db_jwt=dvb_2wwxZOQzfzj9FKWSX1TUKXxlCqD\",\"dnt\":\"1\",\"host\":\"localhost:3000\",\"priority\":\"u=0, i\",\"referer\":\"http://localhost:3000/onboarding\",\"sec-fetch-dest\":\"document\",\"sec-fetch-mode\":\"navigate\",\"sec-fetch-site\":\"same-origin\",\"sec-gpc\":\"1\",\"upgrade-insecure-requests\":\"1\",\"user-agent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0\",\"x-forwarded-for\":\"::ffff:127.0.0.1\",\"x-forwarded-host\":\"localhost:3000\",\"x-forwarded-port\":\"3000\",\"x-forwarded-proto\":\"http\"}",
+    "nextUrl": "http://localhost:3000/dashboard",
+    "clerkUrl": "http://localhost:3000/dashboard"
+}
+  Options debug, {
+    "debug": true,
+    "beforeAuth": false,
+    "afterAuth": true
+}
+{
+    "auth": "{\"sessionClaims\":{\"azp\":\"http://localhost:3000\",\"exp\":1746966577,\"fva\":[0,-1],\"iat\":1746966517,\"iss\":\"https://enjoyed-pipefish-18.clerk.accounts.dev\",\"nbf\":1746966507,\"sid\":\"sess_2wwxaoz485iigKN3wgqe4EkKgnI\",\"sub\":\"user_2wwvsi8EfH1w6Ac154QaSUeUjFN\"},\"sessionId\":\"sess_2wwxaoz485iigKN3wgqe4EkKgnI\",\"userId\":\"user_2wwvsi8EfH1w6Ac154QaSUeUjFN\",\"isPublicRoute\":false,\"isApiRoute\":false}",
+        "debug": {
+        "secretKey": "sk_test",
+            "apiKey": "",
+                "apiUrl": "https://api.clerk.dev",
+                    "apiVersion": "v1",
+                        "token": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1NzcsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MTcsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MDcsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.KJhbq-xwkWD7cvRcfXReOOqytTBvUpKUshdFaDK_27zTOo6gP-PJiJ0_g315z1CndCCXu68vj8c5UaiQAlLS0FTdFiCfHbmpTZLIL-7zHYoI0DE9Ev1KrnR5L9qzLxzoMYQyawmAjx6eKvtWCMrBIA4pH8MQQz398rsCc1x7B7Fsy4iFJ7zXncqtjnTn337tQyTZ24rJPYZVAegv1DdAQPHqyMnLcL0C3sak94VO691Yudknr7feK1V5HpB66aMaY7fYf7A1qFIDgCp9pxr5Lk74NvJOIKLaUA-Nq79Zgl4T6z9pYQzD6F25sWMxYBdB0mT3Yb1-fthmxsZhamg_tw",
+                            "debug": true,
+                                "signInUrl": "/login",
+                                    "request": {
+            "sourcePage": "/src/middleware",
+                "experimental_clerkUrl": "http://localhost:3000/dashboard"
+        },
+        "audience": "",
+            "frontendApi": "enjoyed-pipefish-18.clerk.accounts.dev",
+                "proxyUrl": "",
+                    "publishableKey": "pk_test_ZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYk",
+                        "isSatellite": false,
+                            "domain": "",
+                                "jwtKey": "",
+                                    "searchParams": { },
+        "host": "localhost:3000",
+            "forwardedHost": "localhost:3000",
+                "forwardedPort": "3000",
+                    "forwardedProto": "http",
+                        "referrer": "http://localhost:3000/onboarding",
+                            "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0",
+                                "cookieToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1NzcsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MTcsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MDcsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.KJhbq-xwkWD7cvRcfXReOOqytTBvUpKUshdFaDK_27zTOo6gP-PJiJ0_g315z1CndCCXu68vj8c5UaiQAlLS0FTdFiCfHbmpTZLIL-7zHYoI0DE9Ev1KrnR5L9qzLxzoMYQyawmAjx6eKvtWCMrBIA4pH8MQQz398rsCc1x7B7Fsy4iFJ7zXncqtjnTn337tQyTZ24rJPYZVAegv1DdAQPHqyMnLcL0C3sak94VO691Yudknr7feK1V5HpB66aMaY7fYf7A1qFIDgCp9pxr5Lk74NvJOIKLaUA-Nq79Zgl4T6z9pYQzD6F25sWMxYBdB0mT3Yb1-fthmxsZhamg_tw",
+                                    "clientUat": "1746966503",
+                                        "status": "signed-in"
+    }
+}
+{
+    "mergedHeaders": "{\"location\":\"http://localhost:3000/onboarding\"}"
+}
+  Final response is redirect, following redirect
+[clerk debug end: authMiddleware](@clerk / nextjs= 4.31.8, next = 14.2.28)
+Auth object: {
+    actor: undefined,
+        sessionClaims: {
+        azp: 'http://localhost:3000',
+            exp: 1746966577,
+                fva: [0, -1],
+                    iat: 1746966517,
+                        iss: 'https://enjoyed-pipefish-18.clerk.accounts.dev',
+                            nbf: 1746966507,
+                                sid: 'sess_2wwxaoz485iigKN3wgqe4EkKgnI',
+                                    sub: 'user_2wwvsi8EfH1w6Ac154QaSUeUjFN'
+    },
+    sessionId: 'sess_2wwxaoz485iigKN3wgqe4EkKgnI',
+        session: undefined,
+            userId: 'user_2wwvsi8EfH1w6Ac154QaSUeUjFN',
+                user: undefined,
+                    orgId: undefined,
+                        orgRole: undefined,
+                            orgSlug: undefined,
+                                orgPermissions: undefined,
+                                    organization: undefined,
+                                        getToken: [Function],
+                                            has: [Function],
+                                                debug: [Function],
+                                                    isPublicRoute: true,
+                                                        isApiRoute: false
+}
+Public or sign - up route accessed: /onboarding
+[clerk debug start: authMiddleware]
+  URL debug, {
+    "url": "http://localhost:3000/onboarding",
+    "method": "GET",
+    "headers": "{\"accept\":\"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\",\"accept-encoding\":\"gzip, deflate, br, zstd\",\"accept-language\":\"en-US,en;q=0.5\",\"connection\":\"keep-alive\",\"cookie\":\"__client_uat=1746966503; __session=eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1NzcsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MTcsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MDcsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.KJhbq-xwkWD7cvRcfXReOOqytTBvUpKUshdFaDK_27zTOo6gP-PJiJ0_g315z1CndCCXu68vj8c5UaiQAlLS0FTdFiCfHbmpTZLIL-7zHYoI0DE9Ev1KrnR5L9qzLxzoMYQyawmAjx6eKvtWCMrBIA4pH8MQQz398rsCc1x7B7Fsy4iFJ7zXncqtjnTn337tQyTZ24rJPYZVAegv1DdAQPHqyMnLcL0C3sak94VO691Yudknr7feK1V5HpB66aMaY7fYf7A1qFIDgCp9pxr5Lk74NvJOIKLaUA-Nq79Zgl4T6z9pYQzD6F25sWMxYBdB0mT3Yb1-fthmxsZhamg_tw; __clerk_db_jwt=dvb_2wwxZOQzfzj9FKWSX1TUKXxlCqD\",\"dnt\":\"1\",\"host\":\"localhost:3000\",\"priority\":\"u=0, i\",\"referer\":\"http://localhost:3000/onboarding\",\"sec-fetch-dest\":\"document\",\"sec-fetch-mode\":\"navigate\",\"sec-fetch-site\":\"same-origin\",\"sec-gpc\":\"1\",\"upgrade-insecure-requests\":\"1\",\"user-agent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0\",\"x-forwarded-for\":\"::ffff:127.0.0.1\",\"x-forwarded-host\":\"localhost:3000\",\"x-forwarded-port\":\"3000\",\"x-forwarded-proto\":\"http\"}",
+    "nextUrl": "http://localhost:3000/onboarding",
+    "clerkUrl": "http://localhost:3000/onboarding"
+}
+  Options debug, {
+    "debug": true,
+    "beforeAuth": false,
+    "afterAuth": true
+}
+{
+    "auth": "{\"sessionClaims\":{\"azp\":\"http://localhost:3000\",\"exp\":1746966577,\"fva\":[0,-1],\"iat\":1746966517,\"iss\":\"https://enjoyed-pipefish-18.clerk.accounts.dev\",\"nbf\":1746966507,\"sid\":\"sess_2wwxaoz485iigKN3wgqe4EkKgnI\",\"sub\":\"user_2wwvsi8EfH1w6Ac154QaSUeUjFN\"},\"sessionId\":\"sess_2wwxaoz485iigKN3wgqe4EkKgnI\",\"userId\":\"user_2wwvsi8EfH1w6Ac154QaSUeUjFN\",\"isPublicRoute\":true,\"isApiRoute\":false}",
+        "debug": {
+        "secretKey": "sk_test",
+            "apiKey": "",
+                "apiUrl": "https://api.clerk.dev",
+                    "apiVersion": "v1",
+                        "token": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1NzcsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MTcsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MDcsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.KJhbq-xwkWD7cvRcfXReOOqytTBvUpKUshdFaDK_27zTOo6gP-PJiJ0_g315z1CndCCXu68vj8c5UaiQAlLS0FTdFiCfHbmpTZLIL-7zHYoI0DE9Ev1KrnR5L9qzLxzoMYQyawmAjx6eKvtWCMrBIA4pH8MQQz398rsCc1x7B7Fsy4iFJ7zXncqtjnTn337tQyTZ24rJPYZVAegv1DdAQPHqyMnLcL0C3sak94VO691Yudknr7feK1V5HpB66aMaY7fYf7A1qFIDgCp9pxr5Lk74NvJOIKLaUA-Nq79Zgl4T6z9pYQzD6F25sWMxYBdB0mT3Yb1-fthmxsZhamg_tw",
+                            "debug": true,
+                                "signInUrl": "/login",
+                                    "request": {
+            "sourcePage": "/src/middleware",
+                "experimental_clerkUrl": "http://localhost:3000/onboarding"
+        },
+        "audience": "",
+            "frontendApi": "enjoyed-pipefish-18.clerk.accounts.dev",
+                "proxyUrl": "",
+                    "publishableKey": "pk_test_ZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYk",
+                        "isSatellite": false,
+                            "domain": "",
+                                "jwtKey": "",
+                                    "searchParams": { },
+        "host": "localhost:3000",
+            "forwardedHost": "localhost:3000",
+                "forwardedPort": "3000",
+                    "forwardedProto": "http",
+                        "referrer": "http://localhost:3000/onboarding",
+                            "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0",
+                                "cookieToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1NzcsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MTcsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MDcsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.KJhbq-xwkWD7cvRcfXReOOqytTBvUpKUshdFaDK_27zTOo6gP-PJiJ0_g315z1CndCCXu68vj8c5UaiQAlLS0FTdFiCfHbmpTZLIL-7zHYoI0DE9Ev1KrnR5L9qzLxzoMYQyawmAjx6eKvtWCMrBIA4pH8MQQz398rsCc1x7B7Fsy4iFJ7zXncqtjnTn337tQyTZ24rJPYZVAegv1DdAQPHqyMnLcL0C3sak94VO691Yudknr7feK1V5HpB66aMaY7fYf7A1qFIDgCp9pxr5Lk74NvJOIKLaUA-Nq79Zgl4T6z9pYQzD6F25sWMxYBdB0mT3Yb1-fthmxsZhamg_tw",
+                                    "clientUat": "1746966503",
+                                        "status": "signed-in"
+    }
+}
+{
+    "mergedHeaders": "{\"x-middleware-next\":\"1\"}"
+}
+  Added x - clerk - debug on request
+[clerk debug end: authMiddleware](@clerk / nextjs= 4.31.8, next = 14.2.28)
+GET / onboarding 200 in 34ms
+API route: Profile check result: { exists: true, onboarding_completed: false }
+GET / api / profile / check 200 in 297ms
+GET / favicon.ico 200 in 11ms
+Auth object: {
+    actor: undefined,
+        sessionClaims: {
+        azp: 'http://localhost:3000',
+            exp: 1746966581,
+                fva: [0, -1],
+                    iat: 1746966521,
+                        iss: 'https://enjoyed-pipefish-18.clerk.accounts.dev',
+                            nbf: 1746966511,
+                                sid: 'sess_2wwxaoz485iigKN3wgqe4EkKgnI',
+                                    sub: 'user_2wwvsi8EfH1w6Ac154QaSUeUjFN'
+    },
+    sessionId: 'sess_2wwxaoz485iigKN3wgqe4EkKgnI',
+        session: undefined,
+            userId: 'user_2wwvsi8EfH1w6Ac154QaSUeUjFN',
+                user: undefined,
+                    orgId: undefined,
+                        orgRole: undefined,
+                            orgSlug: undefined,
+                                orgPermissions: undefined,
+                                    organization: undefined,
+                                        getToken: [Function],
+                                            has: [Function],
+                                                debug: [Function],
+                                                    isPublicRoute: true,
+                                                        isApiRoute: true
+}
+Public or sign - up route accessed: /api/profile / check
+[clerk debug start: authMiddleware]
+  URL debug, {
+    "url": "http://localhost:3000/api/profile/check",
+    "method": "GET",
+    "headers": "{\"accept\":\"*/*\",\"accept-encoding\":\"gzip, deflate, br, zstd\",\"accept-language\":\"en-US,en;q=0.5\",\"authorization\":\"Bearer eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw\",\"cache-control\":\"no-cache\",\"connection\":\"keep-alive\",\"cookie\":\"__client_uat=1746966503; __session=eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw; __clerk_db_jwt=dvb_2wwxZOQzfzj9FKWSX1TUKXxlCqD\",\"dnt\":\"1\",\"host\":\"localhost:3000\",\"pragma\":\"no-cache\",\"priority\":\"u=4\",\"referer\":\"http://localhost:3000/onboarding\",\"sec-fetch-dest\":\"empty\",\"sec-fetch-mode\":\"cors\",\"sec-fetch-site\":\"same-origin\",\"sec-gpc\":\"1\",\"user-agent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0\",\"x-forwarded-for\":\"::ffff:127.0.0.1\",\"x-forwarded-host\":\"localhost:3000\",\"x-forwarded-port\":\"3000\",\"x-forwarded-proto\":\"http\"}",
+    "nextUrl": "http://localhost:3000/api/profile/check",
+    "clerkUrl": "http://localhost:3000/api/profile/check"
+}
+  Options debug, {
+    "debug": true,
+    "beforeAuth": false,
+    "afterAuth": true
+}
+{
+    "auth": "{\"sessionClaims\":{\"azp\":\"http://localhost:3000\",\"exp\":1746966581,\"fva\":[0,-1],\"iat\":1746966521,\"iss\":\"https://enjoyed-pipefish-18.clerk.accounts.dev\",\"nbf\":1746966511,\"sid\":\"sess_2wwxaoz485iigKN3wgqe4EkKgnI\",\"sub\":\"user_2wwvsi8EfH1w6Ac154QaSUeUjFN\"},\"sessionId\":\"sess_2wwxaoz485iigKN3wgqe4EkKgnI\",\"userId\":\"user_2wwvsi8EfH1w6Ac154QaSUeUjFN\",\"isPublicRoute\":true,\"isApiRoute\":true}",
+        "debug": {
+        "secretKey": "sk_test",
+            "apiKey": "",
+                "apiUrl": "https://api.clerk.dev",
+                    "apiVersion": "v1",
+                        "token": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw",
+                            "debug": true,
+                                "signInUrl": "/login",
+                                    "request": {
+            "sourcePage": "/src/middleware",
+                "experimental_clerkUrl": "http://localhost:3000/api/profile/check"
+        },
+        "audience": "",
+            "frontendApi": "enjoyed-pipefish-18.clerk.accounts.dev",
+                "proxyUrl": "",
+                    "publishableKey": "pk_test_ZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYk",
+                        "isSatellite": false,
+                            "domain": "",
+                                "jwtKey": "",
+                                    "searchParams": { },
+        "headerToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw",
+            "host": "localhost:3000",
+                "forwardedHost": "localhost:3000",
+                    "forwardedPort": "3000",
+                        "forwardedProto": "http",
+                            "referrer": "http://localhost:3000/onboarding",
+                                "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0",
+                                    "cookieToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw",
+                                        "clientUat": "1746966503",
+                                            "status": "signed-in"
+    }
+}
+{
+    "mergedHeaders": "{\"x-middleware-next\":\"1\"}"
+}
+  Added x - clerk - debug on request
+[clerk debug end: authMiddleware](@clerk / nextjs= 4.31.8, next = 14.2.28)
+API route: Starting profile check request
+[clerk debug start: auth()]
+Debug, {
+    "authStatus": "signed-in",
+    "authToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw"
+}
+  Options debug, {
+    "apiKey": "",
+    "authStatus": "signed-in",
+    "secretKey": "sk_test_*********477",
+    "authToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw",
+    "apiUrl": "https://api.clerk.dev",
+    "apiVersion": "v1"
+}
+  JWT debug, eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1 - 7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ - 3JcXdBHDR1avwG2 - Fvh3sSvTyo - CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW - xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT - rZ7M7MJj - F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw
+[clerk debug end: auth()](@clerk / nextjs= 4.31.8, next = 14.2.28)
+API route: Auth check - userId: user_2wwvsi8EfH1w6Ac154QaSUeUjFN
+API route: Checking for existing profile with Clerk ID: user_2wwvsi8EfH1w6Ac154QaSUeUjFN
+API route: Profile check result: { exists: true, onboarding_completed: false }
+GET / api / profile / check 200 in 283ms
+Auth object: {
+    actor: undefined,
+        sessionClaims: {
+        azp: 'http://localhost:3000',
+            exp: 1746966581,
+                fva: [0, -1],
+                    iat: 1746966521,
+                        iss: 'https://enjoyed-pipefish-18.clerk.accounts.dev',
+                            nbf: 1746966511,
+                                sid: 'sess_2wwxaoz485iigKN3wgqe4EkKgnI',
+                                    sub: 'user_2wwvsi8EfH1w6Ac154QaSUeUjFN'
+    },
+    sessionId: 'sess_2wwxaoz485iigKN3wgqe4EkKgnI',
+        session: undefined,
+            userId: 'user_2wwvsi8EfH1w6Ac154QaSUeUjFN',
+                user: undefined,
+                    orgId: undefined,
+                        orgRole: undefined,
+                            orgSlug: undefined,
+                                orgPermissions: undefined,
+                                    organization: undefined,
+                                        getToken: [Function],
+                                            has: [Function],
+                                                debug: [Function],
+                                                    isPublicRoute: false,
+                                                        isApiRoute: false
+}
+Middleware: Clerk API onboarding status: {
+    onboardingCompleted: true,
+        metadata: { unsafe: true, public: undefined }
+}
+Auth object: {
+    actor: undefined,
+        sessionClaims: {
+        azp: 'http://localhost:3000',
+            exp: 1746966581,
+                fva: [0, -1],
+                    iat: 1746966521,
+                        iss: 'https://enjoyed-pipefish-18.clerk.accounts.dev',
+                            nbf: 1746966511,
+                                sid: 'sess_2wwxaoz485iigKN3wgqe4EkKgnI',
+                                    sub: 'user_2wwvsi8EfH1w6Ac154QaSUeUjFN'
+    },
+    sessionId: 'sess_2wwxaoz485iigKN3wgqe4EkKgnI',
+        session: undefined,
+            userId: 'user_2wwvsi8EfH1w6Ac154QaSUeUjFN',
+                user: undefined,
+                    orgId: undefined,
+                        orgRole: undefined,
+                            orgSlug: undefined,
+                                orgPermissions: undefined,
+                                    organization: undefined,
+                                        getToken: [Function],
+                                            has: [Function],
+                                                debug: [Function],
+                                                    isPublicRoute: true,
+                                                        isApiRoute: true
+}
+Public or sign - up route accessed: /api/profile / check
+[clerk debug start: authMiddleware]
+  URL debug, {
+    "url": "http://localhost:3000/api/profile/check",
+    "method": "GET",
+    "headers": "{\"accept\":\"*/*\",\"accept-encoding\":\"gzip, deflate\",\"accept-language\":\"*\",\"authorization\":\"Bearer eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw\",\"cache-control\":\"no-cache\",\"connection\":\"keep-alive\",\"cookie\":\"__client_uat=1746966503; __session=eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw; __clerk_db_jwt=dvb_2wwxZOQzfzj9FKWSX1TUKXxlCqD\",\"host\":\"localhost:3000\",\"pragma\":\"no-cache\",\"sec-fetch-mode\":\"cors\",\"user-agent\":\"Next.js Middleware\",\"x-forwarded-for\":\"::1\",\"x-forwarded-host\":\"localhost:3000\",\"x-forwarded-port\":\"3000\",\"x-forwarded-proto\":\"http\"}",
+    "nextUrl": "http://localhost:3000/api/profile/check",
+    "clerkUrl": "http://localhost:3000/api/profile/check"
+}
+  Options debug, {
+    "debug": true,
+    "beforeAuth": false,
+    "afterAuth": true
+}
+{
+    "auth": "{\"sessionClaims\":{\"azp\":\"http://localhost:3000\",\"exp\":1746966581,\"fva\":[0,-1],\"iat\":1746966521,\"iss\":\"https://enjoyed-pipefish-18.clerk.accounts.dev\",\"nbf\":1746966511,\"sid\":\"sess_2wwxaoz485iigKN3wgqe4EkKgnI\",\"sub\":\"user_2wwvsi8EfH1w6Ac154QaSUeUjFN\"},\"sessionId\":\"sess_2wwxaoz485iigKN3wgqe4EkKgnI\",\"userId\":\"user_2wwvsi8EfH1w6Ac154QaSUeUjFN\",\"isPublicRoute\":true,\"isApiRoute\":true}",
+        "debug": {
+        "secretKey": "sk_test",
+            "apiKey": "",
+                "apiUrl": "https://api.clerk.dev",
+                    "apiVersion": "v1",
+                        "token": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw",
+                            "debug": true,
+                                "signInUrl": "/login",
+                                    "request": {
+            "sourcePage": "/src/middleware",
+                "experimental_clerkUrl": "http://localhost:3000/api/profile/check"
+        },
+        "audience": "",
+            "frontendApi": "enjoyed-pipefish-18.clerk.accounts.dev",
+                "proxyUrl": "",
+                    "publishableKey": "pk_test_ZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYk",
+                        "isSatellite": false,
+                            "domain": "",
+                                "jwtKey": "",
+                                    "searchParams": { },
+        "headerToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw",
+            "host": "localhost:3000",
+                "forwardedHost": "localhost:3000",
+                    "forwardedPort": "3000",
+                        "forwardedProto": "http",
+                            "userAgent": "Next.js Middleware",
+                                "cookieToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw",
+                                    "clientUat": "1746966503",
+                                        "status": "signed-in"
+    }
+}
+{
+    "mergedHeaders": "{\"x-middleware-next\":\"1\"}"
+}
+  Added x - clerk - debug on request
+[clerk debug end: authMiddleware](@clerk / nextjs= 4.31.8, next = 14.2.28)
+API route: Starting profile check request
+[clerk debug start: auth()]
+Debug, {
+    "authStatus": "signed-in",
+    "authToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw"
+}
+  Options debug, {
+    "apiKey": "",
+    "authStatus": "signed-in",
+    "secretKey": "sk_test_*********477",
+    "authToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw",
+    "apiUrl": "https://api.clerk.dev",
+    "apiVersion": "v1"
+}
+  JWT debug, eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1 - 7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ - 3JcXdBHDR1avwG2 - Fvh3sSvTyo - CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW - xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT - rZ7M7MJj - F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw
+[clerk debug end: auth()](@clerk / nextjs= 4.31.8, next = 14.2.28)
+API route: Auth check - userId: user_2wwvsi8EfH1w6Ac154QaSUeUjFN
+API route: Checking for existing profile with Clerk ID: user_2wwvsi8EfH1w6Ac154QaSUeUjFN
+Auth object: {
+    actor: undefined,
+        sessionClaims: {
+        azp: 'http://localhost:3000',
+            exp: 1746966581,
+                fva: [0, -1],
+                    iat: 1746966521,
+                        iss: 'https://enjoyed-pipefish-18.clerk.accounts.dev',
+                            nbf: 1746966511,
+                                sid: 'sess_2wwxaoz485iigKN3wgqe4EkKgnI',
+                                    sub: 'user_2wwvsi8EfH1w6Ac154QaSUeUjFN'
+    },
+    sessionId: 'sess_2wwxaoz485iigKN3wgqe4EkKgnI',
+        session: undefined,
+            userId: 'user_2wwvsi8EfH1w6Ac154QaSUeUjFN',
+                user: undefined,
+                    orgId: undefined,
+                        orgRole: undefined,
+                            orgSlug: undefined,
+                                orgPermissions: undefined,
+                                    organization: undefined,
+                                        getToken: [Function],
+                                            has: [Function],
+                                                debug: [Function],
+                                                    isPublicRoute: true,
+                                                        isApiRoute: true
+}
+Public or sign - up route accessed: /api/profile / check
+[clerk debug start: authMiddleware]
+  URL debug, {
+    "url": "http://localhost:3000/api/profile/check",
+    "method": "GET",
+    "headers": "{\"accept\":\"*/*\",\"accept-encoding\":\"gzip, deflate, br, zstd\",\"accept-language\":\"en-US,en;q=0.5\",\"authorization\":\"Bearer eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw\",\"cache-control\":\"no-cache\",\"connection\":\"keep-alive\",\"cookie\":\"__client_uat=1746966503; __session=eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw; __clerk_db_jwt=dvb_2wwxZOQzfzj9FKWSX1TUKXxlCqD\",\"dnt\":\"1\",\"host\":\"localhost:3000\",\"pragma\":\"no-cache\",\"priority\":\"u=4\",\"referer\":\"http://localhost:3000/onboarding\",\"sec-fetch-dest\":\"empty\",\"sec-fetch-mode\":\"cors\",\"sec-fetch-site\":\"same-origin\",\"sec-gpc\":\"1\",\"user-agent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0\",\"x-forwarded-for\":\"::ffff:127.0.0.1\",\"x-forwarded-host\":\"localhost:3000\",\"x-forwarded-port\":\"3000\",\"x-forwarded-proto\":\"http\"}",
+    "nextUrl": "http://localhost:3000/api/profile/check",
+    "clerkUrl": "http://localhost:3000/api/profile/check"
+}
+  Options debug, {
+    "debug": true,
+    "beforeAuth": false,
+    "afterAuth": true
+}
+{
+    "auth": "{\"sessionClaims\":{\"azp\":\"http://localhost:3000\",\"exp\":1746966581,\"fva\":[0,-1],\"iat\":1746966521,\"iss\":\"https://enjoyed-pipefish-18.clerk.accounts.dev\",\"nbf\":1746966511,\"sid\":\"sess_2wwxaoz485iigKN3wgqe4EkKgnI\",\"sub\":\"user_2wwvsi8EfH1w6Ac154QaSUeUjFN\"},\"sessionId\":\"sess_2wwxaoz485iigKN3wgqe4EkKgnI\",\"userId\":\"user_2wwvsi8EfH1w6Ac154QaSUeUjFN\",\"isPublicRoute\":true,\"isApiRoute\":true}",
+        "debug": {
+        "secretKey": "sk_test",
+            "apiKey": "",
+                "apiUrl": "https://api.clerk.dev",
+                    "apiVersion": "v1",
+                        "token": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw",
+                            "debug": true,
+                                "signInUrl": "/login",
+                                    "request": {
+            "sourcePage": "/src/middleware",
+                "experimental_clerkUrl": "http://localhost:3000/api/profile/check"
+        },
+        "audience": "",
+            "frontendApi": "enjoyed-pipefish-18.clerk.accounts.dev",
+                "proxyUrl": "",
+                    "publishableKey": "pk_test_ZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYk",
+                        "isSatellite": false,
+                            "domain": "",
+                                "jwtKey": "",
+                                    "searchParams": { },
+        "headerToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw",
+            "host": "localhost:3000",
+                "forwardedHost": "localhost:3000",
+                    "forwardedPort": "3000",
+                        "forwardedProto": "http",
+                            "referrer": "http://localhost:3000/onboarding",
+                                "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0",
+                                    "cookieToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw",
+                                        "clientUat": "1746966503",
+                                            "status": "signed-in"
+    }
+}
+{
+    "mergedHeaders": "{\"x-middleware-next\":\"1\"}"
+}
+  Added x - clerk - debug on request
+[clerk debug end: authMiddleware](@clerk / nextjs= 4.31.8, next = 14.2.28)
+API route: Starting profile check request
+[clerk debug start: auth()]
+Debug, {
+    "authStatus": "signed-in",
+    "authToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw"
+}
+  Options debug, {
+    "apiKey": "",
+    "authStatus": "signed-in",
+    "secretKey": "sk_test_*********477",
+    "authToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw",
+    "apiUrl": "https://api.clerk.dev",
+    "apiVersion": "v1"
+}
+  JWT debug, eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1 - 7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ - 3JcXdBHDR1avwG2 - Fvh3sSvTyo - CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW - xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT - rZ7M7MJj - F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw
+[clerk debug end: auth()](@clerk / nextjs= 4.31.8, next = 14.2.28)
+API route: Auth check - userId: user_2wwvsi8EfH1w6Ac154QaSUeUjFN
+API route: Checking for existing profile with Clerk ID: user_2wwvsi8EfH1w6Ac154QaSUeUjFN
+API route: Profile check result: { exists: true, onboarding_completed: false }
+GET / api / profile / check 200 in 285ms
+Middleware: Profile check result: { exists: true, onboarding_completed: false, attempt: 1 }
+Middleware: Final onboarding status: {
+    clerkStatus: true,
+        profileStatus: false,
+            profileExists: true,
+                finalStatus: false,
+                    path: '/dashboard'
+}
+Middleware: Onboarding not completed, redirecting to onboarding
+[clerk debug start: authMiddleware]
+  URL debug, {
+    "url": "http://localhost:3000/dashboard",
+    "method": "GET",
+    "headers": "{\"accept\":\"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\",\"accept-encoding\":\"gzip, deflate, br, zstd\",\"accept-language\":\"en-US,en;q=0.5\",\"connection\":\"keep-alive\",\"cookie\":\"__client_uat=1746966503; __session=eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw; __clerk_db_jwt=dvb_2wwxZOQzfzj9FKWSX1TUKXxlCqD\",\"dnt\":\"1\",\"host\":\"localhost:3000\",\"priority\":\"u=0, i\",\"referer\":\"http://localhost:3000/onboarding\",\"sec-fetch-dest\":\"document\",\"sec-fetch-mode\":\"navigate\",\"sec-fetch-site\":\"same-origin\",\"sec-fetch-user\":\"?1\",\"sec-gpc\":\"1\",\"upgrade-insecure-requests\":\"1\",\"user-agent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0\",\"x-forwarded-for\":\"::ffff:127.0.0.1\",\"x-forwarded-host\":\"localhost:3000\",\"x-forwarded-port\":\"3000\",\"x-forwarded-proto\":\"http\"}",
+    "nextUrl": "http://localhost:3000/dashboard",
+    "clerkUrl": "http://localhost:3000/dashboard"
+}
+  Options debug, {
+    "debug": true,
+    "beforeAuth": false,
+    "afterAuth": true
+}
+{
+    "auth": "{\"sessionClaims\":{\"azp\":\"http://localhost:3000\",\"exp\":1746966581,\"fva\":[0,-1],\"iat\":1746966521,\"iss\":\"https://enjoyed-pipefish-18.clerk.accounts.dev\",\"nbf\":1746966511,\"sid\":\"sess_2wwxaoz485iigKN3wgqe4EkKgnI\",\"sub\":\"user_2wwvsi8EfH1w6Ac154QaSUeUjFN\"},\"sessionId\":\"sess_2wwxaoz485iigKN3wgqe4EkKgnI\",\"userId\":\"user_2wwvsi8EfH1w6Ac154QaSUeUjFN\",\"isPublicRoute\":false,\"isApiRoute\":false}",
+        "debug": {
+        "secretKey": "sk_test",
+            "apiKey": "",
+                "apiUrl": "https://api.clerk.dev",
+                    "apiVersion": "v1",
+                        "token": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw",
+                            "debug": true,
+                                "signInUrl": "/login",
+                                    "request": {
+            "sourcePage": "/src/middleware",
+                "experimental_clerkUrl": "http://localhost:3000/dashboard"
+        },
+        "audience": "",
+            "frontendApi": "enjoyed-pipefish-18.clerk.accounts.dev",
+                "proxyUrl": "",
+                    "publishableKey": "pk_test_ZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYk",
+                        "isSatellite": false,
+                            "domain": "",
+                                "jwtKey": "",
+                                    "searchParams": { },
+        "host": "localhost:3000",
+            "forwardedHost": "localhost:3000",
+                "forwardedPort": "3000",
+                    "forwardedProto": "http",
+                        "referrer": "http://localhost:3000/onboarding",
+                            "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0",
+                                "cookieToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw",
+                                    "clientUat": "1746966503",
+                                        "status": "signed-in"
+    }
+}
+{
+    "mergedHeaders": "{\"location\":\"http://localhost:3000/onboarding\"}"
+}
+  Final response is redirect, following redirect
+[clerk debug end: authMiddleware](@clerk / nextjs= 4.31.8, next = 14.2.28)
+Auth object: {
+    actor: undefined,
+        sessionClaims: {
+        azp: 'http://localhost:3000',
+            exp: 1746966581,
+                fva: [0, -1],
+                    iat: 1746966521,
+                        iss: 'https://enjoyed-pipefish-18.clerk.accounts.dev',
+                            nbf: 1746966511,
+                                sid: 'sess_2wwxaoz485iigKN3wgqe4EkKgnI',
+                                    sub: 'user_2wwvsi8EfH1w6Ac154QaSUeUjFN'
+    },
+    sessionId: 'sess_2wwxaoz485iigKN3wgqe4EkKgnI',
+        session: undefined,
+            userId: 'user_2wwvsi8EfH1w6Ac154QaSUeUjFN',
+                user: undefined,
+                    orgId: undefined,
+                        orgRole: undefined,
+                            orgSlug: undefined,
+                                orgPermissions: undefined,
+                                    organization: undefined,
+                                        getToken: [Function],
+                                            has: [Function],
+                                                debug: [Function],
+                                                    isPublicRoute: true,
+                                                        isApiRoute: false
+}
+Public or sign - up route accessed: /onboarding
+[clerk debug start: authMiddleware]
+  URL debug, {
+    "url": "http://localhost:3000/onboarding",
+    "method": "GET",
+    "headers": "{\"accept\":\"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\",\"accept-encoding\":\"gzip, deflate, br, zstd\",\"accept-language\":\"en-US,en;q=0.5\",\"connection\":\"keep-alive\",\"cookie\":\"__client_uat=1746966503; __session=eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw; __clerk_db_jwt=dvb_2wwxZOQzfzj9FKWSX1TUKXxlCqD\",\"dnt\":\"1\",\"host\":\"localhost:3000\",\"priority\":\"u=0, i\",\"referer\":\"http://localhost:3000/onboarding\",\"sec-fetch-dest\":\"document\",\"sec-fetch-mode\":\"navigate\",\"sec-fetch-site\":\"same-origin\",\"sec-fetch-user\":\"?1\",\"sec-gpc\":\"1\",\"upgrade-insecure-requests\":\"1\",\"user-agent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0\",\"x-forwarded-for\":\"::ffff:127.0.0.1\",\"x-forwarded-host\":\"localhost:3000\",\"x-forwarded-port\":\"3000\",\"x-forwarded-proto\":\"http\"}",
+    "nextUrl": "http://localhost:3000/onboarding",
+    "clerkUrl": "http://localhost:3000/onboarding"
+}
+  Options debug, {
+    "debug": true,
+    "beforeAuth": false,
+    "afterAuth": true
+}
+{
+    "auth": "{\"sessionClaims\":{\"azp\":\"http://localhost:3000\",\"exp\":1746966581,\"fva\":[0,-1],\"iat\":1746966521,\"iss\":\"https://enjoyed-pipefish-18.clerk.accounts.dev\",\"nbf\":1746966511,\"sid\":\"sess_2wwxaoz485iigKN3wgqe4EkKgnI\",\"sub\":\"user_2wwvsi8EfH1w6Ac154QaSUeUjFN\"},\"sessionId\":\"sess_2wwxaoz485iigKN3wgqe4EkKgnI\",\"userId\":\"user_2wwvsi8EfH1w6Ac154QaSUeUjFN\",\"isPublicRoute\":true,\"isApiRoute\":false}",
+        "debug": {
+        "secretKey": "sk_test",
+            "apiKey": "",
+                "apiUrl": "https://api.clerk.dev",
+                    "apiVersion": "v1",
+                        "token": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw",
+                            "debug": true,
+                                "signInUrl": "/login",
+                                    "request": {
+            "sourcePage": "/src/middleware",
+                "experimental_clerkUrl": "http://localhost:3000/onboarding"
+        },
+        "audience": "",
+            "frontendApi": "enjoyed-pipefish-18.clerk.accounts.dev",
+                "proxyUrl": "",
+                    "publishableKey": "pk_test_ZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYk",
+                        "isSatellite": false,
+                            "domain": "",
+                                "jwtKey": "",
+                                    "searchParams": { },
+        "host": "localhost:3000",
+            "forwardedHost": "localhost:3000",
+                "forwardedPort": "3000",
+                    "forwardedProto": "http",
+                        "referrer": "http://localhost:3000/onboarding",
+                            "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0",
+                                "cookieToken": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yd2ZtQ2h0d3AwTEttNXo3QmI4YUhPUmhucEIiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDY5NjY1ODEsImZ2YSI6WzAsLTFdLCJpYXQiOjE3NDY5NjY1MjEsImlzcyI6Imh0dHBzOi8vZW5qb3llZC1waXBlZmlzaC0xOC5jbGVyay5hY2NvdW50cy5kZXYiLCJuYmYiOjE3NDY5NjY1MTEsInNpZCI6InNlc3NfMnd3eGFvejQ4NWlpZ0tOM3dncWU0RWtLZ25JIiwic3ViIjoidXNlcl8yd3d2c2k4RWZIMXc2QWMxNTRRYVNVZVVqRk4ifQ.Iwip_K1tMN1-7MMXBzFZwIloAEppK77wJdXdLcifAHMMIf2qgDcKmBf3XBv8bC6EIgNlULdr8BsRYuKc01TVMyJ_5L2FRSbK6SH5JADQdvtWk5ILw6iJ0vB3mCVjBghq9fq5GUAsrUm5WQ-3JcXdBHDR1avwG2-Fvh3sSvTyo-CnEY1jChKPUBsSPUnuQd6l5YYWADJRfkiiAObTmp4iAW-xD__2h5Bebaf8oiJKeNo7pHZdmIVUN6GIJgMN4InMUv9M3ICP4WqPCiWcYao0LziW3v7wd52qGGWEPirT-rZ7M7MJj-F00UFkxX64pmiaT43LCcunXxq1veRcdCAVRw",
+                                    "clientUat": "1746966503",
+                                        "status": "signed-in"
+    }
+}
+{
+    "mergedHeaders": "{\"x-middleware-next\":\"1\"}"
+}
+  Added x - clerk - debug on request
+[clerk debug end: authMiddleware](@clerk / nextjs= 4.31.8, next = 14.2.28)
+GET / onboarding 200 in 53ms
+API route: Profile check result: { exists: true, onboarding_completed: false }
+GET / api / profile / check 200 in 290ms
+ ✓ Compiled in 227ms(454 modules)
+ ✓ Compiled in 148ms(454 modules)
+ ✓ Compiled in 108ms(454 modules)
