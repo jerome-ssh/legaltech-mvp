@@ -11,9 +11,9 @@ import { Plus, Upload, MapPin, Home } from "lucide-react";
 import { ProgressIndicator } from "@/components/onboarding/ProgressIndicator";
 import { ProfileStrength } from "@/components/onboarding/ProfileStrength";
 import { getSpecializationsByBarNumber, getFirmSuggestions, socialProofData, specializationsByBar } from "@/lib/onboarding-utils";
+import countryList from 'react-select-country-list';
 
 interface OnboardingForm {
-    bar_number: string;
     firm_name: string;
     specialization: string;
     years_of_practice: string;
@@ -45,6 +45,30 @@ const onboardingSteps = [
     }
 ];
 
+// Tooltip/help text by country
+const idTooltips: Record<string, string> = {
+    "United States": "Enter your state bar number (e.g., NY123456). Find it on your state bar's website.",
+    "United Kingdom": "Enter your SRA number (for solicitors) or leave blank if not applicable.",
+    "India": "Enter your Bar Council enrollment number or leave blank.",
+    "default": "Enter any professional registration or license number, or leave blank if none applies."
+};
+function getIdTooltip(country: string) {
+    return idTooltips[country] || idTooltips["default"];
+}
+
+const usStates = [
+    "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"
+];
+
+// Professional ID entry type
+interface ProfessionalIdEntry {
+    country: string;
+    state?: string;
+    id: string;
+    yearIssued?: string;
+    noId: boolean;
+}
+
 export default function Onboarding() {
     const router = useRouter();
     const { user, isLoaded } = useUser();
@@ -52,7 +76,6 @@ export default function Onboarding() {
     const [loading, setLoading] = useState(false);
     const [currentStep, setCurrentStep] = useState(1);
     const [form, setForm] = useState<OnboardingForm>({
-        bar_number: "",
         firm_name: "",
         specialization: "",
         years_of_practice: "",
@@ -72,6 +95,23 @@ export default function Onboarding() {
     const [specializationFocused, setSpecializationFocused] = useState(false);
     const [specializationSearch, setSpecializationSearch] = useState("");
     const specializationDropdownRef = useRef<HTMLDivElement>(null);
+    const [professionalIds, setProfessionalIds] = useState<ProfessionalIdEntry[]>([{
+        country: '',
+        state: '',
+        id: '',
+        yearIssued: '',
+        noId: false
+    }]);
+    const [consent, setConsent] = useState(false);
+    const [showHomeAddress, setShowHomeAddress] = useState(false);
+    const [validation, setValidation] = useState({
+        firstName: true,
+        lastName: true,
+        email: true,
+        country: professionalIds[0]?.country ? true : false,
+        professionalId: professionalIds[0]?.id || professionalIds[0]?.noId ? true : false,
+    });
+    const [showValidationPrompt, setShowValidationPrompt] = useState(false);
 
     useEffect(() => {
         if (isLoaded && user) {
@@ -228,15 +268,8 @@ export default function Onboarding() {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setForm(prev => ({ ...prev, [name]: value }));
-
-        // Handle firm name suggestions
         if (name === 'firm_name') {
             setFirmSuggestions(getFirmSuggestions(value));
-        }
-
-        // Handle specialization suggestions based on bar number
-        if (name === 'bar_number') {
-            setSpecializationSuggestions(getSpecializationsByBarNumber(value));
         }
     };
 
@@ -259,26 +292,49 @@ export default function Onboarding() {
         setCurrentStep(prev => prev + 1);
     };
 
+    function allRequiredFieldsValid() {
+        const entry = professionalIds[0];
+        return (
+            validateField('firstName', form.first_name) &&
+            validateField('lastName', form.last_name) &&
+            validateField('email', form.email) &&
+            validateField('country', entry.country) &&
+            validateField('professionalId', entry.noId ? true : entry.id)
+        );
+    }
+
+    const handleNextWithValidation = () => {
+        if (currentStep === 2 && !allRequiredFieldsValid()) {
+            setShowValidationPrompt(true);
+            setValidation({
+                firstName: validateField('firstName', form.first_name),
+                lastName: validateField('lastName', form.last_name),
+                email: validateField('email', form.email),
+                country: validateField('country', professionalIds[0].country),
+                professionalId: validateField('professionalId', professionalIds[0].noId ? true : professionalIds[0].id),
+            });
+            return;
+        }
+        setShowValidationPrompt(false);
+        handleNext();
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         e.stopPropagation();
-
         if (!user) {
             console.error('Client: No user found');
             toast.error('User not found. Please try logging in again.');
             return;
         }
-
         try {
             setLoading(true);
             console.log('Client: Starting profile update...');
-
             // Update user metadata in Clerk
             console.log('Client: Updating Clerk metadata...');
             try {
                 const metadataUpdate = await user.update({
                     unsafeMetadata: {
-                        barNumber: form.bar_number,
                         firmName: form.firm_name,
                         specialization: form.specialization,
                         yearsOfPractice: form.years_of_practice,
@@ -290,12 +346,9 @@ export default function Onboarding() {
                     updatedUser: metadataUpdate,
                     unsafeMetadata: metadataUpdate?.unsafeMetadata
                 });
-
-                // Verify the update was successful
                 if (!metadataUpdate?.unsafeMetadata?.onboardingCompleted) {
                     throw new Error('Failed to update onboarding status');
                 }
-
                 // Update profile in Supabase
                 console.log('Client: Sending profile update request to API...');
                 const response = await fetch('/api/profile/update', {
@@ -304,17 +357,16 @@ export default function Onboarding() {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        barNumber: form.bar_number,
                         firmName: form.firm_name,
                         specialization: form.specialization,
                         yearsOfPractice: form.years_of_practice,
                         avatarUrl: form.avatar_url,
                         address: form.address,
                         homeAddress: form.home_address,
-                        gender: form.gender
+                        gender: form.gender,
+                        professionalIds,
                     })
                 });
-
                 console.log('Client: Received response status:', response.status);
                 const responseText = await response.text();
                 console.log('Client: Raw response:', responseText);
@@ -414,6 +466,35 @@ export default function Onboarding() {
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [specializationFocused]);
+
+    function handleProfessionalIdChange(idx: number, field: keyof ProfessionalIdEntry, value: string | boolean) {
+        setProfessionalIds(prev => prev.map((entry, i) =>
+            i === idx ? { ...entry, [field]: value } : entry
+        ));
+    }
+    function addProfessionalId() {
+        setProfessionalIds(prev => [...prev, { country: '', state: '', id: '', yearIssued: '', noId: false }]);
+    }
+    function removeProfessionalId(idx: number) {
+        setProfessionalIds(prev => prev.filter((_, i) => i !== idx));
+    }
+
+    function validateField(field: string, value: string | boolean) {
+        switch (field) {
+            case 'firstName':
+                return !!value && value.toString().trim().length > 0;
+            case 'lastName':
+                return !!value && value.toString().trim().length > 0;
+            case 'email':
+                return !!value && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value.toString());
+            case 'country':
+                return !!value && value.toString().trim().length > 0;
+            case 'professionalId':
+                return (typeof value === 'string' && value.trim().length > 0 && value.length <= 50 && /^[a-zA-Z0-9\-/ ]*$/.test(value)) || value === true;
+            default:
+                return true;
+        }
+    }
 
     if (!isLoaded) {
         return (
@@ -525,19 +606,6 @@ export default function Onboarding() {
                                 <div className="space-y-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Bar Number
-                                        </label>
-                                        <Input
-                                            type="text"
-                                            name="bar_number"
-                                            value={form.bar_number}
-                                            onChange={handleChange}
-                                            placeholder="Enter your bar number"
-                                            className="w-full"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Firm Name
                                         </label>
                                         <div className="relative">
@@ -575,7 +643,113 @@ export default function Onboarding() {
                                             onChange={handleChange}
                                             placeholder="Enter years of practice"
                                             className="w-full"
+                                            min={0}
+                                            max={70}
                                         />
+                                        <span className="text-xs text-gray-500">Enter a value between 0 and 70</span>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-semibold mb-2">Professional Identification</h3>
+                                        {professionalIds.map((entry, idx) => (
+                                            <div key={idx} className="mb-6 border p-4 rounded bg-gray-50">
+                                                <div className="mb-2">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Country/Jurisdiction <span className="text-red-500">*</span></label>
+                                                    <select
+                                                        className={`w-full border rounded px-3 py-2 ${!validateField('country', entry.country) ? 'border-red-500' : ''}`}
+                                                        value={entry.country}
+                                                        onChange={e => {
+                                                            handleProfessionalIdChange(idx, 'country', e.target.value);
+                                                            setValidation(v => ({ ...v, country: validateField('country', e.target.value) }));
+                                                        }}
+                                                        required
+                                                    >
+                                                        <option value="">Select country</option>
+                                                        {countryList().getData().map((c: { value: string; label: string }) => (
+                                                            <option key={c.value} value={c.label}>{c.label}</option>
+                                                        ))}
+                                                    </select>
+                                                    {!validateField('country', entry.country) && <span className="text-xs text-red-500">Country is required</span>}
+                                                </div>
+                                                {entry.country === 'United States' && (
+                                                    <div className="mb-2">
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">State <span className="text-red-500">*</span></label>
+                                                        <select
+                                                            className="w-full border rounded px-3 py-2"
+                                                            value={entry.state}
+                                                            onChange={e => handleProfessionalIdChange(idx, 'state', e.target.value)}
+                                                            required
+                                                        >
+                                                            <option value="">Select state</option>
+                                                            {usStates.map(s => (
+                                                                <option key={s} value={s}>{s}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                )}
+                                                <div className="mb-2 flex items-center gap-2">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Professional ID <span className="text-red-500">*</span></label>
+                                                    <span className="text-xs text-gray-400" title={getIdTooltip(entry.country)}>?</span>
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    className={`w-full border rounded px-3 py-2 mb-1 ${!validateField('professionalId', entry.noId ? true : entry.id) ? 'border-red-500' : ''}`}
+                                                    value={entry.id}
+                                                    onChange={e => {
+                                                        handleProfessionalIdChange(idx, 'id', e.target.value);
+                                                        setValidation(v => ({ ...v, professionalId: validateField('professionalId', entry.noId ? true : e.target.value) }));
+                                                    }}
+                                                    maxLength={50}
+                                                    disabled={entry.noId}
+                                                    placeholder="Enter your professional ID or leave blank"
+                                                    required={!entry.noId}
+                                                />
+                                                <div className="flex items-center mb-2">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={entry.noId}
+                                                        onChange={e => {
+                                                            handleProfessionalIdChange(idx, 'noId', e.target.checked);
+                                                            setValidation(v => ({ ...v, professionalId: validateField('professionalId', e.target.checked ? true : entry.id) }));
+                                                        }}
+                                                        id={`noid-${idx}`}
+                                                        className="mr-2"
+                                                    />
+                                                    <label htmlFor={`noid-${idx}`} className="text-sm">My jurisdiction does not issue a professional ID</label>
+                                                </div>
+                                                {!validateField('professionalId', entry.noId ? true : entry.id) && <span className="text-xs text-red-500">Professional ID is required or check the box</span>}
+                                                <div className="mb-2">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Year Issued (optional)</label>
+                                                    <input
+                                                        type="number"
+                                                        className="w-full border rounded px-3 py-2"
+                                                        value={entry.yearIssued}
+                                                        onChange={e => handleProfessionalIdChange(idx, 'yearIssued', e.target.value)}
+                                                        placeholder="e.g., 2022"
+                                                        min={1900}
+                                                        max={new Date().getFullYear()}
+                                                    />
+                                                </div>
+                                                {professionalIds.length > 1 && (
+                                                    <button type="button" className="text-red-500 text-xs underline" onClick={() => removeProfessionalId(idx)}>Remove</button>
+                                                )}
+                                            </div>
+                                        ))}
+                                        <button type="button" className="text-blue-600 text-sm underline mb-4" onClick={addProfessionalId}>Add Another ID</button>
+                                        <div className="mb-2">
+                                            <a href="/help/professional-id" target="_blank" className="text-blue-500 text-xs underline">What is a Professional ID?</a>
+                                            <a href="/privacy" target="_blank" className="text-blue-500 text-xs underline ml-4">Privacy Policy</a>
+                                        </div>
+                                        <div className="flex items-center mb-2">
+                                            <input
+                                                type="checkbox"
+                                                checked={consent}
+                                                onChange={e => setConsent(e.target.checked)}
+                                                id="consent"
+                                                className="mr-2"
+                                                required
+                                            />
+                                            <label htmlFor="consent" className="text-sm">I consent to the collection and storage of my professional ID for app functionality and verification.</label>
+                                        </div>
                                     </div>
                                 </div>
                             </CardContent>
@@ -679,14 +853,26 @@ export default function Onboarding() {
                                             Home Address
                                         </label>
                                     </div>
-                                    <Input
-                                        type="text"
-                                        name="home_address"
-                                        value={form.home_address}
-                                        onChange={handleChange}
-                                        placeholder="Enter your home address"
-                                        className="w-full"
-                                    />
+                                    <div className="flex items-center mb-2">
+                                        <input
+                                            type="checkbox"
+                                            checked={showHomeAddress}
+                                            onChange={e => setShowHomeAddress(e.target.checked)}
+                                            id="showHomeAddress"
+                                            className="mr-2"
+                                        />
+                                        <label htmlFor="showHomeAddress" className="text-sm">Add Home Address</label>
+                                    </div>
+                                    {showHomeAddress && (
+                                        <Input
+                                            type="text"
+                                            name="home_address"
+                                            value={form.home_address}
+                                            onChange={handleChange}
+                                            placeholder="Enter your home address"
+                                            className="w-full mb-4"
+                                        />
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>
@@ -705,9 +891,9 @@ export default function Onboarding() {
                         {currentStep < onboardingSteps.length ? (
                             <Button
                                 type="button"
-                                onClick={handleNext}
+                                onClick={handleNextWithValidation}
                                 className="ml-auto"
-                                disabled={currentStep === 1 && (!form.first_name || !form.last_name)}
+                                disabled={currentStep === 2 && !allRequiredFieldsValid()}
                             >
                                 Next
                             </Button>
@@ -722,6 +908,10 @@ export default function Onboarding() {
                             </Button>
                         )}
                     </div>
+
+                    {showValidationPrompt && (
+                        <div className="text-red-600 text-sm font-semibold mt-2">Please make sure to fill all the required fields.</div>
+                    )}
                 </form>
             </div>
         </div>
