@@ -71,15 +71,12 @@ export default authMiddleware({
       return NextResponse.redirect(new URL('/onboarding', req.url));
     }
 
-    // If user is authenticated and trying to access onboarding, allow it
-    if (req.nextUrl.pathname === '/onboarding') {
-      console.log('User accessing onboarding');
-      return NextResponse.next();
-    }
-
     // For all other routes, check if user has completed onboarding
     let onboardingCompleted = false;
+    let profileOnboardingCompleted = false;
+
     if (auth.userId) {
+      // Check Clerk metadata first
       if (process.env.CLERK_SECRET_KEY) {
         try {
           const res = await fetch(`https://api.clerk.dev/v1/users/${auth.userId}`, {
@@ -97,42 +94,86 @@ export default authMiddleware({
         }
       }
 
-      // Check if profile exists in Supabase using API route
-      try {
-        const res = await fetch(new URL('/api/profile/check', req.url), { method: 'GET' });
-        const { exists, onboarding_completed } = await res.json();
-        
-        if (!exists) {
-          // If no profile exists, redirect to onboarding
-          console.log('Middleware: No profile found, redirecting to onboarding');
-          return NextResponse.redirect(new URL('/onboarding', req.url));
-        }
+      // Check profile status with retry logic
+      let retryCount = 0;
+      const maxRetries = 3;
+      const retryDelay = 1000; // 1 second
 
-        // If profile exists but onboarding is not completed, redirect to onboarding
-        if (!onboarding_completed) {
-          console.log('Middleware: Profile exists but onboarding not completed, redirecting to onboarding');
-          return NextResponse.redirect(new URL('/onboarding', req.url));
+      while (retryCount < maxRetries) {
+        try {
+          // Get the session token for the internal request
+          const token = await auth.getToken();
+          
+          const res = await fetch(new URL('/api/profile/check', req.url), { 
+            method: 'GET',
+            headers: {
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache',
+              'Authorization': `Bearer ${token}`,
+              'Cookie': req.headers.get('cookie') || ''
+            }
+          });
+          
+          if (!res.ok) {
+            throw new Error(`Profile check failed with status: ${res.status}`);
+          }
+
+          const { exists, onboarding_completed, success } = await res.json();
+          
+          if (!success) {
+            throw new Error('Profile check returned unsuccessful');
+          }
+
+          if (!exists) {
+            console.log('Middleware: No profile found, attempt', retryCount + 1);
+            if (retryCount < maxRetries - 1) {
+              await new Promise(resolve => setTimeout(resolve, retryDelay));
+              retryCount++;
+              continue;
+            }
+            // If we've exhausted retries and still no profile, redirect to onboarding
+            console.log('Middleware: No profile found after retries, redirecting to onboarding');
+            return NextResponse.redirect(new URL('/onboarding', req.url));
+          }
+
+          profileOnboardingCompleted = onboarding_completed;
+          console.log('Middleware: Profile onboarding status:', profileOnboardingCompleted);
+          break; // Success, exit retry loop
+        } catch (err) {
+          console.error('Middleware: Error checking profile, attempt', retryCount + 1, err);
+          if (retryCount < maxRetries - 1) {
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+            retryCount++;
+          } else {
+            // If we've exhausted retries and still getting errors, redirect to onboarding to be safe
+            console.log('Middleware: Profile check failed after retries, redirecting to onboarding');
+            return NextResponse.redirect(new URL('/onboarding', req.url));
+          }
         }
-      } catch (err) {
-        console.error('Middleware: Error checking profile:', err);
-        // If we can't check the profile, redirect to onboarding to be safe
-        return NextResponse.redirect(new URL('/onboarding', req.url));
       }
     }
 
-    // If onboarding is not completed or no profile exists, redirect to onboarding
-    if (!onboardingCompleted && !req.nextUrl.pathname.startsWith('/onboarding')) {
-      console.log('User has not completed onboarding, redirecting to onboarding');
+    // If either Clerk metadata or profile shows onboarding is completed, allow access
+    const isOnboardingCompleted = onboardingCompleted || profileOnboardingCompleted;
+    console.log('Middleware: Final onboarding status:', { 
+      clerkStatus: onboardingCompleted, 
+      profileStatus: profileOnboardingCompleted,
+      finalStatus: isOnboardingCompleted 
+    });
+
+    // If onboarding is not completed and trying to access protected routes, redirect to onboarding
+    if (!isOnboardingCompleted && !req.nextUrl.pathname.startsWith('/onboarding')) {
+      console.log('Middleware: Onboarding not completed, redirecting to onboarding');
       return NextResponse.redirect(new URL('/onboarding', req.url));
     }
 
-    // If onboarding is completed and profile exists, allow access to dashboard
-    if (onboardingCompleted && req.nextUrl.pathname === '/dashboard') {
-      console.log('User has completed onboarding, allowing access to dashboard');
-      return NextResponse.next();
+    // If onboarding is completed and trying to access onboarding page, redirect to dashboard
+    if (isOnboardingCompleted && req.nextUrl.pathname === '/onboarding') {
+      console.log('Middleware: Onboarding completed, redirecting to dashboard');
+      return NextResponse.redirect(new URL('/dashboard', req.url));
     }
 
-    console.log('User authenticated and authorized, proceeding to:', req.nextUrl.pathname);
+    console.log('Middleware: User authenticated and authorized, proceeding to:', req.nextUrl.pathname);
     return NextResponse.next();
   }
 });
