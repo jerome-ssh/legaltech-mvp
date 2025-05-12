@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -7,6 +7,27 @@ interface AuthLayoutProps {
 }
 
 export default function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hideBadge = () => {
+        document.querySelectorAll('div[class^="cl-internal-"]').forEach(div => {
+          if (
+            div.textContent?.toLowerCase().includes('secured by') ||
+            div.innerHTML.includes('clerk.com')
+          ) {
+            (div as HTMLElement).style.display = 'none';
+          }
+        });
+      };
+      // Initial check
+      hideBadge();
+      // MutationObserver for instant removal
+      const observer = new MutationObserver(hideBadge);
+      observer.observe(document.body, { childList: true, subtree: true });
+      return () => observer.disconnect();
+    }
+  }, []);
+
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-sky-100 via-white to-pink-100">
       {/* Decorative elements */}
