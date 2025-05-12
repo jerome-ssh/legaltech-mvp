@@ -20,6 +20,7 @@ export function ClerkProvider({ children }: { children: React.ReactNode }) {
                     card: 'bg-white/90 shadow-xl rounded-xl',
                     socialButtonsBlockButton: 'border border-gray-200 hover:bg-gray-50/50',
                     formFieldInput: 'rounded-lg border-gray-200 focus:border-sky-400 focus:ring-sky-400',
+                    badge: '!hidden',
                 }
             }}
             signInUrl="/login"

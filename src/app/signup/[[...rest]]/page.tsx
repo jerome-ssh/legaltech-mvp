@@ -48,6 +48,7 @@ export default function Page() {
                             formFieldInputShowPasswordIcon: 'text-sky-600 hover:text-pink-500',
                             formFieldInputShowPasswordButtonHover: 'text-pink-500',
                             formFieldInputShowPasswordIconHover: 'text-pink-500',
+                            badge: '!hidden',
                         },
                     }}
                     routing="path"

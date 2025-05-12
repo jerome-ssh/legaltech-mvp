@@ -123,3 +123,38 @@
 .animate-fade-in {
   animation: fadeIn 0.5s ease-out forwards;
 }
+
+/* Hide Clerk "Secured by Clerk" badge everywhere */
+.cl-internal-badge,
+.clerk-badge,
+[data-testid="clerk-badge"] {
+  display: none !important;
+}
+
+/* Universal Clerk badge removal */
+div[aria-label*="Clerk"],
+div[aria-label*="Secured by Clerk"],
+div[class*="clerk"],
+div[class*="badge"],
+div[class*="cl-internal-badge"],
+div[data-testid*="clerk-badge"],
+div[style*="rotate(270deg)"],
+div[style*="writing-mode:vertical-rl"] {
+  display: none !important;
+}
+
+/* Hide any Clerk badge with dynamic class names */
+div[class^="cl-internal-"]>p {
+  /* Hide the 'Secured by' text */
+  display: none !important;
+}
+
+div[class^="cl-internal-"]>a[aria-label="Clerk"] {
+  /* Hide the Clerk logo link */
+  display: none !important;
+}
+
+div[class^="cl-internal-"]>svg {
+  /* Hide the Clerk logo SVG if present */
+  display: none !important;
+}

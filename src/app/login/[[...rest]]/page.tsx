@@ -78,6 +78,7 @@ export default function Page() {
                             formFieldSuccessText: 'hidden',
                             dividerLine: 'hidden',
                             dividerText: 'hidden',
+                            badge: '!hidden',
                         },
                         layout: {
                             socialButtonsPlacement: 'bottom',
