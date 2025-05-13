@@ -1,0 +1,37 @@
+LawMate Icon Design Specifications
+
+Main Icon (512x512):
+- Base: Circular design with a gradient background from #0ea5e9 (sky-400) to #ec4899 (pink-400)
+- Center: Stylized "L" and "M" intertwined in white
+- Accent: Small scale of justice symbol in the negative space
+- Border: Thin white border with subtle glow
+- Shadow: Soft drop shadow for depth
+
+Shortcut Icons (192x192):
+1. Dashboard:
+   - Same base design
+   - Grid pattern overlay in white
+   - "D" in the center
+
+2. CRM:
+   - Same base design
+   - People/network icon overlay
+   - "C" in the center
+
+3. Analytics:
+   - Same base design
+   - Graph/chart icon overlay
+   - "A" in the center
+
+Color Palette:
+- Primary: #0ea5e9 (sky-400)
+- Secondary: #ec4899 (pink-400)
+- Accent: #ffffff (white)
+- Shadow: rgba(0, 0, 0, 0.1)
+
+Style Guidelines:
+- Modern and minimalist
+- Clear and recognizable at small sizes
+- Consistent with platform's UI design
+- Professional yet approachable
+- Works well on both light and dark backgrounds 

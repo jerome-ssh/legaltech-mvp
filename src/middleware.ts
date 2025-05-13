@@ -66,7 +66,7 @@ export default authMiddleware({
         try {
           const token = await auth.getToken();
           
-          // First check Clerk for phone number
+          // First check Clerk for phone number and email
           if (process.env.CLERK_SECRET_KEY) {
             const clerkRes = await fetch(`https://api.clerk.dev/v1/users/${auth.userId}`, {
               headers: {
@@ -79,8 +79,10 @@ export default authMiddleware({
             if (clerkRes.ok) {
               const userData = await clerkRes.json();
               const phoneNumber = userData.phone_numbers?.[0]?.phone_number;
+              const email = userData.email_addresses?.[0]?.email_address;
               
-              if (phoneNumber && !isSocialSignIn(userData)) {
+              // Check for duplicate phone number
+              if (phoneNumber) {
                 const { data: existingPhoneProfile } = await supabase
                   .from('profiles')
                   .select('clerk_id')
@@ -103,6 +105,35 @@ export default authMiddleware({
                     // Redirect to login with error code for page requests
                     const loginUrl = new URL('/login', req.url);
                     loginUrl.searchParams.set('error', 'PHONE_NUMBER_IN_USE');
+                    return NextResponse.redirect(loginUrl);
+                  }
+                }
+              }
+
+              // Check for duplicate email
+              if (email) {
+                const { data: existingEmailProfile } = await supabase
+                  .from('profiles')
+                  .select('clerk_id')
+                  .eq('email', email)
+                  .neq('clerk_id', auth.userId)
+                  .single();
+
+                if (existingEmailProfile) {
+                  const isApiRequest = req.nextUrl.pathname.startsWith('/api/');
+                  if (isApiRequest) {
+                    return NextResponse.json(
+                      {
+                        success: false,
+                        error: "Email is already associated with another account",
+                        code: "EMAIL_IN_USE"
+                      },
+                      { status: 400 }
+                    );
+                  } else {
+                    // Redirect to login with error code for page requests
+                    const loginUrl = new URL('/login', req.url);
+                    loginUrl.searchParams.set('error', 'EMAIL_IN_USE');
                     return NextResponse.redirect(loginUrl);
                   }
                 }
@@ -246,6 +277,36 @@ export default authMiddleware({
                 // Redirect to login with error code for page requests
                 const loginUrl = new URL('/login', req.url);
                 loginUrl.searchParams.set('error', 'PHONE_NUMBER_IN_USE');
+                return NextResponse.redirect(loginUrl);
+              }
+            }
+          }
+          
+          // Check for duplicate email
+          const email = userData.email_addresses?.[0]?.email_address;
+          if (email) {
+            const { data: existingEmailProfile } = await supabase
+              .from('profiles')
+              .select('clerk_id')
+              .eq('email', email)
+              .neq('clerk_id', auth.userId)
+              .single();
+
+            if (existingEmailProfile) {
+              const isApiRequest = req.nextUrl.pathname.startsWith('/api/');
+              if (isApiRequest) {
+                return NextResponse.json(
+                  {
+                    success: false,
+                    error: "Email is already associated with another account",
+                    code: "EMAIL_IN_USE"
+                  },
+                  { status: 400 }
+                );
+              } else {
+                // Redirect to login with error code for page requests
+                const loginUrl = new URL('/login', req.url);
+                loginUrl.searchParams.set('error', 'EMAIL_IN_USE');
                 return NextResponse.redirect(loginUrl);
               }
             }

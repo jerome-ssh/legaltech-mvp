@@ -122,12 +122,12 @@ export default function Analytics() {
     try {
       // Fetch all data in parallel
       const [
-        { data: cases, error: casesError },
-        { data: types, error: typesError },
-        { data: billing, error: billingError },
-        { data: tasks, error: tasksError },
-        { data: statusData, error: statusError },
-        { data: feedbackData, error: feedbackError }
+        casesResult,
+        typesResult,
+        billingResult,
+        tasksResult,
+        statusResult,
+        feedbackResult
       ] = await Promise.all([
         supabase.from('cases').select('*').order('created_at', { ascending: true }),
         supabase.from('case_types').select('*'),
@@ -137,22 +137,28 @@ export default function Analytics() {
         supabase.from('client_feedback').select('rating')
       ]);
 
-      // Handle errors
-      if (casesError) throw new Error('Failed to fetch cases data');
-      if (typesError) throw new Error('Failed to fetch case types');
-      if (billingError) throw new Error('Failed to fetch billing data');
-      if (tasksError) throw new Error('Failed to fetch tasks');
-      if (statusError) throw new Error('Failed to fetch case statuses');
-      if (feedbackError) throw new Error('Failed to fetch client feedback');
+      // Handle individual errors without failing the entire request
+      const errors = [];
+      if (casesResult.error) errors.push(`Cases: ${casesResult.error.message}`);
+      if (typesResult.error) errors.push(`Case types: ${typesResult.error.message}`);
+      if (billingResult.error) errors.push(`Billing: ${billingResult.error.message}`);
+      if (tasksResult.error) errors.push(`Tasks: ${tasksResult.error.message}`);
+      if (statusResult.error) errors.push(`Status: ${statusResult.error.message}`);
+      if (feedbackResult.error) errors.push(`Feedback: ${feedbackResult.error.message}`);
 
-      // Process and set data
-      setCaseData(processCaseData(cases || []));
-      setCaseTypes(types || []);
-      setBillingPerformance(processBillingData(billing || []));
-      setRecurringTasks(processTasksData(tasks || []));
+      if (errors.length > 0) {
+        console.warn('Partial data fetch errors:', errors);
+        toast.error('Some data could not be loaded');
+      }
 
-      // Process status data
-      const statusCounts = (statusData ?? []).reduce((acc: Record<string, number>, item: any) => {
+      // Process and set data with fallback to empty arrays
+      setCaseData(processCaseData(casesResult.data || []));
+      setCaseTypes(typesResult.data || []);
+      setBillingPerformance(processBillingData(billingResult.data || []));
+      setRecurringTasks(processTasksData(tasksResult.data || []));
+
+      // Process status data with defaults
+      const statusCounts = (statusResult.data ?? []).reduce((acc: Record<string, number>, item: any) => {
         acc[item.status] = (acc[item.status] || 0) + 1;
         return acc;
       }, {});
@@ -161,10 +167,14 @@ export default function Analytics() {
         status,
         count: Number(count),
       }));
-      setCaseStatuses(statuses);
+      setCaseStatuses(statuses.length ? statuses : [
+        { status: 'Open', count: 0 },
+        { status: 'Closed', count: 0 },
+        { status: 'Pending', count: 0 }
+      ]);
 
-      // Process feedback data
-      const feedbackCounts = (feedbackData ?? []).reduce((acc: Record<number, number>, item: any) => {
+      // Process feedback data with defaults
+      const feedbackCounts = (feedbackResult.data ?? []).reduce((acc: Record<number, number>, item: any) => {
         acc[item.rating] = (acc[item.rating] || 0) + 1;
         return acc;
       }, {});
@@ -173,10 +183,16 @@ export default function Analytics() {
         rating: Number(rating),
         count: Number(count),
       }));
-      setClientFeedback(feedback);
+      setClientFeedback(feedback.length ? feedback : [
+        { rating: 5, count: 0 },
+        { rating: 4, count: 0 },
+        { rating: 3, count: 0 },
+        { rating: 2, count: 0 },
+        { rating: 1, count: 0 }
+      ]);
 
       // Calculate summary statistics
-      const stats = calculateSummaryStats(cases || []);
+      const stats = calculateSummaryStats(casesResult.data || []);
       setSummaryStats(stats);
 
     } catch (error) {
@@ -189,76 +205,104 @@ export default function Analytics() {
   };
 
   const processCaseData = (cases: any[]): CaseData[] => {
-    return cases.reduce((acc: CaseData[], case_: any) => {
+    // Group cases by month and calculate metrics
+    const monthlyData = cases.reduce((acc: Record<string, { cases: number; revenue: number; expenses: number }>, case_: any) => {
       const month = new Date(case_.created_at).toLocaleString('default', { month: 'short' });
-      const existingMonth = acc.find(item => item.name === month);
-
-      if (existingMonth) {
-        existingMonth.cases++;
-        existingMonth.revenue += case_.revenue || 0;
-        existingMonth.expenses += case_.expenses || 0;
-      } else {
-        acc.push({
-          name: month,
-          cases: 1,
-          revenue: case_.revenue || 0,
-          expenses: case_.expenses || 0,
-        });
+      
+      if (!acc[month]) {
+        acc[month] = { cases: 0, revenue: 0, expenses: 0 };
       }
+
+      acc[month].cases++;
+      acc[month].revenue += Number(case_.revenue) || 0;
+      acc[month].expenses += Number(case_.expenses) || 0;
+
       return acc;
-    }, []);
+    }, {});
+
+    // Convert to array format and sort by month
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return Object.entries(monthlyData)
+      .map(([month, data]) => ({
+        name: month,
+        cases: data.cases,
+        revenue: data.revenue,
+        expenses: data.expenses
+      }))
+      .sort((a, b) => months.indexOf(a.name) - months.indexOf(b.name));
   };
 
   const processBillingData = (billing: any[]): BillingData[] => {
-    return billing.reduce((acc: BillingData[], bill: any) => {
-      const month = bill.month;
-      const existingMonth = acc.find(item => item.month === month);
+    // Group billing data by month
+    const monthlyData = billing.reduce((acc: Record<string, { paid: number; outstanding: number }>, bill: any) => {
+      const month = new Date(bill.created_at).toLocaleString('default', { month: 'short' });
 
-      if (existingMonth) {
-        existingMonth.paid += bill.paid || 0;
-        existingMonth.outstanding += bill.outstanding || 0;
-      } else {
-        acc.push({
-          month,
-          paid: bill.paid || 0,
-          outstanding: bill.outstanding || 0,
-        });
+      if (!acc[month]) {
+        acc[month] = { paid: 0, outstanding: 0 };
       }
+
+      if (bill.status === 'paid' && bill.paid_date) {
+        acc[month].paid += Number(bill.amount) || 0;
+      } else {
+        acc[month].outstanding += Number(bill.amount) || 0;
+      }
+
       return acc;
-    }, []);
+    }, {});
+
+    // Convert to array format
+    return Object.entries(monthlyData).map(([month, data]) => ({
+      month,
+      paid: data.paid,
+      outstanding: data.outstanding
+    }));
   };
 
   const processTasksData = (tasks: any[]): TaskData[] => {
-    return tasks.map(task => ({
-      task: task.name,
-      frequency: task.frequency || 0,
+    // Group tasks by title and count their frequency
+    const taskCounts = tasks.reduce((acc: Record<string, number>, task: any) => {
+      if (task.title) {
+        acc[task.title] = (acc[task.title] || 0) + 1;
+      }
+      return acc;
+    }, {});
+
+    return Object.entries(taskCounts).map(([title, count]) => ({
+      task: title,
+      frequency: count,
     }));
   };
 
   const calculateSummaryStats = (cases: any[]): SummaryStats => {
     const totalCases = cases.length;
     const activeCases = cases.filter(c => c.status === 'active').length;
-    const totalRevenue = cases.reduce((sum, c) => sum + (c.revenue || 0), 0);
-    const totalDuration = cases.reduce((sum, c) => {
-      if (c.closed_at) {
-        const startDate = new Date(c.created_at).getTime();
-        const endDate = new Date(c.closed_at).getTime();
-        return sum + (endDate - startDate) / (1000 * 60 * 60 * 24);
-      }
-      return sum;
+    const totalRevenue = cases.reduce((sum, c) => sum + (Number(c.revenue) || 0), 0);
+    
+    // Calculate case duration for closed cases
+    const closedCases = cases.filter(c => c.end_date);
+    const totalDuration = closedCases.reduce((sum, c) => {
+      const startDate = new Date(c.start_date).getTime();
+      const endDate = new Date(c.end_date).getTime();
+      return sum + (endDate - startDate) / (1000 * 60 * 60 * 24); // Convert to days
     }, 0);
-    const closedCases = cases.filter(c => c.closed_at).length;
-    const averageCaseDuration = closedCases > 0 ? totalDuration / closedCases : 0;
-    const totalClients = new Set(cases.map(c => c.client_id)).size;
+    
+    const averageCaseDuration = closedCases.length > 0 ? totalDuration / closedCases.length : 0;
+    const totalClients = new Set(cases.map(c => c.client_id).filter(Boolean)).size;
     const successfulCases = cases.filter(c => c.status === 'closed' && c.outcome === 'successful').length;
-    const successRate = closedCases > 0 ? (successfulCases / closedCases) * 100 : 0;
+    const successRate = closedCases.length > 0 ? (successfulCases / closedCases.length) * 100 : 0;
+
+    // Calculate client satisfaction from feedback data
+    const clientSatisfaction = clientFeedback.length > 0
+      ? clientFeedback.reduce((sum, f) => sum + (f.rating * f.count), 0) / 
+        clientFeedback.reduce((sum, f) => sum + f.count, 0)
+      : 0;
 
     return {
       totalCases,
       activeCases,
       totalRevenue,
       averageCaseDuration,
-      clientSatisfaction: 4.5, // This would come from actual feedback data
+      clientSatisfaction,
       totalClients,
       successRate,
     };
@@ -415,28 +459,28 @@ export default function Analytics() {
 
         {/* Summary Statistics Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
+          <Card className="bg-white shadow-sm hover:shadow-2xl hover:shadow-blue-500/30 transition-shadow">
             <CardContent className="p-6">
               <h3 className="text-sm font-medium text-gray-500">Total Cases</h3>
               <p className="text-3xl font-bold text-gray-900 mt-2">{summaryStats.totalCases}</p>
               <p className="text-sm text-gray-500 mt-1">{summaryStats.activeCases} Active</p>
             </CardContent>
           </Card>
-          <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
+          <Card className="bg-white shadow-sm hover:shadow-2xl hover:shadow-blue-500/30 transition-shadow">
             <CardContent className="p-6">
               <h3 className="text-sm font-medium text-gray-500">Total Revenue</h3>
               <p className="text-3xl font-bold text-gray-900 mt-2">${summaryStats.totalRevenue.toLocaleString()}</p>
               <p className="text-sm text-gray-500 mt-1">Last 30 days</p>
             </CardContent>
           </Card>
-          <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
+          <Card className="bg-white shadow-sm hover:shadow-2xl hover:shadow-blue-500/30 transition-shadow">
             <CardContent className="p-6">
               <h3 className="text-sm font-medium text-gray-500">Success Rate</h3>
               <p className="text-3xl font-bold text-gray-900 mt-2">{summaryStats.successRate.toFixed(1)}%</p>
               <p className="text-sm text-gray-500 mt-1">Based on closed cases</p>
             </CardContent>
           </Card>
-          <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
+          <Card className="bg-white shadow-sm hover:shadow-2xl hover:shadow-blue-500/30 transition-shadow">
             <CardContent className="p-6">
               <h3 className="text-sm font-medium text-gray-500">Client Satisfaction</h3>
               <p className="text-3xl font-bold text-gray-900 mt-2">{summaryStats.clientSatisfaction}/5</p>
@@ -492,9 +536,9 @@ export default function Analytics() {
           {chartConfigs.map(({ title, chart, data }, i) => (
             <Card
               key={i}
-              className={`bg-white transition-all duration-300 cursor-pointer ${focusedChartIndex === i
+              className={`bg-white transition-all duration-300 cursor-pointer hover:shadow-2xl hover:shadow-blue-500/30 ${focusedChartIndex === i
                 ? "shadow-[0_0_25px_rgba(59,130,246,0.5)] border-2 border-blue-500 scale-[1.01]"
-                : "hover:shadow-md"
+                : ""
                 }`}
               onClick={() => setFocusedChartIndex(focusedChartIndex === i ? null : i)}
             >

@@ -1,0 +1,90 @@
+LawMate Detailed Icon Specifications
+
+MAIN ICON (512x512)
+------------------
+Base Circle:
+- Size: 512x512px
+- Border radius: 256px (50%)
+- Gradient: Linear from top-left to bottom-right
+  - Start: #0ea5e9 (sky-400)
+  - End: #ec4899 (pink-400)
+- Border: 2px solid rgba(255, 255, 255, 0.8)
+- Shadow: 0 4px 12px rgba(0, 0, 0, 0.1)
+
+Logo Mark:
+- "L" and "M" intertwined
+- Font: Custom geometric sans-serif
+- Size: 280x280px centered
+- Color: #ffffff
+- Weight: Bold
+- Tracking: -0.02em
+- Position: Center of circle
+
+Scale of Justice:
+- Size: 80x80px
+- Position: Bottom-right quadrant
+- Color: rgba(255, 255, 255, 0.9)
+- Style: Minimalist line art
+- Weight: 1.5px stroke
+
+SHORTCUT ICONS (192x192)
+-----------------------
+Common Elements:
+- Base circle: 192x192px
+- Border radius: 96px (50%)
+- Same gradient as main icon
+- Border: 1.5px solid rgba(255, 255, 255, 0.8)
+- Shadow: 0 2px 8px rgba(0, 0, 0, 0.1)
+
+1. Dashboard Icon:
+   - Grid overlay: 4x4 grid
+   - Grid lines: 1px solid rgba(255, 255, 255, 0.8)
+   - "D" letter: 80x80px centered
+   - Font: Same as main icon
+   - Color: #ffffff
+
+2. CRM Icon:
+   - Network nodes: 5 connected dots
+   - Connection lines: 1px solid rgba(255, 255, 255, 0.8)
+   - "C" letter: 80x80px centered
+   - Font: Same as main icon
+   - Color: #ffffff
+
+3. Analytics Icon:
+   - Graph: 3 ascending bars
+   - Bar width: 12px
+   - Bar spacing: 8px
+   - "A" letter: 80x80px centered
+   - Font: Same as main icon
+   - Color: #ffffff
+
+EXPORT SPECIFICATIONS
+--------------------
+File Formats:
+- PNG with transparency
+- SVG for web use
+- ICO for Windows
+
+Sizes Required:
+1. Main Icon:
+   - 512x512px (primary)
+   - 192x192px (fallback)
+   - 144x144px (Windows)
+   - 96x96px (Windows)
+
+2. Shortcut Icons:
+   - 192x192px (primary)
+   - 96x96px (fallback)
+
+Quality Requirements:
+- Anti-aliasing: Enabled
+- Compression: Lossless
+- DPI: 72 for web, 300 for print
+- Color Space: sRGB
+
+ACCESSIBILITY
+------------
+- Maintain minimum contrast ratio of 4.5:1
+- Ensure icons are distinguishable in grayscale
+- Test visibility at different sizes
+- Verify readability on various backgrounds 
