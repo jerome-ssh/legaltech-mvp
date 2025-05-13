@@ -8,8 +8,13 @@ import { useEffect, useState } from "react";
 
 const protectedRoutes = [
   '/dashboard',
+  '/documents',
+  '/clients',
+  '/billing',
+  '/analytics',
+  '/help',
   '/settings',
-  // add more protected routes here as needed
+  '/crm'
 ];
 
 const authRoutes = [

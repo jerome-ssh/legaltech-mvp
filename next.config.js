@@ -1,3 +1,10 @@
+const withPWA = require('next-pwa')({
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === 'development'
+})
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -7,7 +14,7 @@ const nextConfig = {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   },
   images: {
-    domains: ['ueqzjuclosoedybixqgs.supabase.co'],
+    domains: ['ueqzjuclosoedybixqgs.supabase.co', 'ui-avatars.com'],
   },
   webpack: (config, { isServer }) => {
     // Optimize chunk loading
@@ -35,4 +42,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig; 
+module.exports = withPWA(nextConfig); 

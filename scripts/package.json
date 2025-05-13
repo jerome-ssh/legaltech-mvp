@@ -6,7 +6,7 @@
   "private": true,
   "dependencies": {
     "@clerk/clerk-sdk-node": "latest",
-    "@supabase/supabase-js": "latest",
-    "dotenv": "latest"
+    "@supabase/supabase-js": "^2.39.0",
+    "dotenv": "^16.0.3"
   }
 }
