@@ -35,23 +35,22 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const pathname = usePathname();
   const [showSplash, setShowSplash] = useState(true);
 
-  // Handle initial load and auth state
+  // Show splash screen only on auth routes (login, signup, etc.)
   useEffect(() => {
     if (!isLoaded) {
       setShowSplash(true);
       return;
     }
-
-    // Force splash screen to show for at least 2 seconds
-    const timer = setTimeout(() => {
+    // Only show splash screen for auth routes
+    if (authRoutes.some(route => pathname.startsWith(route))) {
+      setShowSplash(false); // Optionally, you can keep a short delay if you want
+    } else {
       setShowSplash(false);
-    }, 2000);
+    }
+  }, [isLoaded, pathname]);
 
-    return () => clearTimeout(timer);
-  }, [isLoaded]);
-
-  // Show splash screen during initial load or when auth is not loaded
-  if (!isLoaded || showSplash) {
+  // Show splash screen only on auth routes
+  if (!isLoaded || (showSplash && authRoutes.some(route => pathname.startsWith(route)))) {
     return <SplashScreen />;
   }
 

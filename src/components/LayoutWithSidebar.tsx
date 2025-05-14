@@ -34,7 +34,7 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
             </button>
           </div>
           <nav className="space-y-6 text-gray-700">
-            <Link href="/" className="flex items-center gap-2 text-blue-600 font-semibold">
+            <Link href="/dashboard" className="flex items-center gap-2 text-blue-600 font-semibold">
               <LayoutDashboard className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Dashboard</span>
             </Link>
             <Link href="/documents" className="flex items-center gap-2 hover:text-blue-600 cursor-pointer">

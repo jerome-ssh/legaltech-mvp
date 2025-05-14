@@ -14,6 +14,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface FormData {
   clientName: string;
@@ -110,107 +111,127 @@ export default function CRM() {
 
         <Card>
           <CardContent className="p-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Client Name</label>
-                <Input
-                  value={formData.clientName}
-                  onChange={(e) => {
-                    setFormData({ ...formData, clientName: e.target.value });
-                    if (errors.clientName) {
-                      setErrors({ ...errors, clientName: undefined });
-                    }
-                  }}
-                  placeholder="Enter client name"
-                  required
-                  disabled={isLoading}
-                  className={errors.clientName ? "border-red-500" : ""}
-                />
-                {errors.clientName && (
-                  <p className="text-sm text-red-500">{errors.clientName}</p>
-                )}
-              </div>
+            {isLoading ? (
+              <form className="space-y-6">
+                <div className="space-y-2">
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-24 w-full" />
+                </div>
+                <div className="flex justify-end gap-4">
+                  <Skeleton className="h-10 w-32" />
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Client Name</label>
+                  <Input
+                    value={formData.clientName}
+                    onChange={(e) => {
+                      setFormData({ ...formData, clientName: e.target.value });
+                      if (errors.clientName) {
+                        setErrors({ ...errors, clientName: undefined });
+                      }
+                    }}
+                    placeholder="Enter client name"
+                    required
+                    disabled={isLoading}
+                    className={errors.clientName ? "border-red-500" : ""}
+                  />
+                  {errors.clientName && (
+                    <p className="text-sm text-red-500">{errors.clientName}</p>
+                  )}
+                </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Case Type</label>
-                <Select
-                  value={formData.caseType}
-                  onValueChange={(value) => {
-                    setFormData({ ...formData, caseType: value });
-                    if (errors.caseType) {
-                      setErrors({ ...errors, caseType: undefined });
-                    }
-                  }}
-                  disabled={isLoading}
-                >
-                  <SelectTrigger className={errors.caseType ? "border-red-500" : ""}>
-                    <SelectValue placeholder="Select case type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="document_review">Document Review</SelectItem>
-                    <SelectItem value="legal_research">Legal Research</SelectItem>
-                    <SelectItem value="case_analysis">Case Analysis</SelectItem>
-                    <SelectItem value="contract_review">Contract Review</SelectItem>
-                    <SelectItem value="compliance_check">Compliance Check</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.caseType && (
-                  <p className="text-sm text-red-500">{errors.caseType}</p>
-                )}
-              </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Case Type</label>
+                  <Select
+                    value={formData.caseType}
+                    onValueChange={(value) => {
+                      setFormData({ ...formData, caseType: value });
+                      if (errors.caseType) {
+                        setErrors({ ...errors, caseType: undefined });
+                      }
+                    }}
+                    disabled={isLoading}
+                  >
+                    <SelectTrigger className={errors.caseType ? "border-red-500" : ""}>
+                      <SelectValue placeholder="Select case type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="document_review">Document Review</SelectItem>
+                      <SelectItem value="legal_research">Legal Research</SelectItem>
+                      <SelectItem value="case_analysis">Case Analysis</SelectItem>
+                      <SelectItem value="contract_review">Contract Review</SelectItem>
+                      <SelectItem value="compliance_check">Compliance Check</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {errors.caseType && (
+                    <p className="text-sm text-red-500">{errors.caseType}</p>
+                  )}
+                </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Priority</label>
-                <Select
-                  value={formData.priority}
-                  onValueChange={(value: 'low' | 'medium' | 'high') => setFormData({ ...formData, priority: value })}
-                  disabled={isLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Priority</label>
+                  <Select
+                    value={formData.priority}
+                    onValueChange={(value: 'low' | 'medium' | 'high') => setFormData({ ...formData, priority: value })}
+                    disabled={isLoading}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Description</label>
-                <Textarea
-                  value={formData.description}
-                  onChange={(e) => {
-                    setFormData({ ...formData, description: e.target.value });
-                    if (errors.description) {
-                      setErrors({ ...errors, description: undefined });
-                    }
-                  }}
-                  placeholder="Enter case description"
-                  required
-                  disabled={isLoading}
-                  className={errors.description ? "border-red-500" : ""}
-                />
-                {errors.description && (
-                  <p className="text-sm text-red-500">{errors.description}</p>
-                )}
-              </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Description</label>
+                  <Textarea
+                    value={formData.description}
+                    onChange={(e) => {
+                      setFormData({ ...formData, description: e.target.value });
+                      if (errors.description) {
+                        setErrors({ ...errors, description: undefined });
+                      }
+                    }}
+                    placeholder="Enter case description"
+                    required
+                    disabled={isLoading}
+                    className={errors.description ? "border-red-500" : ""}
+                  />
+                  {errors.description && (
+                    <p className="text-sm text-red-500">{errors.description}</p>
+                  )}
+                </div>
 
-              <div className="flex justify-end gap-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.push('/')}
-                  disabled={isLoading}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? 'Creating...' : 'Create Case'}
-                </Button>
-              </div>
-            </form>
+                <div className="flex justify-end gap-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => router.push('/')}
+                    disabled={isLoading}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isLoading}>
+                    {isLoading ? 'Creating...' : 'Create Case'}
+                  </Button>
+                </div>
+              </form>
+            )}
           </CardContent>
         </Card>
       </div>

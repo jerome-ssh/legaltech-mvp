@@ -10,6 +10,7 @@ import ReactCrop, { type Crop as CropType, centerCrop, makeAspectCrop } from "re
 import "react-image-crop/dist/ReactCrop.css";
 import { useUser } from '@clerk/nextjs';
 import { toast } from 'react-hot-toast';
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface UserProfile {
   id: string;
@@ -161,7 +162,24 @@ export default function ProfileSettings() {
   };
 
   if (!isLoaded) {
-    return <div>Loading...</div>;
+    return (
+      <div className="max-w-2xl mx-auto p-6">
+        <h1 className="text-2xl font-bold mb-6">Profile Settings</h1>
+        <div className="flex flex-col items-center mb-6">
+          <Skeleton className="w-24 h-24 rounded-full mb-4" />
+        </div>
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+        <Skeleton className="h-10 w-full mb-4" />
+        <Skeleton className="h-10 w-full mb-4" />
+        <Skeleton className="h-10 w-full mb-4" />
+        <Skeleton className="h-10 w-full mb-4" />
+        <Skeleton className="h-10 w-full mb-4" />
+        <Skeleton className="h-10 w-32" />
+      </div>
+    );
   }
 
   return (
