@@ -38,6 +38,7 @@ import { supabase } from "@/lib/supabase";
 import dynamic from 'next/dynamic';
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const TopBar = dynamic(() => import('@/components/TopBar'), {
   ssr: false,
@@ -325,42 +326,53 @@ export default function Dashboard() {
 
         {/* Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          <Card className="shadow-md bg-gradient-to-br from-sky-50 to-white">
-            <CardContent className="p-4 flex items-center gap-4">
-              <FolderOpen className="text-blue-500 w-6 h-6" />
-              <div>
-                <p className="text-sm text-gray-500">Open Cases</p>
-                <p className="text-xl font-bold">{dashboardData.openCases}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-md bg-gradient-to-br from-sky-50 to-white">
-            <CardContent className="p-4 flex items-center gap-4">
-              <CalendarCheck className="text-green-500 w-6 h-6" />
-              <div>
-                <p className="text-sm text-gray-500">Upcoming Deadlines</p>
-                <p className="text-xl font-bold">{dashboardData.deadlines}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-md bg-gradient-to-br from-sky-50 to-white">
-            <CardContent className="p-4 flex items-center gap-4">
-              <MessageSquare className="text-yellow-500 w-6 h-6" />
-              <div>
-                <p className="text-sm text-gray-500">Unread Messages</p>
-                <p className="text-xl font-bold">{dashboardData.unreadMessages}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-md bg-gradient-to-br from-sky-50 to-white">
-            <CardContent className="p-4 flex items-center gap-4">
-              <CreditCard className="text-red-500 w-6 h-6" />
-              <div>
-                <p className="text-sm text-gray-500">Billing Status</p>
-                <p className="text-xl font-bold">${dashboardData.billingAmount}</p>
-              </div>
-            </CardContent>
-          </Card>
+          {loading ? (
+            <>
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-24 w-full" />
+            </>
+          ) : (
+            <>
+              <Card className="shadow-md bg-gradient-to-br from-sky-50 to-white">
+                <CardContent className="p-4 flex items-center gap-4">
+                  <FolderOpen className="text-blue-500 w-6 h-6" />
+                  <div>
+                    <p className="text-sm text-gray-500">Open Cases</p>
+                    <p className="text-xl font-bold">{dashboardData.openCases}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="shadow-md bg-gradient-to-br from-sky-50 to-white">
+                <CardContent className="p-4 flex items-center gap-4">
+                  <CalendarCheck className="text-green-500 w-6 h-6" />
+                  <div>
+                    <p className="text-sm text-gray-500">Upcoming Deadlines</p>
+                    <p className="text-xl font-bold">{dashboardData.deadlines}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="shadow-md bg-gradient-to-br from-sky-50 to-white">
+                <CardContent className="p-4 flex items-center gap-4">
+                  <MessageSquare className="text-yellow-500 w-6 h-6" />
+                  <div>
+                    <p className="text-sm text-gray-500">Unread Messages</p>
+                    <p className="text-xl font-bold">{dashboardData.unreadMessages}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="shadow-md bg-gradient-to-br from-sky-50 to-white">
+                <CardContent className="p-4 flex items-center gap-4">
+                  <CreditCard className="text-red-500 w-6 h-6" />
+                  <div>
+                    <p className="text-sm text-gray-500">Billing Status</p>
+                    <p className="text-xl font-bold">${dashboardData.billingAmount}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
 
         {/* Bottom Sections */}
@@ -369,7 +381,13 @@ export default function Dashboard() {
           <Card className="lg:col-span-1 shadow-md bg-gradient-to-br from-sky-50 to-white">
             <CardContent className="p-4">
               <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
-              {(() => {
+              {loading ? (
+                <>
+                  <Skeleton className="h-4 w-3/4 mb-2" />
+                  <Skeleton className="h-4 w-2/3 mb-2" />
+                  <Skeleton className="h-4 w-1/2 mb-2" />
+                </>
+              ) : (() => {
                 const activity = Array.isArray(dashboardData.activity) ? dashboardData.activity : [];
                 return (
                   <ul className="space-y-3 text-sm text-gray-600">
@@ -389,14 +407,22 @@ export default function Dashboard() {
           <Card className="lg:col-span-1 shadow-md bg-gradient-to-br from-sky-50 to-white">
             <CardContent className="p-4">
               <h2 className="text-xl font-semibold mb-4">Upcoming Tasks</h2>
-              <ul className="space-y-3 text-sm text-gray-700">
-                {dashboardData.tasks.length === 0 && <li>No tasks yet.</li>}
-                {dashboardData.tasks.map((t: Task, i: number) => (
-                  <li key={i} className="flex items-center gap-2">
-                    <input type="checkbox" className="accent-blue-600" checked={t.completed} readOnly /> {t.title}
-                  </li>
-                ))}
-              </ul>
+              {loading ? (
+                <>
+                  <Skeleton className="h-4 w-3/4 mb-2" />
+                  <Skeleton className="h-4 w-2/3 mb-2" />
+                  <Skeleton className="h-4 w-1/2 mb-2" />
+                </>
+              ) : (
+                <ul className="space-y-3 text-sm text-gray-700">
+                  {dashboardData.tasks.length === 0 && <li>No tasks yet.</li>}
+                  {dashboardData.tasks.map((t: Task, i: number) => (
+                    <li key={i} className="flex items-center gap-2">
+                      <input type="checkbox" className="accent-blue-600" checked={t.completed} readOnly /> {t.title}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </CardContent>
           </Card>
 

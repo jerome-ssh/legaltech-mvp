@@ -30,6 +30,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { supabase } from "@/lib/supabase";
 import { toast } from "react-hot-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Types
 interface CaseData {
@@ -339,11 +340,22 @@ export default function Analytics() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading analytics data...</p>
+      <div className="p-8">
+        {/* Summary Cards Skeletons */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
         </div>
+        {/* Chart Skeletons */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+        {/* Table/List Skeletons */}
+        <Skeleton className="h-32 w-full mb-4" />
+        <Skeleton className="h-32 w-full mb-4" />
       </div>
     );
   }
