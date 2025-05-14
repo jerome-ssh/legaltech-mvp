@@ -33,6 +33,8 @@ import {
 import { UserMetrics, updateUserMetrics } from '@/lib/metrics';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { Dialog, DialogContent, DialogOverlay } from '@radix-ui/react-dialog';
+import countryList from 'react-select-country-list';
 
 interface UserProfile {
   id: string;
@@ -144,6 +146,20 @@ export default function UserProfile() {
 
   const [metrics, setMetrics] = useState<UserMetrics | null>(null);
   const [professionalIds, setProfessionalIds] = useState<any[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
+  const [editingProfessionalIds, setEditingProfessionalIds] = useState<any>({});
+
+  // Helper for country dropdown
+  const countryOptions = countryList().getData();
+  const verificationStatusOptions = [
+    { value: 'verified', label: 'Verified' },
+    { value: 'not_verified', label: 'Not Verified' },
+    { value: 'pending', label: 'Pending' },
+  ];
+  const noIdOptions = [
+    { value: 'true', label: 'Yes' },
+    { value: 'false', label: 'No' },
+  ];
 
   // Load profile data
   useEffect(() => {
@@ -205,12 +221,25 @@ export default function UserProfile() {
             timezone: profileData.timezone ?? '',
           });
 
+          // Debug: Log current profile ID
+          console.log('Current profile ID:', profileData.id);
+
           // Fetch professional IDs for this user
           const { data: profIds } = await supabase
             .from('professional_ids')
             .select('*')
             .eq('profile_id', profileData.id);
+          // Debug: Log fetched professional IDs
+          console.log('Fetched professional IDs:', profIds);
           setProfessionalIds(profIds || []);
+          // Prefill editingProfessionalIds with fetched data
+          if (profIds && profIds.length > 0) {
+            const initialEditing: Record<string, any> = {};
+            for (const rec of profIds) {
+              initialEditing[rec.id] = { ...rec };
+            }
+            setEditingProfessionalIds(initialEditing);
+          }
 
           // Fetch and update metrics
           let channel: RealtimeChannel | undefined;
@@ -526,6 +555,48 @@ export default function UserProfile() {
     }
   };
 
+  const handleProfessionalIdChange = (id: any, field: string, value: any) => {
+    setEditingProfessionalIds((prev: any) => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleUpdateProfessionalId = async (id: any) => {
+    const updated = editingProfessionalIds[id];
+    if (!updated) return;
+    setUploading(true);
+    try {
+      const { error } = await supabase
+        .from('professional_ids')
+        .update({
+          country: updated.country,
+          state: updated.state,
+          professional_id: updated.professional_id,
+          year_issued: updated.year_issued,
+          verification_status: updated.verification_status,
+          no_id: updated.no_id === 'true' || updated.no_id === true,
+        })
+        .eq('id', id);
+      if (error) throw error;
+      toast({ title: 'Success', description: 'Jurisdiction details updated.' });
+      // Refresh professionalIds
+      const { data: profIds } = await supabase
+        .from('professional_ids')
+        .select('*')
+        .eq('profile_id', profile?.id);
+      setProfessionalIds(profIds || []);
+      setEditingProfessionalIds((prev: any) => ({ ...prev, [id]: undefined }));
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to update jurisdiction details.', variant: 'destructive' });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   // Fallbacks for profile fields
   const displayProfile: Partial<UserProfile> = profile || {};
   const displayMetrics = metrics || {
@@ -566,7 +637,7 @@ export default function UserProfile() {
               <div className="flex items-start gap-6">
                 <div className="relative">
                   {displayProfile.avatar_url ? (
-                    <div className="relative w-24 h-24">
+                    <div className="relative w-24 h-24 cursor-pointer" onClick={() => setShowPreview(true)}>
                       <Image
                         src={displayProfile.avatar_url}
                         alt="Profile picture"
@@ -575,16 +646,11 @@ export default function UserProfile() {
                         className="rounded-full object-cover"
                         priority
                       />
-                      <button
-                        onClick={handleDeletePicture}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                        disabled={uploading}
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
                     </div>
                   ) : (
-                    <UserCircle2 className="w-24 h-24 text-gray-400" />
+                    <div className="w-24 h-24 flex items-center justify-center bg-gray-200 rounded-full cursor-pointer" onClick={() => setShowPreview(true)}>
+                      <span className="text-3xl font-bold text-gray-500">{clerkUser?.firstName?.[0]}{clerkUser?.lastName?.[0]}</span>
+                    </div>
                   )}
                   <input
                     type="file"
@@ -744,7 +810,7 @@ export default function UserProfile() {
               <TabsList>
                 <TabsTrigger value="personal">Personal</TabsTrigger>
                 <TabsTrigger value="professional">Professional</TabsTrigger>
-                <TabsTrigger value="preferences">Preferences</TabsTrigger>
+                <TabsTrigger value="jurisdiction">Jurisdiction Details</TabsTrigger>
               </TabsList>
               <TabsContent value="personal" className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -887,29 +953,101 @@ export default function UserProfile() {
                   </div>
                 </div>
               </TabsContent>
-              <TabsContent value="preferences" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Language</Label>
-                    <Input
-                      name="language"
-                      value={formData.language || ''}
-                      onChange={handleInputChange}
-                      placeholder="Language"
-                      disabled={!isEditing || uploading}
-                    />
+              <TabsContent value="jurisdiction" className="space-y-4">
+                {professionalIds.length === 0 ? (
+                  <div className="text-gray-500">No jurisdiction/professional ID records found.</div>
+                ) : (
+                  <div className="space-y-4">
+                    {professionalIds.map((id: any, idx: number) => {
+                      const editing = editingProfessionalIds[id.id] || id;
+                      return (
+                        <div key={id.id || idx} className="border rounded-lg p-4 bg-gray-50">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label>Country</Label>
+                              <select
+                                value={editing.country || ''}
+                                onChange={e => handleProfessionalIdChange(id.id, 'country', e.target.value)}
+                                disabled={uploading}
+                                className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"
+                              >
+                                <option value="">Select Country</option>
+                                {countryOptions.map((c: any) => (
+                                  <option key={c.value} value={c.value}>{c.value}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div>
+                              <Label>State</Label>
+                              <Input
+                                value={editing.state || ''}
+                                onChange={e => handleProfessionalIdChange(id.id, 'state', e.target.value)}
+                                placeholder="State"
+                                disabled={uploading}
+                              />
+                            </div>
+                            <div>
+                              <Label>Professional ID</Label>
+                              <Input
+                                value={editing.professional_id || ''}
+                                onChange={e => handleProfessionalIdChange(id.id, 'professional_id', e.target.value)}
+                                placeholder="Professional ID"
+                                disabled={uploading}
+                              />
+                            </div>
+                            <div>
+                              <Label>Year Issued</Label>
+                              <Input
+                                type="number"
+                                value={editing.year_issued || ''}
+                                onChange={e => handleProfessionalIdChange(id.id, 'year_issued', e.target.value)}
+                                placeholder="Year Issued"
+                                disabled={uploading}
+                              />
+                            </div>
+                            <div>
+                              <Label>Verification Status</Label>
+                              <select
+                                value={editing.verification_status || ''}
+                                onChange={e => handleProfessionalIdChange(id.id, 'verification_status', e.target.value)}
+                                disabled={uploading}
+                                className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"
+                              >
+                                <option value="">Select Status</option>
+                                {verificationStatusOptions.map(opt => (
+                                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div>
+                              <Label>No ID</Label>
+                              <select
+                                value={editing.no_id?.toString() || ''}
+                                onChange={e => handleProfessionalIdChange(id.id, 'no_id', e.target.value)}
+                                disabled={uploading}
+                                className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"
+                              >
+                                <option value="">Select</option>
+                                {noIdOptions.map(opt => (
+                                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                          <div className="flex justify-end mt-4">
+                            <Button
+                              onClick={() => handleUpdateProfessionalId(id.id)}
+                              disabled={uploading}
+                            >
+                              {uploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                              Update
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                  <div>
-                    <Label>Time Zone</Label>
-                    <Input
-                      name="timezone"
-                      value={formData.timezone || ''}
-                      onChange={handleInputChange}
-                      placeholder="Time Zone"
-                      disabled={!isEditing || uploading}
-                    />
-                  </div>
-                </div>
+                )}
               </TabsContent>
             </Tabs>
             <div className="flex justify-end gap-2 pt-4">
@@ -1016,6 +1154,37 @@ export default function UserProfile() {
             />
           </div>
         </div>
+      )}
+      {/* Profile Picture Preview Modal */}
+      {showPreview && (
+        <Dialog open={showPreview} onOpenChange={setShowPreview}>
+          <DialogOverlay className="fixed inset-0 bg-black bg-opacity-50 z-50" />
+          <DialogContent className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-lg w-full flex flex-col items-center">
+              <button
+                onClick={() => setShowPreview(false)}
+                className="self-end text-gray-500 hover:text-gray-700 mb-2"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              {displayProfile.avatar_url ? (
+                <Image
+                  src={displayProfile.avatar_url}
+                  alt="Profile picture preview"
+                  width={256}
+                  height={256}
+                  className="rounded-full object-cover mb-4"
+                />
+              ) : (
+                <div className="w-32 h-32 flex items-center justify-center bg-gray-200 rounded-full mb-4">
+                  <span className="text-6xl font-bold text-gray-500">{clerkUser?.firstName?.[0]}{clerkUser?.lastName?.[0]}</span>
+                </div>
+              )}
+              <div className="text-lg font-semibold mt-2">{clerkUser?.fullName || 'User'}</div>
+              <div className="text-gray-500">{clerkUser?.emailAddresses[0]?.emailAddress}</div>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </LayoutWithSidebar>
   );
