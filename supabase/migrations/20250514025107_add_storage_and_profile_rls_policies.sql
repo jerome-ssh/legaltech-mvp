@@ -1,10 +1,13 @@
 -- Storage: Avatars bucket policies
+DROP POLICY IF EXISTS "Allow all inserts for all users" ON storage.objects;
 DROP POLICY IF EXISTS "Users can upload their own avatars" ON storage.objects;
+
 CREATE POLICY "Users can upload their own avatars"
 ON storage.objects FOR INSERT
 TO authenticated
 WITH CHECK (
   bucket_id = 'avatars'
+  AND left(name, length(auth.uid()::text)) = auth.uid()::text
 );
 
 CREATE POLICY "Anyone can read avatars"

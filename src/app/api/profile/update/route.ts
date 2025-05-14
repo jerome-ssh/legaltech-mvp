@@ -199,6 +199,19 @@ export async function POST(request: Request) {
           console.error('API route: Error inserting professional IDs:', profIdInsertError);
           // Not fatal, but log it
         }
+      } else {
+        // Always create a default professional_ids row if none provided
+        await supabase
+          .from('professional_ids')
+          .insert({
+            profile_id: newProfile.id,
+            country: '',
+            state: '',
+            professional_id: '',
+            year_issued: null,
+            verification_status: 'not_verified',
+            no_id: false
+          });
       }
 
       console.log('API route: Profile created successfully:', newProfile);
