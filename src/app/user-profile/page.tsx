@@ -35,6 +35,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { Dialog, DialogContent, DialogOverlay } from '@radix-ui/react-dialog';
 import countryList from 'react-select-country-list';
+import { Select } from "@/components/ui/select";
 
 interface UserProfile {
   id: string;
@@ -75,6 +76,8 @@ type ProfileFormData = {
   onboarding_completed: string;
   language: string;
   timezone: string;
+  practice_area_id: string;
+  jurisdiction_id: string;
 };
 
 const supabase = createClientComponentClient();
@@ -126,6 +129,8 @@ export default function UserProfile() {
     onboarding_completed: 'No',
     language: '',
     timezone: '',
+    practice_area_id: '',
+    jurisdiction_id: '',
   });
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -160,6 +165,11 @@ export default function UserProfile() {
     { value: 'true', label: 'Yes' },
     { value: 'false', label: 'No' },
   ];
+
+  const [practiceAreas, setPracticeAreas] = useState<any[]>([]);
+  const [jurisdictions, setJurisdictions] = useState<any[]>([]);
+  const [optionsLoading, setOptionsLoading] = useState(true);
+  const [optionsError, setOptionsError] = useState<string | null>(null);
 
   // Load profile data
   useEffect(() => {
@@ -219,6 +229,8 @@ export default function UserProfile() {
             onboarding_completed: profileData.onboarding_completed ? 'Yes' : 'No',
             language: profileData.language ?? '',
             timezone: profileData.timezone ?? '',
+            practice_area_id: profileData.practice_area_id ?? '',
+            jurisdiction_id: profileData.jurisdiction_id ?? '',
           });
 
           // Debug: Log current profile ID
@@ -313,6 +325,27 @@ export default function UserProfile() {
     };
     fetchUserData();
   }, [isLoaded, clerkUser]);
+
+  useEffect(() => {
+    async function fetchOptions() {
+      setOptionsLoading(true);
+      setOptionsError(null);
+      try {
+        const [{ data: paData, error: paError }, { data: jData, error: jError }] = await Promise.all([
+          supabase.from("practice_areas").select("id, name"),
+          supabase.from("jurisdictions").select("id, name")
+        ]);
+        if (paError) setOptionsError(paError.message);
+        else setPracticeAreas(paData || []);
+        if (jError) setOptionsError(jError.message);
+        else setJurisdictions(jData || []);
+      } catch (err: any) {
+        setOptionsError(err.message);
+      }
+      setOptionsLoading(false);
+    }
+    fetchOptions();
+  }, []);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -509,6 +542,8 @@ export default function UserProfile() {
         years_of_practice: formData.years_of_practice ? Number(formData.years_of_practice) : undefined,
         role: uiToDbRole(formData.role),
         onboarding_completed: formData.onboarding_completed === 'Yes',
+        practice_area_id: formData.practice_area_id,
+        jurisdiction_id: formData.jurisdiction_id,
       };
 
       console.log('Updating profile with data:', updateData);
@@ -901,15 +936,25 @@ export default function UserProfile() {
                       disabled={!isEditing || uploading}
                     />
                   </div>
-                  <div>
-                    <Label>Specialization</Label>
-                    <Input
-                      name="specialization"
-                      value={formData.specialization || ''}
-                      onChange={handleInputChange}
-                      placeholder="Specialization"
-                      disabled={!isEditing || uploading}
-                    />
+                  <div className="mb-4">
+                    <label className="block font-medium">Practice Area</label>
+                    {optionsLoading ? (
+                      <div>Loading practice areas...</div>
+                    ) : optionsError ? (
+                      <div className="text-red-500">{optionsError}</div>
+                    ) : (
+                      <Select
+                        name="practice_area_id"
+                        value={formData.practice_area_id || ""}
+                        onValueChange={value => setFormData(prev => ({ ...prev, practice_area_id: value }))}
+                        required
+                      >
+                        <option value="">Select a practice area</option>
+                        {practiceAreas.map(pa => (
+                          <option key={pa.id} value={pa.id}>{pa.name}</option>
+                        ))}
+                      </Select>
+                    )}
                   </div>
                   <div>
                     <Label>Years of Practice</Label>
