@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from "react-image-crop";
-import { Loader2, Pencil, Trash, X, Camera, UserCircle2, Phone, MapPin, Building, Briefcase } from "lucide-react";
+import { Loader2, Pencil, Trash, X, Camera, UserCircle2, Phone, MapPin, Building, Briefcase, Check } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -207,6 +207,10 @@ export default function UserProfile() {
 
   // Add a new state variable to track the active tab
   const [activeTab, setActiveTab] = useState<string>("personal");
+
+  // Add new state variables to track open/completed forms
+  const [openForms, setOpenForms] = useState<Set<string>>(new Set());
+  const [completedForms, setCompletedForms] = useState<Set<string>>(new Set());
 
   // Initialize Supabase client with anon key
   useEffect(() => {
@@ -821,6 +825,14 @@ export default function UserProfile() {
           ...prev,
           [updatedProfId.id]: { ...updatedProfId }
         }));
+        
+        // Mark this form as completed and remove from open forms
+        setCompletedForms(prev => new Set([...prev, id]));
+        setOpenForms(prev => {
+          const newSet = new Set([...prev]);
+          newSet.delete(id);
+          return newSet;
+        });
       }
     } catch (error) {
       console.error('Error updating professional ID:', error);
@@ -873,9 +885,19 @@ export default function UserProfile() {
     }
   }, [profile, fetchProfessionalIds]);
 
-  // Function to add a new professional ID
+  // Modify handleAddProfessionalId to check form limits
   const handleAddProfessionalId = async () => {
     if (!profile || !supabaseClient) return;
+    
+    // Check if we already have 2 open forms
+    if (openForms.size >= 2) {
+      toast({
+        title: 'Too many open forms',
+        description: 'Please complete at least one of your open forms before adding a new one.',
+        variant: 'destructive'
+      });
+      return;
+    }
     
     try {
       setUploading(true);
@@ -912,6 +934,9 @@ export default function UserProfile() {
           ...prev,
           [data.id]: { ...data }
         }));
+        
+        // Mark this form as open
+        setOpenForms(prev => new Set([...prev, data.id]));
         
         toast({
           title: 'Success',
@@ -974,6 +999,12 @@ export default function UserProfile() {
       setUploading(false);
     }
   };
+
+  // Reset form state when professional IDs are loaded or changed
+  useEffect(() => {
+    setOpenForms(new Set());
+    setCompletedForms(new Set());
+  }, [professionalIds.length]);
 
   // Fallbacks for profile fields
   const displayProfile: Partial<UserProfile> = profile || {};
@@ -1551,21 +1582,60 @@ export default function UserProfile() {
                   <div className="space-y-6">
                     {professionalIds.map((profId) => {
                       const editing = editingProfessionalIds[profId.id] || profId;
+                      
+                      // If this form is marked as completed and not open, don't show the edit form
+                      const isCompleted = completedForms.has(profId.id) && !openForms.has(profId.id);
+                      
+                      if (isCompleted) {
+                        return (
+                          <div key={profId.id} className="border rounded-lg p-4 bg-gray-50">
+                            <div className="flex justify-between items-center mb-1">
+                              <h3 className="text-md font-medium flex items-center">
+                                <Check className="w-4 h-4 mr-2 text-green-500" />
+                                {editing.country || 'New'} {editing.state ? `- ${editing.state}` : ''} Record
+                              </h3>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => {
+                                  setCompletedForms(prev => {
+                                    const newSet = new Set([...prev]);
+                                    newSet.delete(profId.id);
+                                    return newSet;
+                                  });
+                                  setOpenForms(prev => new Set([...prev, profId.id]));
+                                }}
+                                disabled={uploading}
+                              >
+                                <Pencil className="w-4 h-4 mr-1" />
+                                Edit
+                              </Button>
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {editing.professional_id} {editing.document_url && '(Document attached)'}
+                            </div>
+                          </div>
+                        );
+                      }
+                      
+                      // Show full edit form for open/incomplete forms
                       return (
                         <div key={profId.id} className="border rounded-lg p-4 bg-gray-50">
                           <div className="flex justify-between items-center mb-4">
                             <h3 className="text-md font-medium">
                               {editing.country || 'New'} {editing.state ? `- ${editing.state}` : ''} Record
                             </h3>
-                            <Button 
-                              variant="destructive" 
-                              size="sm" 
-                              onClick={() => handleDeleteProfessionalId(profId.id)}
-                              disabled={uploading}
-                            >
-                              <Trash className="w-4 h-4 mr-1" />
-                              Delete
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button 
+                                variant="destructive" 
+                                size="sm" 
+                                onClick={() => handleDeleteProfessionalId(profId.id)}
+                                disabled={uploading}
+                              >
+                                <Trash className="w-4 h-4 mr-1" />
+                                Delete
+                              </Button>
+                            </div>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="md:col-span-2">
@@ -1704,7 +1774,10 @@ export default function UserProfile() {
                       );
                     })}
                     <div className="flex justify-center mt-4">
-                      <Button onClick={handleAddProfessionalId} disabled={uploading}>
+                      <Button 
+                        onClick={handleAddProfessionalId} 
+                        disabled={uploading || openForms.size >= 2}
+                      >
                         {uploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                         Add Another Jurisdiction
                       </Button>
