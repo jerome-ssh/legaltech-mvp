@@ -776,13 +776,26 @@ export default function UserProfile() {
   };
 
   const handleProfessionalIdChange = (id: string, field: string, value: any) => {
-    setEditingProfessionalIds((prev: Record<string, ProfessionalId>) => ({
-      ...prev,
-      [id]: {
-        ...prev[id],
-        [field]: value,
-      },
-    }));
+    console.log(`Updating ${field} to ${value} for professional ID ${id}`);
+    
+    setEditingProfessionalIds((prev: Record<string, ProfessionalId>) => {
+      // Ensure we have this record in our state
+      if (!prev[id]) {
+        console.warn(`Warning: No professional ID ${id} found in state`);
+        return prev;
+      }
+      
+      const newState = {
+        ...prev,
+        [id]: {
+          ...prev[id],
+          [field]: value,
+        },
+      };
+      
+      console.log(`New editing state for ${id}:`, newState[id]);
+      return newState;
+    });
   };
 
   const handleUpdateProfessionalId = async (id: string) => {
@@ -796,6 +809,30 @@ export default function UserProfile() {
     }
     
     try {
+      // Debug logging of what values we're trying to save
+      console.log('Updating professional ID with values:', {
+        id,
+        country: updated.country,
+        state: updated.state,
+        professional_id: updated.professional_id,
+        no_id: updated.no_id,
+        issuing_authority: updated.issuing_authority,
+        issue_date: updated.issue_date,
+        document_url: updated.document_url,
+        document_name: updated.document_name,
+      });
+      
+      // Ensure we have at least one required field
+      if (!updated.country || !updated.professional_id) {
+        toast({
+          title: 'Missing required fields',
+          description: 'Please fill in at least the Country and Certification Name fields.',
+          variant: 'destructive'
+        });
+        setUploading(false);
+        return;
+      }
+      
       const { data: updatedProfId, error } = await supabaseClient!
         .from('professional_ids')
         .upsert({
@@ -807,16 +844,26 @@ export default function UserProfile() {
           no_id: typeof updated.no_id === 'string' ? updated.no_id === 'true' : Boolean(updated.no_id),
           issuing_authority: updated.issuing_authority || null,
           issue_date: updated.issue_date || null,
+          // Preserve document fields to avoid overwriting them
+          document_url: updated.document_url || null,
+          document_name: updated.document_name || null,
         })
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error updating professional ID:', error);
+        throw error;
+      }
+      
+      console.log('Successfully updated professional ID in database:', updatedProfId);
       
       toast({ title: 'Success', description: 'Jurisdiction details updated.' });
       
       // Update local state - preserve other professional IDs
       if (updatedProfId) {
+        console.log('Updating state with:', updatedProfId);
+        
         setProfessionalIds(prev => 
           prev.map(profId => profId.id === updatedProfId.id ? updatedProfId : profId)
         );
