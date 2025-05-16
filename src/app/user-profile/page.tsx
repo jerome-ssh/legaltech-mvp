@@ -205,6 +205,9 @@ export default function UserProfile() {
   const [countrySearch, setCountrySearch] = useState('');
   const [filteredCountries, setFilteredCountries] = useState<{value: string, label: string}[]>([]);
 
+  // Add a new state variable to track the active tab
+  const [activeTab, setActiveTab] = useState<string>("personal");
+
   // Initialize Supabase client with anon key
   useEffect(() => {
     let mounted = true;
@@ -782,6 +785,12 @@ export default function UserProfile() {
     const updated = editingProfessionalIds[id];
     if (!updated) return;
     setUploading(true);
+    
+    // Ensure we're not in global editing mode when updating jurisdiction records
+    if (isEditing) {
+      setIsEditing(false);
+    }
+    
     try {
       const { data: updatedProfId, error } = await supabaseClient!
         .from('professional_ids')
@@ -865,14 +874,17 @@ export default function UserProfile() {
     try {
       setUploading(true);
       
+      // Ensure we're not in global editing mode when adding jurisdiction records
+      if (isEditing) {
+        setIsEditing(false);
+      }
+      
       // Create a new empty professional ID record
       const newProfId = {
         profile_id: profile.id,
         country: '',
         state: null,
         professional_id: null,
-        year_issued: null,
-        verification_status: 'pending',
         no_id: false,
         created_at: new Date().toISOString()
       };
@@ -918,6 +930,11 @@ export default function UserProfile() {
     
     try {
       setUploading(true);
+      
+      // Ensure we're not in global editing mode when deleting jurisdiction records
+      if (isEditing) {
+        setIsEditing(false);
+      }
       
       const { error } = await supabaseClient
         .from('professional_ids')
@@ -1002,12 +1019,81 @@ export default function UserProfile() {
     setCountrySearch('');
   };
 
+  // Handle document upload
+  const handleDocumentUpload = async (id: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    setUploading(true);
+    
+    // Ensure we're not in global editing mode when uploading documents
+    if (isEditing) {
+      setIsEditing(false);
+    }
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('professionalId', id);
+      
+      const response = await fetch('/api/certificate/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Update the local state with the document URL
+        setEditingProfessionalIds(prev => ({
+          ...prev,
+          [id]: {
+            ...prev[id],
+            document_url: result.url,
+            document_name: file.name
+          }
+        }));
+        
+        toast({
+          title: 'Success',
+          description: 'Certificate document uploaded successfully.',
+        });
+        
+        // Refresh the professional IDs to get the updated data
+        if (supabaseClient) {
+          const { data } = await supabaseClient
+            .from('professional_ids')
+            .select('*')
+            .eq('profile_id', profile?.id);
+            
+          if (data) setProfessionalIds(data);
+        }
+      } else {
+        throw new Error(result.error || 'Failed to upload document');
+      }
+    } catch (error: any) {
+      console.error('Document upload error:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to upload document',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   // Handle document deletion
   const handleDeleteDocument = async (id: string) => {
     if (!supabaseClient) return;
     
     try {
       setUploading(true);
+      
+      // Ensure we're not in global editing mode when deleting documents
+      if (isEditing) {
+        setIsEditing(false);
+      }
       
       const profId = editingProfessionalIds[id];
       if (!profId || !profId.document_url) return;
@@ -1093,63 +1179,6 @@ export default function UserProfile() {
       </div>
     );
   }
-
-  const handleDocumentUpload = async (id: string, event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('professionalId', id);
-      
-      const response = await fetch('/api/certificate/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      const result = await response.json();
-      
-      if (result.success) {
-        // Update the local state with the document URL
-        setEditingProfessionalIds(prev => ({
-          ...prev,
-          [id]: {
-            ...prev[id],
-            document_url: result.url,
-            document_name: file.name
-          }
-        }));
-        
-        toast({
-          title: 'Success',
-          description: 'Certificate document uploaded successfully.',
-        });
-        
-        // Refresh the professional IDs to get the updated data
-        if (supabaseClient) {
-          const { data } = await supabaseClient
-            .from('professional_ids')
-            .select('*')
-            .eq('profile_id', profile?.id);
-            
-          if (data) setProfessionalIds(data);
-        }
-      } else {
-        throw new Error(result.error || 'Failed to upload document');
-      }
-    } catch (error: any) {
-      console.error('Document upload error:', error);
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to upload document',
-        variant: 'destructive',
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
 
   return (
     <LayoutWithSidebar>
@@ -1331,7 +1360,7 @@ export default function UserProfile() {
             <CardDescription>Update your professional details</CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="personal">
+            <Tabs defaultValue="personal" onValueChange={setActiveTab}>
               <TabsList>
                 <TabsTrigger value="personal">Personal</TabsTrigger>
                 <TabsTrigger value="professional">Professional</TabsTrigger>
@@ -1665,39 +1694,42 @@ export default function UserProfile() {
                 )}
               </TabsContent>
             </Tabs>
-            <div className="flex justify-end gap-2 pt-4">
-              {isEditing ? (
-                <>
+            {/* Only show the Edit Profile button for Personal and Professional tabs */}
+            {activeTab !== "jurisdiction" && (
+              <div className="flex justify-end gap-2 pt-4">
+                {isEditing ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsEditing(false)}
+                      disabled={uploading}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleSubmit}
+                      disabled={uploading}
+                    >
+                      {uploading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        'Save Changes'
+                      )}
+                    </Button>
+                  </>
+                ) : (
                   <Button
-                    variant="outline"
-                    onClick={() => setIsEditing(false)}
+                    onClick={() => setIsEditing(true)}
                     disabled={uploading}
                   >
-                    Cancel
+                    Edit Profile
                   </Button>
-                  <Button
-                    onClick={handleSubmit}
-                    disabled={uploading}
-                  >
-                    {uploading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      'Save Changes'
-                    )}
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  onClick={() => setIsEditing(true)}
-                  disabled={uploading}
-                >
-                  Edit Profile
-                </Button>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
