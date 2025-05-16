@@ -811,10 +811,16 @@ export default function UserProfile() {
       
       toast({ title: 'Success', description: 'Jurisdiction details updated.' });
       
-      // Update local state
+      // Update local state - preserve other professional IDs
       if (updatedProfId) {
-        setProfessionalIds([updatedProfId]);
-        setEditingProfessionalIds({ [updatedProfId.id]: { ...updatedProfId } });
+        setProfessionalIds(prev => 
+          prev.map(profId => profId.id === updatedProfId.id ? updatedProfId : profId)
+        );
+        
+        setEditingProfessionalIds(prev => ({
+          ...prev,
+          [updatedProfId.id]: { ...updatedProfId }
+        }));
       }
     } catch (error) {
       console.error('Error updating professional ID:', error);
@@ -1066,7 +1072,20 @@ export default function UserProfile() {
             .select('*')
             .eq('profile_id', profile?.id);
             
-          if (data) setProfessionalIds(data);
+          if (data) {
+            // Preserve the current array structure by mapping over the updated data
+            setProfessionalIds(data);
+            
+            // Update the editing state with the refreshed data
+            const editingState: Record<string, ProfessionalId> = { ...editingProfessionalIds };
+            data.forEach(profId => {
+              editingState[profId.id] = { 
+                ...editingState[profId.id] || {}, 
+                ...profId 
+              };
+            });
+            setEditingProfessionalIds(editingState);
+          }
         }
       } else {
         throw new Error(result.error || 'Failed to upload document');
