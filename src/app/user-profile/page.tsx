@@ -97,6 +97,8 @@ interface ProfessionalId {
   created_at: string;
   document_url?: string;
   document_name?: string;
+  issuing_authority?: string;
+  issue_date?: string;
 }
 
 const supabase = createClientComponentClient();
@@ -198,6 +200,10 @@ export default function UserProfile() {
   // 1. Add a state for roles and role_id
   const [roles, setRoles] = useState<{ id: string, name: string }[]>([]);
   const [roleId, setRoleId] = useState<string | null>(null);
+
+  // Add inside the UserProfile component, after the existing state declarations
+  const [countrySearch, setCountrySearch] = useState('');
+  const [filteredCountries, setFilteredCountries] = useState<{value: string, label: string}[]>([]);
 
   // Initialize Supabase client with anon key
   useEffect(() => {
@@ -788,6 +794,8 @@ export default function UserProfile() {
           year_issued: updated.year_issued ? Number(updated.year_issued) : null,
           verification_status: updated.verification_status,
           no_id: typeof updated.no_id === 'string' ? updated.no_id === 'true' : Boolean(updated.no_id),
+          issuing_authority: updated.issuing_authority || null,
+          issue_date: updated.issue_date || null,
         })
         .select()
         .single();
@@ -959,6 +967,97 @@ export default function UserProfile() {
     billing_efficiency: 0,
     workflow_efficiency: 0,
     learning_progress: 0,
+  };
+
+  // Filter countries based on search input
+  useEffect(() => {
+    if (countrySearch.trim() === '') {
+      // Show common countries first when no search term
+      const commonCountries = ['US', 'CA', 'GB', 'AU'].map(code => 
+        countryOptions.find(c => c.value === code)
+      ).filter(Boolean) as {value: string, label: string}[];
+      
+      // Then add all other countries
+      const otherCountries = countryOptions.filter(c => 
+        !commonCountries.some(common => common && common.value === c.value)
+      );
+      
+      setFilteredCountries([...commonCountries, ...otherCountries]);
+    } else {
+      // Filter based on search term
+      setFilteredCountries(
+        countryOptions.filter(
+          c => c.label.toLowerCase().includes(countrySearch.toLowerCase())
+        )
+      );
+    }
+  }, [countrySearch]);
+
+  // Handle country search input
+  const handleCountrySearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCountrySearch(e.target.value);
+  };
+
+  // Handle country selection
+  const handleCountrySelect = (id: string, value: string) => {
+    handleProfessionalIdChange(id, 'country', value);
+    setCountrySearch('');
+  };
+
+  // Handle document deletion
+  const handleDeleteDocument = async (id: string) => {
+    if (!supabaseClient) return;
+    
+    try {
+      setUploading(true);
+      
+      const profId = editingProfessionalIds[id];
+      if (!profId || !profId.document_url) return;
+      
+      // Extract the file name from the URL
+      const fileName = profId.document_url.split('/').pop()?.split('?')[0];
+      
+      if (fileName) {
+        // Delete from storage
+        await supabaseClient.storage.from('certificates').remove([fileName]);
+      }
+      
+      // Update the record to remove document reference
+      const { error } = await supabaseClient
+        .from('professional_ids')
+        .update({
+          document_url: null,
+          document_name: null
+        })
+        .eq('id', id);
+        
+      if (error) throw error;
+      
+      // Update local state
+      setEditingProfessionalIds(prev => ({
+        ...prev,
+        [id]: {
+          ...prev[id],
+          document_url: undefined,
+          document_name: undefined
+        }
+      }));
+      
+      toast({
+        title: 'Success',
+        description: 'Document deleted successfully'
+      });
+      
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete document',
+        variant: 'destructive'
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   // Add error boundary
@@ -1423,20 +1522,53 @@ export default function UserProfile() {
                             </Button>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="md:col-span-2">
+                              <Label>Certification Name/Type</Label>
+                              <Input
+                                value={editing.professional_id || ''}
+                                onChange={e => handleProfessionalIdChange(profId.id, 'professional_id', e.target.value)}
+                                placeholder="Bar Admission, Specialist Certification, etc."
+                                disabled={uploading}
+                              />
+                              <div className="text-xs text-gray-500 mt-1">Enter the name of your certification or license</div>
+                            </div>
+                            
                             <div>
                               <Label>Country</Label>
-                              <select
-                                value={editing.country || ''}
-                                onChange={e => handleProfessionalIdChange(profId.id, 'country', e.target.value)}
-                                disabled={uploading}
-                                className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"
-                              >
-                                <option value="">Select Country</option>
-                                {countryOptions.map((c: any) => (
-                                  <option key={c.value} value={c.value}>{c.label}</option>
-                                ))}
-                              </select>
+                              <div className="relative">
+                                <Input
+                                  type="text"
+                                  placeholder="Search countries..."
+                                  value={countrySearch}
+                                  onChange={handleCountrySearch}
+                                  disabled={uploading}
+                                  className="mb-1"
+                                />
+                                {countrySearch && (
+                                  <div className="absolute z-10 w-full max-h-40 overflow-y-auto border rounded-md bg-white shadow-lg">
+                                    {filteredCountries.map((c) => (
+                                      <div
+                                        key={c.value}
+                                        className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                                        onClick={() => {
+                                          handleCountrySelect(profId.id, c.value);
+                                          setCountrySearch('');
+                                        }}
+                                      >
+                                        {c.label}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                <div className="flex items-center mt-1">
+                                  <span className="text-sm">Selected: </span>
+                                  <span className="text-sm font-medium ml-1">
+                                    {editing.country ? countryOptions.find(c => c.value === editing.country)?.label || editing.country : 'None'}
+                                  </span>
+                                </div>
+                              </div>
                             </div>
+                            
                             <div>
                               <Label>State/Province</Label>
                               <Input
@@ -1446,15 +1578,17 @@ export default function UserProfile() {
                                 disabled={uploading}
                               />
                             </div>
+                            
                             <div>
-                              <Label>Professional ID Number</Label>
+                              <Label>Issuing Authority</Label>
                               <Input
-                                value={editing.professional_id || ''}
-                                onChange={e => handleProfessionalIdChange(profId.id, 'professional_id', e.target.value)}
-                                placeholder="License or Bar Number"
+                                value={editing.issuing_authority || ''}
+                                onChange={e => handleProfessionalIdChange(profId.id, 'issuing_authority', e.target.value)}
+                                placeholder="State Bar, Law Society, etc."
                                 disabled={uploading}
                               />
                             </div>
+                            
                             <div>
                               <Label>Year Issued</Label>
                               <Input
@@ -1465,6 +1599,17 @@ export default function UserProfile() {
                                 disabled={uploading}
                               />
                             </div>
+                            
+                            <div>
+                              <Label>Issue Date (Optional)</Label>
+                              <Input
+                                type="date"
+                                value={editing.issue_date || ''}
+                                onChange={e => handleProfessionalIdChange(profId.id, 'issue_date', e.target.value)}
+                                disabled={uploading}
+                              />
+                            </div>
+                            
                             <div>
                               <Label>Verification Status</Label>
                               <select
@@ -1479,17 +1624,29 @@ export default function UserProfile() {
                                 ))}
                               </select>
                             </div>
-                            <div>
+                            
+                            <div className="md:col-span-2">
                               <Label>Certification Document</Label>
                               <div className="mt-1 space-y-2">
-                                <Input
-                                  type="file"
-                                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                                  onChange={(e) => handleDocumentUpload(profId.id, e)}
-                                  disabled={uploading}
-                                  className="w-full"
-                                />
-                                {editing.document_url ? (
+                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                                  <Input
+                                    type="file"
+                                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                    onChange={(e) => handleDocumentUpload(profId.id, e)}
+                                    disabled={uploading}
+                                    className="hidden"
+                                    id={`file-upload-${profId.id}`}
+                                  />
+                                  <label 
+                                    htmlFor={`file-upload-${profId.id}`}
+                                    className="cursor-pointer text-blue-600 hover:text-blue-800"
+                                  >
+                                    {editing.document_url ? "Replace document" : "Upload certificate"}
+                                  </label>
+                                  <p className="text-xs text-gray-500 mt-1">PDF, JPEG or PNG, max 5MB</p>
+                                </div>
+                                
+                                {editing.document_url && (
                                   <div className="flex items-center justify-between p-2 bg-gray-100 rounded">
                                     <span className="text-sm truncate">{editing.document_name || 'Document'}</span>
                                     <div className="flex gap-2">
@@ -1501,10 +1658,15 @@ export default function UserProfile() {
                                       >
                                         View
                                       </a>
+                                      <button
+                                        onClick={() => handleDeleteDocument(profId.id)}
+                                        className="text-red-600 text-sm hover:underline"
+                                        type="button"
+                                      >
+                                        Remove
+                                      </button>
                                     </div>
                                   </div>
-                                ) : (
-                                  <div className="text-sm text-gray-500">No document uploaded</div>
                                 )}
                               </div>
                             </div>
