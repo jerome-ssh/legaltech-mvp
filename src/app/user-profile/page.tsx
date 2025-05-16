@@ -791,8 +791,6 @@ export default function UserProfile() {
           country: updated.country,
           state: updated.state,
           professional_id: updated.professional_id,
-          year_issued: updated.year_issued ? Number(updated.year_issued) : null,
-          verification_status: updated.verification_status,
           no_id: typeof updated.no_id === 'string' ? updated.no_id === 'true' : Boolean(updated.no_id),
           issuing_authority: updated.issuing_authority || null,
           issue_date: updated.issue_date || null,
@@ -1590,39 +1588,13 @@ export default function UserProfile() {
                             </div>
                             
                             <div>
-                              <Label>Year Issued</Label>
-                              <Input
-                                type="number"
-                                value={editing.year_issued || ''}
-                                onChange={e => handleProfessionalIdChange(profId.id, 'year_issued', e.target.value)}
-                                placeholder="Year Issued"
-                                disabled={uploading}
-                              />
-                            </div>
-                            
-                            <div>
-                              <Label>Issue Date (Optional)</Label>
+                              <Label>Issue Date</Label>
                               <Input
                                 type="date"
                                 value={editing.issue_date || ''}
                                 onChange={e => handleProfessionalIdChange(profId.id, 'issue_date', e.target.value)}
                                 disabled={uploading}
                               />
-                            </div>
-                            
-                            <div>
-                              <Label>Verification Status</Label>
-                              <select
-                                value={editing.verification_status || ''}
-                                onChange={e => handleProfessionalIdChange(profId.id, 'verification_status', e.target.value)}
-                                disabled={uploading}
-                                className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"
-                              >
-                                <option value="">Select Status</option>
-                                {verificationStatusOptions.map(opt => (
-                                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                ))}
-                              </select>
                             </div>
                             
                             <div className="md:col-span-2">
