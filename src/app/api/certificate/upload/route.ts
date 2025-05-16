@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     // Check that the professional ID belongs to the user
     const { data: professionalIdData, error: professionalIdError } = await supabase
       .from('professional_ids')
-      .select('id')
+      .select('*')
       .eq('id', professionalId)
       .eq('profile_id', profileData.id)
       .single();
@@ -138,14 +138,15 @@ export async function POST(request: NextRequest) {
     const { error: updateError } = await supabase
       .from('professional_ids')
       .update({
+        ...professionalIdData,
         document_url: publicUrlData.publicUrl,
         document_name: file.name,
-        // If a document is uploaded, we assume no_id is false
         no_id: false
       })
       .eq('id', professionalId);
 
     if (updateError) {
+      console.error('Error updating professional ID:', updateError);
       return NextResponse.json(
         { success: false, error: 'Failed to update professional ID with document URL' },
         { status: 500 }
