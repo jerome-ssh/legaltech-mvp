@@ -885,11 +885,39 @@ export default function UserProfile() {
     }
   }, [profile, fetchProfessionalIds]);
 
-  // Modify handleAddProfessionalId to check form limits
+  // Modified initialization to consider all existing forms as open initially
+  // Reset form state when professional IDs are loaded or changed
+  useEffect(() => {
+    // When initial records load, consider all non-filled forms as open
+    const openFormIds = new Set<string>();
+    const completedFormIds = new Set<string>();
+    
+    professionalIds.forEach(profId => {
+      // Check if form has required fields filled in
+      const isComplete = Boolean(
+        profId.country && 
+        profId.professional_id && 
+        (profId.state || profId.issuing_authority || profId.issue_date || profId.document_url)
+      );
+      
+      if (isComplete) {
+        completedFormIds.add(profId.id);
+      } else {
+        openFormIds.add(profId.id);
+      }
+    });
+    
+    setOpenForms(openFormIds);
+    setCompletedForms(completedFormIds);
+  }, [professionalIds.length]);
+
+  // Function to check if the form can be opened
   const handleAddProfessionalId = async () => {
     if (!profile || !supabaseClient) return;
     
-    // Check if we already have 2 open forms
+    console.log("Open forms count:", openForms.size, Array.from(openForms));
+    
+    // Check if we already have 2 open forms - with stronger enforcement
     if (openForms.size >= 2) {
       toast({
         title: 'Too many open forms',
@@ -917,6 +945,17 @@ export default function UserProfile() {
         created_at: new Date().toISOString()
       };
       
+      // Check again before DB operation to ensure we still don't have too many open forms
+      if (openForms.size >= 2) {
+        toast({
+          title: 'Too many open forms',
+          description: 'Please complete at least one of your open forms before adding a new one.',
+          variant: 'destructive'
+        });
+        setUploading(false);
+        return;
+      }
+      
       const { data, error } = await supabaseClient
         .from('professional_ids')
         .insert(newProfId)
@@ -936,7 +975,18 @@ export default function UserProfile() {
         }));
         
         // Mark this form as open
-        setOpenForms(prev => new Set([...prev, data.id]));
+        setOpenForms(prev => {
+          // Ensure we don't exceed the limit
+          if (prev.size >= 2) {
+            toast({
+              title: 'Too many open forms',
+              description: 'Please complete at least one of your open forms first.',
+              variant: 'destructive'
+            });
+            return prev;
+          }
+          return new Set([...prev, data.id]);
+        });
         
         toast({
           title: 'Success',
@@ -953,6 +1003,27 @@ export default function UserProfile() {
     } finally {
       setUploading(false);
     }
+  };
+
+  // Also modify the button click handler for Edit to respect the limit
+  const handleEditButtonClick = (id: string) => {
+    // If we already have 2 open forms and this isn't one of them, show warning
+    if (openForms.size >= 2 && !openForms.has(id)) {
+      toast({
+        title: 'Too many open forms',
+        description: 'Please complete at least one of your open forms before editing another.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    // Otherwise, open this form for editing
+    setCompletedForms(prev => {
+      const newSet = new Set([...prev]);
+      newSet.delete(id);
+      return newSet;
+    });
+    setOpenForms(prev => new Set([...prev, id]));
   };
 
   // Function to delete a professional ID
@@ -999,12 +1070,6 @@ export default function UserProfile() {
       setUploading(false);
     }
   };
-
-  // Reset form state when professional IDs are loaded or changed
-  useEffect(() => {
-    setOpenForms(new Set());
-    setCompletedForms(new Set());
-  }, [professionalIds.length]);
 
   // Fallbacks for profile fields
   const displayProfile: Partial<UserProfile> = profile || {};
@@ -1597,14 +1662,7 @@ export default function UserProfile() {
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
-                                onClick={() => {
-                                  setCompletedForms(prev => {
-                                    const newSet = new Set([...prev]);
-                                    newSet.delete(profId.id);
-                                    return newSet;
-                                  });
-                                  setOpenForms(prev => new Set([...prev, profId.id]));
-                                }}
+                                onClick={() => handleEditButtonClick(profId.id)}
                                 disabled={uploading}
                               >
                                 <Pencil className="w-4 h-4 mr-1" />
