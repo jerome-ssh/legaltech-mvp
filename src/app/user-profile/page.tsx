@@ -1,7 +1,7 @@
 "use client";
 
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { useUser } from "@clerk/nextjs";
+import { useUser, useAuth } from "@clerk/nextjs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -36,6 +36,9 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { Dialog, DialogContent, DialogOverlay } from '@radix-ui/react-dialog';
 import countryList from 'react-select-country-list';
 import { Select } from "@/components/ui/select";
+import { User } from '@clerk/nextjs/server';
+import { getAuthenticatedSupabase } from '@/lib/supabase';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 interface UserProfile {
   id: string;
@@ -61,7 +64,7 @@ interface UserProfile {
   onboarding_completed?: boolean;
 }
 
-type ProfileFormData = {
+interface ProfileFormData {
   first_name: string;
   last_name: string;
   email: string;
@@ -72,13 +75,29 @@ type ProfileFormData = {
   firm_name: string;
   specialization: string;
   years_of_practice: string;
+  bar_number?: string;
   role: string;
-  onboarding_completed: string;
-  language: string;
-  timezone: string;
+  onboarding_completed: string | boolean;
+  language?: string;
+  timezone?: string;
   practice_area_id: string;
-  jurisdiction_id: string;
-};
+  jurisdiction_id?: string;
+  avatar_url: string;
+}
+
+interface ProfessionalId {
+  id: string;
+  profile_id: string;
+  country: string;
+  state: string | null;
+  professional_id: string | null;
+  year_issued: number | null;
+  verification_status: string;
+  no_id: boolean;
+  created_at: string;
+  document_url?: string;
+  document_name?: string;
+}
 
 const supabase = createClientComponentClient();
 
@@ -109,8 +128,11 @@ const uiToDbRole = (uiRole: string) => {
 };
 
 export default function UserProfile() {
-  const { user: clerkUser, isLoaded } = useUser();
+  const { user: clerkUser, isLoaded: isClerkLoaded } = useUser();
+  const { getToken } = useAuth();
   const { toast } = useToast();
+  const [supabaseClient, setSupabaseClient] = useState<SupabaseClient | null>(null);
+  const [isSupabaseInitialized, setIsSupabaseInitialized] = useState(false);
   
   // State
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -125,12 +147,14 @@ export default function UserProfile() {
     firm_name: '',
     specialization: '',
     years_of_practice: '',
+    bar_number: '',
     role: '',
     onboarding_completed: 'No',
     language: '',
     timezone: '',
     practice_area_id: '',
     jurisdiction_id: '',
+    avatar_url: '',
   });
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -150,9 +174,9 @@ export default function UserProfile() {
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const [metrics, setMetrics] = useState<UserMetrics | null>(null);
-  const [professionalIds, setProfessionalIds] = useState<any[]>([]);
+  const [professionalIds, setProfessionalIds] = useState<ProfessionalId[]>([]);
   const [showPreview, setShowPreview] = useState(false);
-  const [editingProfessionalIds, setEditingProfessionalIds] = useState<any>({});
+  const [editingProfessionalIds, setEditingProfessionalIds] = useState<Record<string, ProfessionalId>>({});
 
   // Helper for country dropdown
   const countryOptions = countryList().getData();
@@ -171,181 +195,232 @@ export default function UserProfile() {
   const [optionsLoading, setOptionsLoading] = useState(true);
   const [optionsError, setOptionsError] = useState<string | null>(null);
 
-  // Load profile data
+  // 1. Add a state for roles and role_id
+  const [roles, setRoles] = useState<{ id: string, name: string }[]>([]);
+  const [roleId, setRoleId] = useState<string | null>(null);
+
+  // Initialize Supabase client with anon key
   useEffect(() => {
-    const fetchUserData = async () => {
+    let mounted = true;
+    let initializationTimeout: NodeJS.Timeout;
+
+    async function initSupabase() {
+      if (!clerkUser || !isClerkLoaded) {
+        console.log('Waiting for Clerk user to load...');
+        return;
+      }
+      
       try {
-        if (!isLoaded || !clerkUser) return;
-        setLoading(true);
+        // Create a new Supabase client with anon key
+        const client = createClientComponentClient({
+          supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        });
         
-        console.log('Current Clerk User ID:', clerkUser.id);
-        
-        // Try fetching profile with different keys
-        const possibleKeys = [
-          { key: 'clerk_id', value: clerkUser.id },
-          { key: 'id', value: clerkUser.id },
-          { key: 'user_id', value: clerkUser.id }
-        ];
-
-        let profileData = null;
-        let usedKey = '';
-
-        for (const { key, value } of possibleKeys) {
-          console.log(`Trying to fetch profile with ${key}:`, value);
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq(key, value)
-            .single();
-
-          if (error) {
-            console.log(`Error fetching with ${key}:`, error);
-            continue;
-          }
-
-          if (data) {
-            console.log(`Found profile using ${key}:`, data);
-            profileData = data;
-            usedKey = key;
-            break;
-          }
+        if (mounted) {
+          // Add a small delay to ensure state updates are processed
+          initializationTimeout = setTimeout(() => {
+            setSupabaseClient(client);
+            setIsSupabaseInitialized(true);
+            console.log('Supabase client initialized successfully with anon key');
+          }, 100);
         }
-
-        if (profileData) {
-          console.log('Setting profile data:', profileData);
-          setProfile(profileData as UserProfile);
-          setFormData({
-            first_name: profileData.first_name ?? '',
-            last_name: profileData.last_name ?? '',
-            email: profileData.email ?? '',
-            phone_number: profileData.phone_number ?? '',
-            address: profileData.address ?? '',
-            home_address: profileData.home_address ?? '',
-            gender: profileData.gender ?? '',
-            firm_name: profileData.firm_name ?? '',
-            specialization: profileData.specialization ?? '',
-            years_of_practice: profileData.years_of_practice !== undefined && profileData.years_of_practice !== null ? String(profileData.years_of_practice) : '',
-            role: dbToUiRole(profileData.role || 'attorney'),
-            onboarding_completed: profileData.onboarding_completed ? 'Yes' : 'No',
-            language: profileData.language ?? '',
-            timezone: profileData.timezone ?? '',
-            practice_area_id: profileData.practice_area_id ?? '',
-            jurisdiction_id: profileData.jurisdiction_id ?? '',
-          });
-
-          // Debug: Log current profile ID
-          console.log('Current profile ID:', profileData.id);
-
-          // Fetch professional IDs for this user
-          const { data: profIds } = await supabase
-            .from('professional_ids')
-            .select('*')
-            .eq('profile_id', profileData.id);
-          // Debug: Log fetched professional IDs
-          console.log('Fetched professional IDs:', profIds);
-          setProfessionalIds(profIds || []);
-          // Prefill editingProfessionalIds with fetched data
-          if (profIds && profIds.length > 0) {
-            const initialEditing: Record<string, any> = {};
-            for (const rec of profIds) {
-              initialEditing[rec.id] = { ...rec };
-            }
-            setEditingProfessionalIds(initialEditing);
-          }
-
-          // Fetch and update metrics
-          let channel: RealtimeChannel | undefined;
-          try {
-            await updateUserMetrics(profileData.id);
-            
-            // Subscribe to metrics changes
-            channel = supabase
-              .channel('user_metrics')
-              .on(
-                'postgres_changes',
-                {
-                  event: '*',
-                  schema: 'public',
-                  table: 'user_metrics',
-                  filter: `user_id=eq.${profileData.id}`
-                },
-                (payload) => {
-                  setMetrics(payload.new as UserMetrics);
-                }
-              )
-              .subscribe();
-
-            // Initial metrics fetch
-            const { data: metricsData } = await supabase
-              .from('user_metrics')
-              .select('*')
-              .eq('user_id', profileData.id)
-              .single();
-            if (metricsData) {
-              setMetrics(metricsData as UserMetrics);
-            }
-          } catch (error) {
-            console.log('Metrics not available yet:', error);
-            // Set default metrics
-            setMetrics({
-              profile_completion: 0,
-              productivity_score: 0,
-              client_feedback: 0,
-              time_saved: 0,
-              ai_interactions: 0,
-              networking_score: 0,
-              compliance_score: 0,
-              billing_efficiency: 0,
-              workflow_efficiency: 0,
-              learning_progress: 0,
-            });
-          }
-
-          return () => {
-            channel?.unsubscribe();
-          };
-        } else {
-          console.log('No profile found with any key');
+      } catch (error: unknown) {
+        console.error('Error initializing Supabase client:', error);
+        if (error instanceof Error && mounted) {
           toast({
             title: 'Error',
-            description: 'Profile not found. Please complete your profile setup.',
-            variant: 'destructive',
+            description: `Failed to initialize Supabase client: ${error.message}`,
+            variant: 'destructive'
           });
         }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load user data. Please try again.',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
+      }
+    }
+
+    initSupabase();
+
+    return () => {
+      mounted = false;
+      if (initializationTimeout) {
+        clearTimeout(initializationTimeout);
       }
     };
-    fetchUserData();
-  }, [isLoaded, clerkUser]);
+  }, [clerkUser, isClerkLoaded, toast]);
+
+  // Load profile data
+  const fetchUserData = useCallback(async () => {
+    if (!clerkUser || !isClerkLoaded) {
+      console.log('Waiting for Clerk user to load...', { clerkUser, isClerkLoaded });
+      return;
+    }
+
+    if (!supabaseClient || !isSupabaseInitialized) {
+      console.log('Waiting for Supabase client to initialize...', { supabaseClient, isSupabaseInitialized });
+      return;
+    }
+    
+    try {
+      const userEmail = clerkUser.emailAddresses[0]?.emailAddress;
+      console.log('Starting to fetch user data...', { 
+        clerkId: clerkUser.id,
+        email: userEmail
+      });
+      setLoading(true);
+      setError(null);
+
+      // Use the profile check API endpoint to check if profile exists
+      console.log('Fetching profile data from API...');
+      const response = await fetch('/api/profile/check', {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Profile check failed with status: ${response.status}`);
+      }
+
+      const responseData = await response.json();
+      console.log('Profile check API response:', responseData);
+      
+      if (!responseData.success) {
+        throw new Error(responseData.error || 'Profile check returned unsuccessful');
+      }
+
+      if (!responseData.exists) {
+        throw new Error('Profile not found. Please complete the onboarding process first.');
+      }
+
+      // Use the profile data returned from the API
+      const profile = responseData.profile;
+      if (!profile) {
+        throw new Error('Profile data not returned from API');
+      }
+
+      console.log('Found existing profile:', profile);
+      
+      // Get the role ID for setting the dropdown
+      if (profile.role_id) {
+        setRoleId(profile.role_id);
+      }
+      
+      setProfile(profile);
+      // Set form data with available profile fields
+      // Note: bar_number, language, timezone, and jurisdiction_id are optional fields 
+      // that may not exist in the database schema
+      setFormData({
+        first_name: profile.first_name || '',
+        last_name: profile.last_name || '',
+        email: profile.email || '',
+        phone_number: profile.phone_number || '',
+        address: profile.address || '',
+        home_address: profile.home_address || '',
+        gender: profile.gender || '',
+        firm_name: profile.firm_name || '',
+        specialization: profile.specialization || '',
+        years_of_practice: profile.years_of_practice?.toString() || '',
+        bar_number: profile.bar_number || '',
+        role: profile.role_id || '',
+        onboarding_completed: profile.onboarding_completed || false,
+        language: profile.language || '',
+        timezone: profile.timezone || '',
+        practice_area_id: profile.practice_area_id || '',
+        jurisdiction_id: profile.jurisdiction_id || '',
+        avatar_url: profile.avatar_url || ''
+      });
+    } catch (error) {
+      console.error('Error in profile operation:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load profile data');
+      toast({
+        title: 'Error',
+        description: error instanceof Error && error.message.includes('onboarding') 
+          ? 'Please complete the onboarding process first.'
+          : 'Failed to load profile data. Please try refreshing the page.',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [clerkUser, isClerkLoaded, supabaseClient, isSupabaseInitialized, toast]);
+
+  // Only fetch user data when both Clerk and Supabase are ready
+  useEffect(() => {
+    let mounted = true;
+    let fetchTimeout: NodeJS.Timeout;
+
+    if (clerkUser && isClerkLoaded && supabaseClient && isSupabaseInitialized) {
+      console.log('All dependencies ready, preparing to fetch user data...', {
+        clerkUser: !!clerkUser,
+        isClerkLoaded,
+        supabaseClient: !!supabaseClient,
+        isSupabaseInitialized
+      });
+      
+      // Add a small delay to ensure all state updates are processed
+      fetchTimeout = setTimeout(() => {
+        if (mounted) {
+          console.log('Starting fetchUserData...');
+          fetchUserData();
+        }
+      }, 200);
+    }
+
+    return () => {
+      mounted = false;
+      if (fetchTimeout) {
+        clearTimeout(fetchTimeout);
+      }
+    };
+  }, [clerkUser, isClerkLoaded, supabaseClient, isSupabaseInitialized, fetchUserData]);
 
   useEffect(() => {
     async function fetchOptions() {
+      if (!supabaseClient || !isSupabaseInitialized) {
+        console.log('Waiting for Supabase client to initialize...');
+        return;
+      }
+      
       setOptionsLoading(true);
       setOptionsError(null);
       try {
         const [{ data: paData, error: paError }, { data: jData, error: jError }] = await Promise.all([
-          supabase.from("practice_areas").select("id, name"),
-          supabase.from("jurisdictions").select("id, name")
+          supabaseClient.from("practice_areas").select("id, name"),
+          supabaseClient.from("jurisdictions").select("id, name")
         ]);
         if (paError) setOptionsError(paError.message);
         else setPracticeAreas(paData || []);
         if (jError) setOptionsError(jError.message);
         else setJurisdictions(jData || []);
-      } catch (err: any) {
-        setOptionsError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setOptionsError(err.message);
+        }
       }
       setOptionsLoading(false);
     }
     fetchOptions();
-  }, []);
+  }, [supabaseClient, isSupabaseInitialized]);
+
+  // 2. Fetch roles from Supabase on mount
+  useEffect(() => {
+    async function fetchRoles() {
+      if (!supabaseClient || !isSupabaseInitialized) {
+        console.log('Waiting for Supabase client to initialize...');
+        return;
+      }
+      
+      try {
+        const { data, error } = await supabaseClient.from('roles').select('id, name');
+        if (error) throw error;
+        if (data) setRoles(data);
+      } catch (error) {
+        console.error('Error fetching roles:', error);
+      }
+    }
+    fetchRoles();
+  }, [supabaseClient, isSupabaseInitialized]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -410,16 +485,17 @@ export default function UserProfile() {
       const file = new File([blob], 'profile-picture.jpg', { type: 'image/jpeg' });
       const fileName = `${clerkUser.id}-${Date.now()}.jpg`;
 
-      const session = await supabase.auth.getSession();
-      console.log('Supabase session at upload:', session);
-      console.log('File name at upload:', fileName);
-      console.log('Clerk user ID:', clerkUser.id);
+      console.log('Starting profile picture update process');
+      console.log('Profile ID:', profile.id);
+      console.log('Clerk ID:', clerkUser.id);
 
       // First, try to delete any existing avatar
       if (profile.avatar_url) {
         const oldFileName = profile.avatar_url.split('/').pop();
         if (oldFileName) {
-          await supabase.storage
+          console.log('Deleting old avatar file:', oldFileName);
+          await supabaseClient!
+            .storage
             .from('avatars')
             .remove([oldFileName])
             .catch(error => console.log('Error deleting old avatar:', error));
@@ -427,7 +503,9 @@ export default function UserProfile() {
       }
 
       // Upload new avatar
-      const { error: uploadError } = await supabase.storage
+      console.log('Uploading new avatar file:', fileName);
+      const { error: uploadError, data: uploadData } = await supabaseClient!
+        .storage
         .from('avatars')
         .upload(fileName, file, {
           cacheControl: '3600',
@@ -440,29 +518,69 @@ export default function UserProfile() {
         throw uploadError;
       }
 
+      console.log('Upload successful:', uploadData);
+
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      const { data: { publicUrl } } = supabaseClient!
+        .storage
         .from('avatars')
         .getPublicUrl(fileName);
 
-      // Update profile with new avatar URL
-      const { error: updateError } = await supabase
+      console.log('Avatar uploaded successfully, public URL:', publicUrl);
+
+      // Update profile with new avatar URL - use both id and clerk_id for reliability
+      console.log('Updating profile with new avatar URL');
+      
+      // First try using profile ID
+      const { error: updateError, data: updateData } = await supabaseClient!
         .from('profiles')
         .update({ 
           avatar_url: publicUrl,
           updated_at: new Date().toISOString()
         })
-        .match({ 
-          id: profile.id,
-          clerk_id: clerkUser.id 
-        });
+        .eq('id', profile.id)
+        .select('*');
 
       if (updateError) {
-        console.error('Update error:', updateError);
-        throw updateError;
+        console.error('Update error using profile ID:', updateError);
+        
+        // Try using clerk_id as fallback
+        const { error: updateError2, data: updateData2 } = await supabaseClient!
+          .from('profiles')
+          .update({ 
+            avatar_url: publicUrl,
+            updated_at: new Date().toISOString()
+          })
+          .eq('clerk_id', clerkUser.id)
+          .select('*');
+          
+        if (updateError2) {
+          console.error('Update error using clerk_id:', updateError2);
+          throw updateError2;
+        } else {
+          console.log('Profile updated successfully using clerk_id:', updateData2);
+        }
+      } else {
+        console.log('Profile updated successfully using profile ID:', updateData);
       }
 
+      // For debugging, verify the update by fetching the profile again
+      const { data: verifyProfile, error: verifyError } = await supabaseClient!
+        .from('profiles')
+        .select('*')
+        .eq('id', profile.id)
+        .single();
+        
+      if (verifyError) {
+        console.error('Error verifying profile update:', verifyError);
+      } else {
+        console.log('Verified profile after update:', verifyProfile);
+        console.log('Avatar URL in database:', verifyProfile.avatar_url);
+      }
+
+      // Update local state to show the new avatar immediately
       setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
+      setFormData(prev => ({ ...prev, avatar_url: publicUrl }));
       setShowCrop(false);
       setPreviewUrl(null);
       setCrop(undefined);
@@ -474,7 +592,7 @@ export default function UserProfile() {
       });
     } catch (error) {
       console.error('Error uploading profile picture:', error);
-      setError('Failed to upload profile picture');
+      setError(error instanceof Error ? error.message : 'Failed to upload profile picture');
       toast({
         title: 'Error',
         description: 'Failed to upload profile picture. Please try again.',
@@ -486,20 +604,88 @@ export default function UserProfile() {
   };
 
   const handleDeletePicture = async () => {
-    if (!profile) return;
+    if (!profile || !clerkUser) return;
     
     try {
       setUploading(true);
       setError(null);
+      
+      console.log('Starting profile picture deletion process');
+      console.log('Profile ID:', profile.id);
+      console.log('Clerk ID:', clerkUser.id);
 
-      const { error: updateError } = await supabase
+      // Delete the file from storage if it exists
+      if (profile.avatar_url) {
+        const fileName = profile.avatar_url.split('/').pop();
+        if (fileName) {
+          console.log('Deleting avatar file from storage:', fileName);
+          const { error: deleteError, data: deleteData } = await supabaseClient!
+            .storage
+            .from('avatars')
+            .remove([fileName]);
+          
+          if (deleteError) {
+            console.error('Error deleting avatar from storage:', deleteError);
+            // Continue anyway, as we still want to update the profile
+          } else {
+            console.log('Avatar file successfully deleted from storage:', deleteData);
+          }
+        }
+      }
+
+      // Update profile in database - try both methods for reliability
+      console.log('Updating profile to remove avatar URL');
+      
+      // First try using profile ID
+      const { error: updateError, data: updateData } = await supabaseClient!
         .from('profiles')
-        .update({ avatar_url: null })
-        .eq('id', profile.id);
+        .update({ 
+          avatar_url: null,
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', profile.id)
+        .select('*');
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Error updating profile with ID:', updateError);
+        
+        // Try using clerk_id as fallback
+        const { error: updateError2, data: updateData2 } = await supabaseClient!
+          .from('profiles')
+          .update({ 
+            avatar_url: null,
+            updated_at: new Date().toISOString() 
+          })
+          .eq('clerk_id', clerkUser.id)
+          .select('*');
+          
+        if (updateError2) {
+          console.error('Error updating profile with clerk_id:', updateError2);
+          throw updateError2;
+        } else {
+          console.log('Profile successfully updated using clerk_id:', updateData2);
+        }
+      } else {
+        console.log('Profile successfully updated using ID:', updateData);
+      }
 
+      // For debugging, verify the update by fetching the profile again
+      const { data: verifyProfile, error: verifyError } = await supabaseClient!
+        .from('profiles')
+        .select('*')
+        .eq('id', profile.id)
+        .single();
+        
+      if (verifyError) {
+        console.error('Error verifying profile update:', verifyError);
+      } else {
+        console.log('Verified profile after update:', verifyProfile);
+        console.log('Avatar URL in database should be null:', verifyProfile.avatar_url);
+      }
+
+      // Update local state
       setProfile(prev => prev ? { ...prev, avatar_url: null } : null);
+      setFormData(prev => ({ ...prev, avatar_url: '' }));
       
       toast({
         title: 'Success',
@@ -522,13 +708,12 @@ export default function UserProfile() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleUpdateProfile = async () => {
-    if (!profile) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!clerkUser) return;
+
+    setUploading(true);
     try {
-      setUploading(true);
-      setError(null);
-      
-      // Only include fields that exist in the database
       const updateData = {
         first_name: formData.first_name,
         last_name: formData.last_name,
@@ -539,39 +724,26 @@ export default function UserProfile() {
         gender: formData.gender,
         firm_name: formData.firm_name,
         specialization: formData.specialization,
-        years_of_practice: formData.years_of_practice ? Number(formData.years_of_practice) : undefined,
-        role: uiToDbRole(formData.role),
+        years_of_practice: formData.years_of_practice ? parseInt(formData.years_of_practice) : null,
+        role_id: formData.role,
         onboarding_completed: formData.onboarding_completed === 'Yes',
         practice_area_id: formData.practice_area_id,
-        jurisdiction_id: formData.jurisdiction_id,
+        updated_at: new Date().toISOString()
       };
 
       console.log('Updating profile with data:', updateData);
-      console.log('Using profile ID:', profile.id);
 
-      const { data: updatedProfile, error } = await supabase
+      const { data: updatedProfile, error } = await supabaseClient!
         .from('profiles')
         .update(updateData)
-        .eq('id', profile.id)
-        .select()
+        .eq('clerk_id', clerkUser.id)
+        .select('*')
         .single();
 
-      if (error) {
-        console.error('Error updating profile:', error);
-        throw error;
-      }
-
-      if (!updatedProfile) {
-        throw new Error('Profile not found after update');
-      }
+      if (error) throw error;
 
       console.log('Profile updated successfully:', updatedProfile);
-      setProfile(prev => prev ? {
-        ...prev,
-        ...updateData,
-        years_of_practice: updateData.years_of_practice !== undefined ? updateData.years_of_practice : prev.years_of_practice,
-        onboarding_completed: updateData.onboarding_completed !== undefined ? updateData.onboarding_completed : prev.onboarding_completed,
-      } as UserProfile : null);
+      setProfile(prev => prev ? { ...prev, ...updateData } as UserProfile : null);
       setIsEditing(false);
       toast({
         title: 'Success',
@@ -590,8 +762,8 @@ export default function UserProfile() {
     }
   };
 
-  const handleProfessionalIdChange = (id: any, field: string, value: any) => {
-    setEditingProfessionalIds((prev: any) => ({
+  const handleProfessionalIdChange = (id: string, field: string, value: any) => {
+    setEditingProfessionalIds((prev: Record<string, ProfessionalId>) => ({
       ...prev,
       [id]: {
         ...prev[id],
@@ -600,33 +772,175 @@ export default function UserProfile() {
     }));
   };
 
-  const handleUpdateProfessionalId = async (id: any) => {
+  const handleUpdateProfessionalId = async (id: string) => {
     const updated = editingProfessionalIds[id];
     if (!updated) return;
     setUploading(true);
     try {
-      const { error } = await supabase
+      const { data: updatedProfId, error } = await supabaseClient!
         .from('professional_ids')
-        .update({
+        .upsert({
+          id: id,
+          profile_id: profile?.id,
           country: updated.country,
           state: updated.state,
           professional_id: updated.professional_id,
-          year_issued: updated.year_issued,
+          year_issued: updated.year_issued ? Number(updated.year_issued) : null,
           verification_status: updated.verification_status,
-          no_id: updated.no_id === 'true' || updated.no_id === true,
+          no_id: typeof updated.no_id === 'string' ? updated.no_id === 'true' : Boolean(updated.no_id),
         })
-        .eq('id', id);
+        .select()
+        .single();
+
       if (error) throw error;
+      
       toast({ title: 'Success', description: 'Jurisdiction details updated.' });
-      // Refresh professionalIds
-      const { data: profIds } = await supabase
+      
+      // Update local state
+      if (updatedProfId) {
+        setProfessionalIds([updatedProfId]);
+        setEditingProfessionalIds({ [updatedProfId.id]: { ...updatedProfId } });
+      }
+    } catch (error) {
+      console.error('Error updating professional ID:', error);
+      toast({ 
+        title: 'Error', 
+        description: 'Failed to update jurisdiction details.', 
+        variant: 'destructive' 
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Add a function to fetch professional IDs
+  const fetchProfessionalIds = useCallback(async () => {
+    if (!profile || !supabaseClient || !isSupabaseInitialized) {
+      return;
+    }
+
+    try {
+      console.log('Fetching professional IDs for profile:', profile.id);
+      const { data, error } = await supabaseClient
         .from('professional_ids')
         .select('*')
-        .eq('profile_id', profile?.id);
-      setProfessionalIds(profIds || []);
-      setEditingProfessionalIds((prev: any) => ({ ...prev, [id]: undefined }));
+        .eq('profile_id', profile.id);
+
+      if (error) {
+        console.error('Error fetching professional IDs:', error);
+        return;
+      }
+
+      console.log('Professional IDs fetched:', data);
+      setProfessionalIds(data || []);
+      
+      // Initialize editing state for each professional ID
+      const editingState: Record<string, ProfessionalId> = {};
+      data?.forEach(profId => {
+        editingState[profId.id] = { ...profId };
+      });
+      setEditingProfessionalIds(editingState);
     } catch (error) {
-      toast({ title: 'Error', description: 'Failed to update jurisdiction details.', variant: 'destructive' });
+      console.error('Unexpected error fetching professional IDs:', error);
+    }
+  }, [profile, supabaseClient, isSupabaseInitialized]);
+
+  // Call fetchProfessionalIds when profile is loaded
+  useEffect(() => {
+    if (profile) {
+      fetchProfessionalIds();
+    }
+  }, [profile, fetchProfessionalIds]);
+
+  // Function to add a new professional ID
+  const handleAddProfessionalId = async () => {
+    if (!profile || !supabaseClient) return;
+    
+    try {
+      setUploading(true);
+      
+      // Create a new empty professional ID record
+      const newProfId = {
+        profile_id: profile.id,
+        country: '',
+        state: null,
+        professional_id: null,
+        year_issued: null,
+        verification_status: 'pending',
+        no_id: false,
+        created_at: new Date().toISOString()
+      };
+      
+      const { data, error } = await supabaseClient
+        .from('professional_ids')
+        .insert(newProfId)
+        .select()
+        .single();
+        
+      if (error) {
+        throw error;
+      }
+      
+      if (data) {
+        // Add to local state
+        setProfessionalIds(prev => [...prev, data]);
+        setEditingProfessionalIds(prev => ({
+          ...prev,
+          [data.id]: { ...data }
+        }));
+        
+        toast({
+          title: 'Success',
+          description: 'New jurisdiction record created'
+        });
+      }
+    } catch (error) {
+      console.error('Error creating new professional ID:', error);
+      toast({ 
+        title: 'Error', 
+        description: 'Failed to create new jurisdiction record', 
+        variant: 'destructive' 
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Function to delete a professional ID
+  const handleDeleteProfessionalId = async (id: string) => {
+    if (!supabaseClient) return;
+    
+    try {
+      setUploading(true);
+      
+      const { error } = await supabaseClient
+        .from('professional_ids')
+        .delete()
+        .eq('id', id);
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Update local state
+      setProfessionalIds(prev => prev.filter(profId => profId.id !== id));
+      setEditingProfessionalIds(prev => {
+        const newState = { ...prev };
+        delete newState[id];
+        return newState;
+      });
+      
+      toast({
+        title: 'Success',
+        description: 'Jurisdiction record deleted'
+      });
+    } catch (error) {
+      console.error('Error deleting professional ID:', error);
+      toast({ 
+        title: 'Error', 
+        description: 'Failed to delete jurisdiction record', 
+        variant: 'destructive' 
+      });
     } finally {
       setUploading(false);
     }
@@ -647,6 +961,27 @@ export default function UserProfile() {
     learning_progress: 0,
   };
 
+  // Add error boundary
+  if (error) {
+    return (
+      <LayoutWithSidebar>
+        <div className="container mx-auto py-8">
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-center">
+                <h2 className="text-2xl font-semibold text-red-600 mb-4">Error Loading Profile</h2>
+                <p className="text-gray-600 mb-4">{error}</p>
+                <Button onClick={() => window.location.reload()}>
+                  Retry
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </LayoutWithSidebar>
+    );
+  }
+
   if (loading) {
     return (
       <div className="container mx-auto p-6 space-y-6">
@@ -662,6 +997,63 @@ export default function UserProfile() {
     );
   }
 
+  const handleDocumentUpload = async (id: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('professionalId', id);
+      
+      const response = await fetch('/api/certificate/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Update the local state with the document URL
+        setEditingProfessionalIds(prev => ({
+          ...prev,
+          [id]: {
+            ...prev[id],
+            document_url: result.url,
+            document_name: file.name
+          }
+        }));
+        
+        toast({
+          title: 'Success',
+          description: 'Certificate document uploaded successfully.',
+        });
+        
+        // Refresh the professional IDs to get the updated data
+        if (supabaseClient) {
+          const { data } = await supabaseClient
+            .from('professional_ids')
+            .select('*')
+            .eq('profile_id', profile?.id);
+            
+          if (data) setProfessionalIds(data);
+        }
+      } else {
+        throw new Error(result.error || 'Failed to upload document');
+      }
+    } catch (error: any) {
+      console.error('Document upload error:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to upload document',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <LayoutWithSidebar>
       <div className="container mx-auto py-8 space-y-8">
@@ -671,20 +1063,21 @@ export default function UserProfile() {
             <CardContent className="p-6">
               <div className="flex items-start gap-6">
                 <div className="relative">
-                  {displayProfile.avatar_url ? (
+                  {profile?.avatar_url ? (
                     <div className="relative w-24 h-24 cursor-pointer" onClick={() => setShowPreview(true)}>
                       <Image
-                        src={displayProfile.avatar_url}
+                        src={`${profile.avatar_url}?t=${new Date().getTime()}`}
                         alt="Profile picture"
                         width={96}
                         height={96}
+                        style={{ height: "auto" }}
                         className="rounded-full object-cover"
                         priority
                       />
                     </div>
                   ) : (
                     <div className="w-24 h-24 flex items-center justify-center bg-gray-200 rounded-full cursor-pointer" onClick={() => setShowPreview(true)}>
-                      <span className="text-3xl font-bold text-gray-500">{clerkUser?.firstName?.[0]}{clerkUser?.lastName?.[0]}</span>
+                      <span className="text-3xl font-bold text-gray-500">{profile?.first_name?.[0] || clerkUser?.firstName?.[0]}{profile?.last_name?.[0] || clerkUser?.lastName?.[0]}</span>
                     </div>
                   )}
                   <input
@@ -947,7 +1340,7 @@ export default function UserProfile() {
                         name="practice_area_id"
                         value={formData.practice_area_id || ""}
                         onValueChange={value => setFormData(prev => ({ ...prev, practice_area_id: value }))}
-                        required
+                        disabled={!isEditing || uploading}
                       >
                         <option value="">Select a practice area</option>
                         {practiceAreas.map(pa => (
@@ -970,17 +1363,19 @@ export default function UserProfile() {
                     <Label>Role</Label>
                     <select
                       name="role"
-                      value={formData.role || ''}
-                      onChange={handleInputChange}
+                      value={roleId || ''}
+                      onChange={e => {
+                        const selectedId = e.target.value;
+                        setRoleId(selectedId);
+                        setFormData(prev => ({ ...prev, role: selectedId }));
+                      }}
                       disabled={!isEditing || uploading}
                       className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <option value="">Select Role</option>
-                      <option value="Lawyer">Lawyer</option>
-                      <option value="Paralegal">Paralegal</option>
-                      <option value="Legal Assistant">Legal Assistant</option>
-                      <option value="Legal Secretary">Legal Secretary</option>
-                      <option value="Legal Consultant">Legal Consultant</option>
+                      {roles.map(r => (
+                        <option key={r.id} value={r.id}>{r.name.charAt(0).toUpperCase() + r.name.slice(1)}</option>
+                      ))}
                     </select>
                   </div>
                   <div>
@@ -1000,43 +1395,63 @@ export default function UserProfile() {
               </TabsContent>
               <TabsContent value="jurisdiction" className="space-y-4">
                 {professionalIds.length === 0 ? (
-                  <div className="text-gray-500">No jurisdiction/professional ID records found.</div>
+                  <div className="text-center p-8">
+                    <div className="text-gray-500 mb-4">No jurisdiction records found.</div>
+                    <Button onClick={handleAddProfessionalId} disabled={uploading}>
+                      {uploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                      Add Jurisdiction Record
+                    </Button>
+                  </div>
                 ) : (
-                  <div className="space-y-4">
-                    {professionalIds.map((id: any, idx: number) => {
-                      const editing = editingProfessionalIds[id.id] || id;
+                  <div className="space-y-6">
+                    {professionalIds.map((profId) => {
+                      const editing = editingProfessionalIds[profId.id] || profId;
                       return (
-                        <div key={id.id || idx} className="border rounded-lg p-4 bg-gray-50">
+                        <div key={profId.id} className="border rounded-lg p-4 bg-gray-50">
+                          <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-md font-medium">
+                              {editing.country || 'New'} {editing.state ? `- ${editing.state}` : ''} Record
+                            </h3>
+                            <Button 
+                              variant="destructive" 
+                              size="sm" 
+                              onClick={() => handleDeleteProfessionalId(profId.id)}
+                              disabled={uploading}
+                            >
+                              <Trash className="w-4 h-4 mr-1" />
+                              Delete
+                            </Button>
+                          </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                               <Label>Country</Label>
                               <select
                                 value={editing.country || ''}
-                                onChange={e => handleProfessionalIdChange(id.id, 'country', e.target.value)}
+                                onChange={e => handleProfessionalIdChange(profId.id, 'country', e.target.value)}
                                 disabled={uploading}
                                 className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"
                               >
                                 <option value="">Select Country</option>
                                 {countryOptions.map((c: any) => (
-                                  <option key={c.value} value={c.value}>{c.value}</option>
+                                  <option key={c.value} value={c.value}>{c.label}</option>
                                 ))}
                               </select>
                             </div>
                             <div>
-                              <Label>State</Label>
+                              <Label>State/Province</Label>
                               <Input
                                 value={editing.state || ''}
-                                onChange={e => handleProfessionalIdChange(id.id, 'state', e.target.value)}
-                                placeholder="State"
+                                onChange={e => handleProfessionalIdChange(profId.id, 'state', e.target.value)}
+                                placeholder="State or Province"
                                 disabled={uploading}
                               />
                             </div>
                             <div>
-                              <Label>Professional ID</Label>
+                              <Label>Professional ID Number</Label>
                               <Input
                                 value={editing.professional_id || ''}
-                                onChange={e => handleProfessionalIdChange(id.id, 'professional_id', e.target.value)}
-                                placeholder="Professional ID"
+                                onChange={e => handleProfessionalIdChange(profId.id, 'professional_id', e.target.value)}
+                                placeholder="License or Bar Number"
                                 disabled={uploading}
                               />
                             </div>
@@ -1045,7 +1460,7 @@ export default function UserProfile() {
                               <Input
                                 type="number"
                                 value={editing.year_issued || ''}
-                                onChange={e => handleProfessionalIdChange(id.id, 'year_issued', e.target.value)}
+                                onChange={e => handleProfessionalIdChange(profId.id, 'year_issued', e.target.value)}
                                 placeholder="Year Issued"
                                 disabled={uploading}
                               />
@@ -1054,7 +1469,7 @@ export default function UserProfile() {
                               <Label>Verification Status</Label>
                               <select
                                 value={editing.verification_status || ''}
-                                onChange={e => handleProfessionalIdChange(id.id, 'verification_status', e.target.value)}
+                                onChange={e => handleProfessionalIdChange(profId.id, 'verification_status', e.target.value)}
                                 disabled={uploading}
                                 className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"
                               >
@@ -1065,23 +1480,38 @@ export default function UserProfile() {
                               </select>
                             </div>
                             <div>
-                              <Label>No ID</Label>
-                              <select
-                                value={editing.no_id?.toString() || ''}
-                                onChange={e => handleProfessionalIdChange(id.id, 'no_id', e.target.value)}
-                                disabled={uploading}
-                                className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"
-                              >
-                                <option value="">Select</option>
-                                {noIdOptions.map(opt => (
-                                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                ))}
-                              </select>
+                              <Label>Certification Document</Label>
+                              <div className="mt-1 space-y-2">
+                                <Input
+                                  type="file"
+                                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                  onChange={(e) => handleDocumentUpload(profId.id, e)}
+                                  disabled={uploading}
+                                  className="w-full"
+                                />
+                                {editing.document_url ? (
+                                  <div className="flex items-center justify-between p-2 bg-gray-100 rounded">
+                                    <span className="text-sm truncate">{editing.document_name || 'Document'}</span>
+                                    <div className="flex gap-2">
+                                      <a 
+                                        href={editing.document_url} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 text-sm hover:underline"
+                                      >
+                                        View
+                                      </a>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="text-sm text-gray-500">No document uploaded</div>
+                                )}
+                              </div>
                             </div>
                           </div>
                           <div className="flex justify-end mt-4">
                             <Button
-                              onClick={() => handleUpdateProfessionalId(id.id)}
+                              onClick={() => handleUpdateProfessionalId(profId.id)}
                               disabled={uploading}
                             >
                               {uploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
@@ -1091,6 +1521,12 @@ export default function UserProfile() {
                         </div>
                       );
                     })}
+                    <div className="flex justify-center mt-4">
+                      <Button onClick={handleAddProfessionalId} disabled={uploading}>
+                        {uploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                        Add Another Jurisdiction
+                      </Button>
+                    </div>
                   </div>
                 )}
               </TabsContent>
@@ -1106,7 +1542,7 @@ export default function UserProfile() {
                     Cancel
                   </Button>
                   <Button
-                    onClick={handleUpdateProfile}
+                    onClick={handleSubmit}
                     disabled={uploading}
                   >
                     {uploading ? (
@@ -1161,6 +1597,7 @@ export default function UserProfile() {
                   src={previewUrl}
                   width={400}
                   height={400}
+                  style={{ height: "auto" }}
                   onLoad={(e) => {
                     const { width, height } = e.currentTarget;
                     setCrop(centerAspectCrop(width, height, aspect));
@@ -1214,10 +1651,11 @@ export default function UserProfile() {
               </button>
               {displayProfile.avatar_url ? (
                 <Image
-                  src={displayProfile.avatar_url}
+                  src={`${displayProfile.avatar_url}?t=${new Date().getTime()}`}
                   alt="Profile picture preview"
                   width={256}
                   height={256}
+                  style={{ height: "auto" }}
                   className="rounded-full object-cover mb-4"
                 />
               ) : (
