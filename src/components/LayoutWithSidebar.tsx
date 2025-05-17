@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   LayoutDashboard, FileText, Users, CreditCard, BarChart2, HelpCircle, Settings,
@@ -13,6 +13,7 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
   const [collapsed, setCollapsed] = useState(true);
   const { user } = useUser();
   const router = useRouter();
+  const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
 
   // Helper to get initials
   const getInitials = (user: any) => {
@@ -21,6 +22,24 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
     const last = user.lastName || '';
     return (first[0] || '') + (last[0] || '');
   };
+
+  // Try to get the latest profile avatar from localStorage (set by profile page on update)
+  useEffect(() => {
+    // Try to get from localStorage (set by profile page after upload)
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('profile_avatar_url') : null;
+    if (stored) setProfileAvatar(stored);
+  }, []);
+
+  // Listen for changes to localStorage (profile avatar updates)
+  useEffect(() => {
+    function handleStorage(e: StorageEvent) {
+      if (e.key === 'profile_avatar_url') {
+        setProfileAvatar(e.newValue);
+      }
+    }
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -56,24 +75,17 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
               <Settings className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Settings</span>
             </Link>
           </nav>
-          {/* Avatar right after nav, with small margin */}
-          <div className="flex flex-col items-center mt-80">
-            <button
-              onClick={() => router.push('/user-profile')}
-              className="focus:outline-none"
-              title="View Profile"
-            >
-              <Avatar className="w-12 h-12 border-2 border-blue-500 shadow hover:shadow-lg transition-all">
-                {user === undefined ? (
-                  <span className="w-full h-full flex items-center justify-center font-bold text-lg text-gray-400 animate-pulse">--</span>
-                ) : (
-                  <>
-                    <AvatarImage src={user?.imageUrl || undefined} alt={user?.fullName || getInitials(user)} />
-                    <AvatarFallback>
-                      <span className="w-full h-full flex items-center justify-center font-bold text-lg text-blue-700">{getInitials(user)}</span>
-                    </AvatarFallback>
-                  </>
-                )}
+          <div className="mt-10 flex flex-col items-center">
+            <button onClick={() => router.push('/user-profile')} className="focus:outline-none">
+              <Avatar className="w-16 h-16 mb-2">
+                {profileAvatar ? (
+                  <AvatarImage src={profileAvatar} alt={user?.fullName || getInitials(user)} />
+                ) : user?.imageUrl ? (
+                  <AvatarImage src={user.imageUrl} alt={user?.fullName || getInitials(user)} />
+                ) : null}
+                <AvatarFallback>
+                  <span className="w-full h-full flex items-center justify-center font-bold text-lg text-blue-700">{getInitials(user)}</span>
+                </AvatarFallback>
               </Avatar>
             </button>
             {!collapsed && user && (

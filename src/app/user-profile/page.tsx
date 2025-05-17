@@ -736,6 +736,10 @@ export default function UserProfile() {
       // Update local state to show the new avatar immediately
       setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
       setFormData(prev => ({ ...prev, avatar_url: publicUrl }));
+      // Store in localStorage for sidebar sync
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('profile_avatar_url', publicUrl);
+      }
       setShowCrop(false);
       setPreviewUrl(null);
       setCrop(undefined);
@@ -841,6 +845,10 @@ export default function UserProfile() {
       // Update local state
       setProfile(prev => prev ? { ...prev, avatar_url: null } : null);
       setFormData(prev => ({ ...prev, avatar_url: '' }));
+      // Remove from localStorage for sidebar sync
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('profile_avatar_url', '');
+      }
       
       toast({
         title: 'Success',
