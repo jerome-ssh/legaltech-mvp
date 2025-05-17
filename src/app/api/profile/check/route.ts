@@ -38,11 +38,11 @@ export async function GET() {
       );
     }
 
-    // Check if profile exists in Supabase
+    // Check if profile exists in Supabase and get full profile data
     console.log('API route: Checking for existing profile with Clerk ID:', userId);
     const { data: profile, error } = await supabase
       .from('profiles')
-      .select('id, onboarding_completed')
+      .select('*')
       .eq('clerk_id', userId)
       .single();
 
@@ -59,17 +59,19 @@ export async function GET() {
       );
     }
 
-    // Return whether profile exists and onboarding status
+    // Return whether profile exists, onboarding status, and full profile data
     console.log('API route: Profile check result:', { 
       exists: !!profile,
-      onboarding_completed: profile?.onboarding_completed || false 
+      onboarding_completed: profile?.onboarding_completed || false,
+      profile: profile
     });
     
     return NextResponse.json(
       { 
         success: true,
         exists: !!profile,
-        onboarding_completed: profile?.onboarding_completed || false
+        onboarding_completed: profile?.onboarding_completed || false,
+        profile: profile
       },
       { status: 200 }
     );
