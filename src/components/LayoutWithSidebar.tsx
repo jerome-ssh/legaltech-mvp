@@ -10,15 +10,23 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
 
 // ProfileContext for sharing profile data (including avatar_url)
-export const ProfileContext = createContext<{ avatarUrl: string | null }>({ avatarUrl: null });
+export const ProfileContext = createContext<{ 
+  avatarUrl: string | null; 
+  clerkImageUrl: string | null;
+  isLoading: boolean;
+}>({ 
+  avatarUrl: null, 
+  clerkImageUrl: null,
+  isLoading: true 
+});
 export const useProfile = () => useContext(ProfileContext);
 
 export default function LayoutWithSidebar({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(true);
   const { user } = useUser();
   const router = useRouter();
-  // Use avatarUrl from ProfileContext
-  const { avatarUrl } = useProfile();
+  // Use avatarUrl and clerkImageUrl from ProfileContext
+  const { avatarUrl, clerkImageUrl, isLoading } = useProfile();
 
   // Track sidebar width for continuous avatar scaling
   const [sidebarWidth, setSidebarWidth] = useState(80); // px, matches w-20
@@ -92,14 +100,14 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
                 style={{ width: avatarSize, height: avatarSize, transition: 'width 0.3s, height 0.3s' }}
                 className={`border-2 border-blue-500 shadow hover:shadow-lg transition-all duration-300`}
               >
-                {user === undefined ? (
+                {isLoading ? (
                   <span className="w-full h-full flex items-center justify-center font-bold text-lg text-gray-400 animate-pulse">--</span>
                 ) : (
                   <>
                     {avatarUrl ? (
                       <AvatarImage src={avatarUrl} alt={user?.fullName || getInitials(user)} className="object-cover w-full h-full rounded-full" />
-                    ) : user?.imageUrl ? (
-                      <AvatarImage src={user.imageUrl} alt={user?.fullName || getInitials(user)} className="object-cover w-full h-full rounded-full" />
+                    ) : clerkImageUrl ? (
+                      <AvatarImage src={clerkImageUrl} alt={user?.fullName || getInitials(user)} className="object-cover w-full h-full rounded-full" />
                     ) : null}
                     <AvatarFallback>
                       <span className="w-full h-full flex items-center justify-center font-bold text-lg text-blue-700">{getInitials(user)}</span>
