@@ -20,9 +20,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing required Supabase environment variables');
 }
 
-// Create a client for client-side operations (using anon key)
-export const supabase = createClient(supabaseUrl as string, supabaseAnonKey as string);
-
 // Create an admin client for server-side operations (using service role key)
 export const createServerSupabaseClient = () => {
   const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_KEY;
@@ -55,4 +52,29 @@ export async function getAuthenticatedSupabase() {
       },
     },
   });
-} 
+}
+
+// Function to get an authenticated Supabase client using a JWT (for middleware)
+export function getAuthenticatedSupabaseWithJwt(jwt: string) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    global: {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    },
+  });
+}
+
+// Export a supabaseAdmin client for server-side use (using service role key)
+export const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  }
+); 

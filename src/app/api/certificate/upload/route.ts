@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const professionalId = formData.get('professionalId') as string;
+    const parentId = formData.get('parentId') as string;
 
     if (!file) {
       return NextResponse.json(
@@ -58,15 +59,61 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check that the professional ID belongs to the user
-    const { data: professionalIdData, error: professionalIdError } = await supabase
+    // Check ownership - handle both direct records and JSONB certifications
+    let isOwned = false;
+    let parentRecord = null;
+    
+    // First try to find it as a direct record (legacy approach)
+    const { data: directRecord, error: directError } = await supabase
       .from('professional_ids')
       .select('*')
       .eq('id', professionalId)
       .eq('profile_id', profileData.id)
       .single();
+      
+    if (!directError && directRecord) {
+      // Found as direct record
+      isOwned = true;
+    } else if (parentId) {
+      // Try to find it within the parent's certifications array
+      const { data: parent, error: parentError } = await supabase
+        .from('professional_ids')
+        .select('*')
+        .eq('id', parentId)
+        .eq('profile_id', profileData.id)
+        .single();
+        
+      if (!parentError && parent && parent.certifications) {
+        // Check if the certification exists in the parent's array
+        const certification = parent.certifications.find((cert: any) => cert.id === professionalId);
+        if (certification) {
+          isOwned = true;
+          parentRecord = parent;
+        }
+      }
+    } else {
+      // Try to find any parent record with this certification ID
+      const { data: allParents, error: allParentsError } = await supabase
+        .from('professional_ids')
+        .select('*')
+        .eq('profile_id', profileData.id);
+        
+      if (!allParentsError && allParents) {
+        // Check each parent for the certification
+        for (const parent of allParents) {
+          if (parent.certifications && Array.isArray(parent.certifications)) {
+            const certification = parent.certifications.find((cert: any) => cert.id === professionalId);
+            if (certification) {
+              isOwned = true;
+              parentRecord = parent;
+              break;
+            }
+          }
+        }
+      }
+    }
 
-    if (professionalIdError || !professionalIdData) {
+    if (!isOwned) {
       return NextResponse.json(
         { success: false, error: 'Professional ID not found or not owned by user' },
         { status: 404 }
@@ -134,23 +181,61 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update professional ID record with document URL and name
-    const { error: updateError } = await supabase
-      .from('professional_ids')
-      .update({
-        ...professionalIdData,
-        document_url: publicUrlData.publicUrl,
-        document_name: file.name,
-        no_id: false
-      })
-      .eq('id', professionalId);
+    // Update record based on the type (direct or JSONB)
+    if (parentRecord && parentRecord.certifications) {
+      // JSONB approach - update the certification within the array
+      const certifications = [...parentRecord.certifications];
+      const certIndex = certifications.findIndex((cert: any) => cert.id === professionalId);
+      
+      if (certIndex >= 0) {
+        // Update existing certification
+        certifications[certIndex] = {
+          ...certifications[certIndex],
+          document_url: publicUrlData.publicUrl,
+          document_name: file.name
+        };
+      } else {
+        // Add as new certification
+        certifications.push({
+          id: professionalId,
+          document_url: publicUrlData.publicUrl,
+          document_name: file.name
+        });
+      }
+      
+      // Update the parent record
+      const { error: updateError } = await supabase
+        .from('professional_ids')
+        .update({ 
+          certifications: certifications 
+        })
+        .eq('id', parentRecord.id);
 
-    if (updateError) {
-      console.error('Error updating professional ID:', updateError);
-      return NextResponse.json(
-        { success: false, error: 'Failed to update professional ID with document URL' },
-        { status: 500 }
-      );
+      if (updateError) {
+        console.error('Error updating certifications:', updateError);
+        return NextResponse.json(
+          { success: false, error: 'Failed to update certifications with document URL' },
+          { status: 500 }
+        );
+      }
+    } else {
+      // Legacy approach - direct update
+      const { error: updateError } = await supabase
+        .from('professional_ids')
+        .update({
+          document_url: publicUrlData.publicUrl,
+          document_name: file.name,
+          no_id: false
+        })
+        .eq('id', professionalId);
+
+      if (updateError) {
+        console.error('Error updating professional ID:', updateError);
+        return NextResponse.json(
+          { success: false, error: 'Failed to update professional ID with document URL' },
+          { status: 500 }
+        );
+      }
     }
 
     return NextResponse.json({

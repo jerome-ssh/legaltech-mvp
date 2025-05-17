@@ -1,4 +1,39 @@
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createClient } from '@supabase/supabase-js';
+import { Database } from '@/types/supabase';
+
+// Create a service role client only on the server side
+const getSupabaseAdmin = () => {
+  if (typeof window === 'undefined') {
+    return createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+  }
+  return null;
+};
+
+// Helper function to get profile data
+async function getProfileData(clerkId: string) {
+  const response = await fetch('/api/profile/check', {
+    method: 'GET',
+    headers: {
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Profile check failed with status: ${response.status}`);
+  }
+
+  const responseData = await response.json();
+  if (!responseData.success || !responseData.exists || !responseData.profile) {
+    throw new Error('Profile not found. Please complete the onboarding process first.');
+  }
+
+  return responseData.profile;
+}
 
 export interface UserMetrics {
   profile_completion: number;
@@ -13,6 +48,11 @@ export interface UserMetrics {
   learning_progress: number;
 }
 
+type MetricCalculation = {
+  name: keyof UserMetrics;
+  fn: (clerkId: string) => Promise<number>;
+};
+
 const PROFILE_FIELDS = [
   'id',
   'clerk_id',
@@ -22,400 +62,540 @@ const PROFILE_FIELDS = [
   'updated_at'
 ] as const;
 
-// Helper to get user ID from Clerk ID
-async function getUserUuid(clerkId: string) {
-  const supabase = createClientComponentClient();
+export async function getUserUuid(clerkId: string): Promise<string> {
+  console.log('Looking up profile for clerk_id:', clerkId);
   
   try {
-    console.log('Looking up profile for clerk_id:', clerkId);
-    
-    // First try to get the profile using clerk_id
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('clerk_id', clerkId)
-      .single();
-      
-    if (error) {
-      console.error('Error fetching profile by clerk_id:', error);
-      
-      // If not found by clerk_id, try using the clerk_id as the id
-      const { data: fallbackProfile, error: fallbackError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', clerkId)
-        .single();
-        
-      if (fallbackError) {
-        console.error('Error fetching fallback profile:', fallbackError);
-        
-        // If both lookups fail, try one more time with a broader query
-        const { data: broadProfile, error: broadError } = await supabase
-          .from('profiles')
-          .select('id')
-          .or(`clerk_id.eq.${clerkId},id.eq.${clerkId}`)
-          .limit(1);
-          
-        if (broadError || !broadProfile || broadProfile.length === 0) {
-          console.error('All profile lookup attempts failed:', broadError);
-          throw new Error('Profile not found after multiple attempts');
-        }
-        
-        console.log('Found profile using broad lookup:', broadProfile[0]);
-        return broadProfile[0].id;
+    // Use the profile check API endpoint to get the profile
+    console.log('Fetching profile data from API...');
+    const response = await fetch('/api/profile/check', {
+      method: 'GET',
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
       }
-      
-      if (!fallbackProfile) {
-        console.error('No fallback profile found for id:', clerkId);
-        throw new Error('Profile not found');
-      }
-      
-      console.log('Found profile using fallback lookup:', fallbackProfile);
-      return fallbackProfile.id;
+    });
+
+    if (!response.ok) {
+      throw new Error(`Profile check failed with status: ${response.status}`);
     }
+
+    const responseData = await response.json();
+    console.log('Profile check API response:', responseData);
     
+    if (!responseData.success) {
+      throw new Error(responseData.error || 'Profile check returned unsuccessful');
+    }
+
+    if (!responseData.exists) {
+      throw new Error('Profile not found. Please complete the onboarding process first.');
+    }
+
+    // Use the profile data returned from the API
+    const profile = responseData.profile;
     if (!profile) {
-      console.error('No profile found for clerk_id:', clerkId);
-      throw new Error('Profile not found');
+      throw new Error('Profile data not returned from API');
     }
-    
-    console.log('Found profile:', profile);
-    return profile.id;
+
+    console.log('Found existing profile:', profile);
+  return profile.id;
   } catch (error) {
     console.error('Error in getUserUuid:', error);
+    if (error instanceof Error) {
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+    }
     throw error;
   }
 }
 
 export async function calculateProfileCompletion(clerkId: string): Promise<number> {
-  const supabase = createClientComponentClient();
-  const userId = await getUserUuid(clerkId);
-  
-  console.log('Calculating profile completion for user:', userId);
-  
-  // Get profile data
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .single();
-
-  if (profileError || !profile) {
-    console.error('Error fetching profile for completion calculation:', profileError);
-    return 0;
-  }
-  
-  console.log('Profile data for completion calculation:', profile);
-
-  // Define field groups and their weights
-  const fieldGroups = {
-    basicInfo: {
-      fields: ['first_name', 'last_name', 'email', 'phone_number'],
-      weight: 30
-    },
-    professionalInfo: {
-      fields: ['firm_name', 'specialization', 'years_of_practice', 'role_id'],
-      weight: 40
-    },
-    addressInfo: {
-      fields: ['address', 'home_address'],
-      weight: 15
-    },
-    extraInfo: {
-      fields: ['gender', 'avatar_url'],
-      weight: 15
-    }
-  };
-  
-  let totalCompletion = 0;
-  
-  // Calculate completion for each field group
-  Object.entries(fieldGroups).forEach(([groupName, { fields, weight }]) => {
-    const completedFields = fields.filter(field => profile[field] !== null && profile[field] !== undefined && profile[field] !== '');
-    const groupCompletion = completedFields.length / fields.length * weight;
-    
-    console.log(`Group ${groupName}: ${completedFields.length}/${fields.length} fields completed (${groupCompletion}/${weight} points)`);
-    
-    totalCompletion += groupCompletion;
-  });
-  
-  // Check if there are professional IDs for extra points
-  const { data: professionalIds, error: pIdError } = await supabase
-    .from('professional_ids')
-    .select('id, certifications')
-    .eq('profile_id', userId);
-    
-  if (!pIdError && professionalIds?.length > 0) {
-    // If there's at least one professional ID, add 10 bonus points up to 100
-    const hasCertifications = professionalIds.some(
-      record => record.certifications && record.certifications.length > 0
-    );
-    
-    if (hasCertifications) {
-      totalCompletion = Math.min(100, totalCompletion + 10); 
-      console.log(`Added 10 bonus points for professional IDs: ${totalCompletion}`);
-    }
-  }
-  
-  return Math.round(totalCompletion);
-}
-
-export async function calculateProductivityScore(clerkId: string): Promise<number> {
-  const supabase = createClientComponentClient();
-  const profileId = await getUserUuid(clerkId);
-  
-  // Get tasks completed in the last week
-  const { data: tasks } = await supabase
-    .from('tasks')
-    .select('*')
-    .eq('profile_id', profileId)
-    .gte('completed_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
-
-  if (!tasks?.length) return 0;
-
-  const completedTasks = tasks.filter(task => task.status === 'completed');
-  return Math.round((completedTasks.length / tasks.length) * 100);
-}
-
-export async function calculateClientFeedback(clerkId: string): Promise<number> {
-  const supabase = createClientComponentClient();
-  const profileId = await getUserUuid(clerkId);
-  
-  const { data: feedback } = await supabase
-    .from('client_feedback')
-    .select('rating')
-    .eq('profile_id', profileId)
-    .order('created_at', { ascending: false })
-    .limit(10);
-
-  if (!feedback?.length) return 0;
-
-  const averageRating = feedback.reduce((acc, curr) => acc + curr.rating, 0) / feedback.length;
-  return Number(averageRating.toFixed(1));
-}
-
-export async function calculateTimeSaved(clerkId: string): Promise<number> {
-  const supabase = createClientComponentClient();
-  const profileId = await getUserUuid(clerkId);
-  
-  const { data: activities } = await supabase
-    .from('user_activities')
-    .select('time_saved')
-    .eq('profile_id', profileId)
-    .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
-
-  if (!activities?.length) return 0;
-
-  return activities.reduce((acc, curr) => acc + (curr.time_saved || 0), 0);
-}
-
-export async function calculateAIIntractions(clerkId: string): Promise<number> {
-  const supabase = createClientComponentClient();
-  const userId = await getUserUuid(clerkId);
-  
-  // Since ai_interactions table might not exist yet, return 0
-  return 0;
-}
-
-export async function calculateNetworkingScore(clerkId: string): Promise<number> {
-  const supabase = createClientComponentClient();
-  const userId = await getUserUuid(clerkId);
-  
-  // Since professional_connections table might not exist yet, return 0
-  return 0;
-}
-
-export async function calculateComplianceScore(clerkId: string): Promise<number> {
-  const supabase = createClientComponentClient();
-  const userId = await getUserUuid(clerkId);
-  
-  // Since compliance_checks table might not exist yet, return 0
-  return 0;
-}
-
-export async function calculateBillingEfficiency(clerkId: string): Promise<number> {
-  const supabase = createClientComponentClient();
-  const userId = await getUserUuid(clerkId);
-  
-  // Since invoices table might not exist yet, return 0
-  return 0;
-}
-
-export async function calculateWorkflowEfficiency(clerkId: string): Promise<number> {
-  const supabase = createClientComponentClient();
-  const userId = await getUserUuid(clerkId);
+  console.log('Calculating profile completion for user:', clerkId);
   
   try {
-    console.log('Calculating workflow efficiency for user:', userId);
+    // Get profile data from API instead of Supabase
+    console.log('Fetching profile data from API...');
+    const response = await fetch('/api/profile/check', {
+      method: 'GET',
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Profile check failed with status: ${response.status}`);
+    }
+
+    const responseData = await response.json();
+    console.log('Profile check API response:', responseData);
     
-    // Check if user has profile with enough fields filled
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    if (!responseData.success || !responseData.exists || !responseData.profile) {
+      console.error('Profile not found or invalid response');
+      return 0;
+    }
+
+    const profile = responseData.profile;
+    console.log('Profile data for completion calculation:', profile);
+
+    // Define field groups and their weights based on actual data structure
+    const fieldGroups = {
+      basicInfo: {
+        fields: ['first_name', 'last_name', 'email', 'phone_number'],
+        weight: 25,
+        required: true
+      },
+      professionalInfo: {
+        fields: ['firm_name', 'specialization', 'years_of_practice'],
+        weight: 25,
+        required: true
+      },
+      addressInfo: {
+        fields: ['address'],
+        weight: 15,
+        required: true
+      },
+      extraInfo: {
+        fields: ['avatar_url', 'gender'],
+        weight: 10,
+        required: false
+      },
+      roleInfo: {
+        fields: ['role_id'],
+        weight: 15,
+        required: true
+      },
+      onboardingStatus: {
+        fields: ['onboarding_completed'],
+        weight: 10,
+        required: true
+      }
+    };
+    
+    let totalCompletion = 0;
+    let totalWeight = 0;
+    
+    // Calculate completion for each field group
+    Object.entries(fieldGroups).forEach(([groupName, { fields, weight, required }]) => {
+      console.log(`\nProcessing group: ${groupName}`);
+      console.log('Fields:', fields);
+      console.log('Weight:', weight);
+      console.log('Required:', required);
       
-    if (!profile) return 0;
+      const completedFields = fields.filter(field => {
+        const value = profile[field];
+        console.log(`Field ${field}:`, value);
+        
+        // Special handling for phone_number to ensure it's a valid format
+        if (field === 'phone_number') {
+          const isValid = value && value.startsWith('+') && value.length >= 10;
+          console.log(`Phone number validation: ${isValid}`);
+          return isValid;
+        }
+        
+        // For boolean fields
+        if (field === 'onboarding_completed') {
+          const isValid = value === true;
+          console.log(`Onboarding completed validation: ${isValid}`);
+          return isValid;
+        }
+        
+        // For all other fields, check if they have a non-empty value
+        const isValid = value !== null && value !== undefined && value !== '';
+        console.log(`Field validation: ${isValid}`);
+        return isValid;
+      });
+
+      const groupCompletion = (completedFields.length / fields.length) * weight;
+      console.log(`Group completion: ${completedFields.length}/${fields.length} fields = ${groupCompletion} points`);
+      
+      // Always add weight for required groups, or if there are completed fields
+      if (required || completedFields.length > 0) {
+        totalCompletion += groupCompletion;
+        totalWeight += weight;
+        console.log(`Added to total: ${groupCompletion} points (total now: ${totalCompletion}, weight: ${totalWeight})`);
+      } else {
+        console.log('Group not included in total');
+      }
+    });
     
-    // Start with 30% baseline for having an account
-    let efficiency = 30;
-    
-    // Add up to 40% for profile completeness
-    const profileCompletionScore = await calculateProfileCompletion(clerkId);
-    const profileBonus = Math.round((profileCompletionScore / 100) * 40);
-    efficiency += profileBonus;
-    console.log(`Added ${profileBonus}% from profile completion`);
-    
-    // Add 15% for having professional IDs/certifications
-    const { data: professionalIds } = await supabase
+    // Check if there are professional IDs for extra points
+    console.log('\nChecking professional IDs...');
+    const supabase = createClientComponentClient();
+    const { data: professionalIds, error: pIdError } = await supabase
       .from('professional_ids')
-      .select('certifications')
-      .eq('profile_id', userId);
+      .select('id, certifications')
+      .eq('profile_id', profile.id);
       
-    if (professionalIds && professionalIds.length > 0) {
+    if (!pIdError && professionalIds?.length > 0) {
+      console.log('Found professional IDs:', professionalIds);
+      // If there's at least one professional ID with certifications, add 10 bonus points up to 100
       const hasCertifications = professionalIds.some(
         record => record.certifications && record.certifications.length > 0
       );
       
       if (hasCertifications) {
-        efficiency += 15;
-        console.log('Added 15% for having certifications');
+        totalCompletion = Math.min(100, totalCompletion + 10); 
+        console.log(`Added 10 bonus points for certifications. New total: ${totalCompletion}`);
+      } else {
+        console.log('No certifications found');
       }
+    } else {
+      console.log('No professional IDs found or error:', pIdError);
     }
     
-    // Add 15% if avatar is present (better user recognition)
-    if (profile.avatar_url) {
-      efficiency += 15;
-      console.log('Added 15% for having an avatar');
-    }
+    // Calculate final score based on total weight
+    const finalScore = totalWeight > 0 ? Math.round((totalCompletion / totalWeight) * 100) : 0;
+    console.log('\nFinal calculation:');
+    console.log(`Total completion: ${totalCompletion}`);
+    console.log(`Total weight: ${totalWeight}`);
+    console.log(`Final score: ${finalScore}`);
     
-    return Math.min(100, efficiency);
+    return finalScore;
   } catch (error) {
-    console.error('Error calculating workflow efficiency:', error);
+    console.error('Error in calculateProfileCompletion:', error);
+    return 0;
+  }
+}
+
+export async function calculateProductivityScore(clerkId: string): Promise<number> {
+  console.log('\n=== Calculating Productivity Score ===');
+  try {
+    const profile = await getProfileData(clerkId);
+    console.log('Using profile ID:', profile.id);
+
+    const response = await fetch('/api/metrics/productivity', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ profileId: profile.id }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to fetch productivity score:', await response.text());
+      return 0;
+    }
+
+    const data = await response.json();
+    return data.score || 0;
+  } catch (error) {
+    console.error('Error in calculateProductivityScore:', error);
+    return 0;
+  }
+}
+
+export async function calculateClientFeedback(clerkId: string): Promise<number> {
+  console.log('\n=== Calculating Client Feedback ===');
+  try {
+    const profile = await getProfileData(clerkId);
+    console.log('Using profile ID:', profile.id);
+
+    const response = await fetch('/api/metrics/client-feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ profileId: profile.id }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to fetch client feedback:', await response.text());
+      return 0;
+    }
+
+    const data = await response.json();
+    return data.score || 0;
+  } catch (error) {
+    console.error('Error in calculateClientFeedback:', error);
+    return 0;
+  }
+}
+
+export async function calculateTimeSaved(clerkId: string): Promise<number> {
+  console.log('\n=== Calculating Time Saved ===');
+  try {
+    const profile = await getProfileData(clerkId);
+    console.log('Using profile ID:', profile.id);
+
+    const response = await fetch('/api/metrics/time-saved', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ profileId: profile.id }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to fetch time saved:', await response.text());
+      return 0;
+    }
+
+    const data = await response.json();
+    return data.timeSaved || 0;
+  } catch (error) {
+    console.error('Error in calculateTimeSaved:', error);
+    return 0;
+  }
+}
+
+export async function calculateAIIntractions(clerkId: string): Promise<number> {
+  console.log('\n=== Calculating AI Interactions ===');
+  try {
+    const profile = await getProfileData(clerkId);
+    console.log('Using profile ID:', profile.id);
+
+    const response = await fetch('/api/metrics/ai-interactions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ profileId: profile.id }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to fetch AI interactions:', await response.text());
+      return 0;
+    }
+
+    const data = await response.json();
+    return data.count || 0;
+  } catch (error) {
+    console.error('Error in calculateAIIntractions:', error);
+    return 0;
+  }
+}
+
+export async function calculateNetworkingScore(clerkId: string): Promise<number> {
+  console.log('\n=== Calculating Networking Score ===');
+  try {
+    const profile = await getProfileData(clerkId);
+    console.log('Using profile ID:', profile.id);
+
+    const response = await fetch('/api/metrics/networking', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ profileId: profile.id }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to fetch networking score:', await response.text());
+      return 0;
+    }
+
+    const data = await response.json();
+    return data.score || 0;
+  } catch (error) {
+    console.error('Error in calculateNetworkingScore:', error);
+    return 0;
+  }
+}
+
+export async function calculateComplianceScore(clerkId: string): Promise<number> {
+  console.log('\n=== Calculating Compliance Score ===');
+  try {
+    const profile = await getProfileData(clerkId);
+    console.log('Using profile ID:', profile.id);
+
+    const response = await fetch('/api/metrics/compliance', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ profileId: profile.id }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to fetch compliance score:', await response.text());
+      return 0;
+    }
+
+    const data = await response.json();
+    return data.score || 0;
+  } catch (error) {
+    console.error('Error in calculateComplianceScore:', error);
+    return 0;
+  }
+}
+
+export async function calculateBillingEfficiency(clerkId: string): Promise<number> {
+  console.log('\n=== Calculating Billing Efficiency ===');
+  try {
+    const profile = await getProfileData(clerkId);
+    console.log('Using profile ID:', profile.id);
+
+    const response = await fetch('/api/metrics/billing', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ profileId: profile.id }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to fetch billing efficiency:', await response.text());
+      return 0;
+    }
+
+    const data = await response.json();
+    return data.score || 0;
+  } catch (error) {
+    console.error('Error in calculateBillingEfficiency:', error);
+    return 0;
+  }
+}
+
+export async function calculateWorkflowEfficiency(clerkId: string): Promise<number> {
+  console.log('\n=== Calculating Workflow Efficiency ===');
+  try {
+    const profile = await getProfileData(clerkId);
+    console.log('Using profile ID:', profile.id);
+
+    const response = await fetch('/api/metrics/workflow', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ profileId: profile.id }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to fetch workflow efficiency:', await response.text());
+      return 0;
+    }
+
+    const data = await response.json();
+    return data.score || 0;
+  } catch (error) {
+    console.error('Error in calculateWorkflowEfficiency:', error);
     return 0;
   }
 }
 
 export async function calculateLearningProgress(clerkId: string): Promise<number> {
-  const supabase = createClientComponentClient();
-  const userId = await getUserUuid(clerkId);
+  try {
+    const supabase = createClientComponentClient();
+    const profileId = await getUserUuid(clerkId);
   
-  // Since learning_progress table might not exist yet, return 0
-  return 0;
+    // Since learning_progress table might not exist yet, return 0
+    return 0;
+  } catch (error) {
+    console.error('Error calculating learning progress:', error);
+    return 0;
+  }
 }
 
-export async function updateUserMetrics(clerkId: string): Promise<void> {
-  const supabase = createClientComponentClient();
-  
+export async function fetchUserMetrics(profileId: string) {
   try {
-    console.log('Starting updateUserMetrics for clerk_id:', clerkId);
+    console.log('Fetching metrics for profile:', profileId);
     
-    // Get the profile ID
-    const profileId = await getUserUuid(clerkId);
-    console.log('Got profile ID:', profileId);
-    
-    // Initialize metrics with default values
-    const metrics: UserMetrics = {
-      profile_completion: 0,
-      productivity_score: 0,
-      client_feedback: 0,
-      time_saved: 0,
-      ai_interactions: 0,
-      networking_score: 0,
-      compliance_score: 0,
-      billing_efficiency: 0,
-      workflow_efficiency: 0,
-      learning_progress: 0
+    // Use the API route instead of direct Supabase query
+    const response = await fetch(`/api/metrics?profile_id=${profileId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Error response from metrics API:', errorData);
+      // Return null instead of throwing to prevent UI errors
+      return null;
+    }
+
+    const data = await response.json();
+    console.log('Fetched metrics:', data);
+
+    // If no metrics found, return null
+    if (!data) {
+      console.log('No metrics found for profile');
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching user metrics:', error);
+    // Return null instead of throwing to prevent UI errors
+    return null;
+  }
+}
+
+export async function updateUserMetrics(profileId: string) {
+  try {
+    console.log('Starting metrics update process for profile:', profileId);
+
+    // Calculate all metrics
+    const [
+      profileCompletion,
+      productivityScore,
+      clientFeedback,
+      timeSaved,
+      aiInteractions,
+      networkingScore,
+      complianceScore,
+      billingEfficiency,
+      workflowEfficiency,
+      learningProgress
+    ] = await Promise.all([
+      calculateProfileCompletion(profileId),
+      calculateProductivityScore(profileId),
+      calculateClientFeedback(profileId),
+      calculateTimeSaved(profileId),
+      calculateAIIntractions(profileId),
+      calculateNetworkingScore(profileId),
+      calculateComplianceScore(profileId),
+      calculateBillingEfficiency(profileId),
+      calculateWorkflowEfficiency(profileId),
+      calculateLearningProgress(profileId)
+    ]);
+
+    // Prepare metrics data
+    const metricsData = {
+      profile_completion: profileCompletion,
+      productivity_score: productivityScore,
+      client_feedback: clientFeedback,
+      time_saved: timeSaved,
+      ai_interactions: aiInteractions,
+      networking_score: networkingScore,
+      compliance_score: complianceScore,
+      billing_efficiency: billingEfficiency,
+      workflow_efficiency: workflowEfficiency,
+      learning_progress: learningProgress
     };
 
-    // Try to calculate each metric, but don't fail if calculation fails
-    try {
-      console.log('Calculating profile completion...');
-      metrics.profile_completion = await calculateProfileCompletion(clerkId);
-    } catch (error) {
-      console.error('Error calculating profile completion:', error);
-    }
+    console.log('Calculated metrics:', metricsData);
 
-    try {
-      console.log('Calculating productivity score...');
-      metrics.productivity_score = await calculateProductivityScore(clerkId);
-    } catch (error) {
-      console.error('Error calculating productivity score:', error);
-    }
-
-    try {
-      console.log('Calculating client feedback...');
-      metrics.client_feedback = await calculateClientFeedback(clerkId);
-    } catch (error) {
-      console.error('Error calculating client feedback:', error);
-    }
-
-    try {
-      console.log('Calculating time saved...');
-      metrics.time_saved = await calculateTimeSaved(clerkId);
-    } catch (error) {
-      console.error('Error calculating time saved:', error);
-    }
-
-    try {
-      console.log('Calculating AI interactions...');
-      metrics.ai_interactions = await calculateAIIntractions(clerkId);
-    } catch (error) {
-      console.error('Error calculating AI interactions:', error);
-    }
-
-    try {
-      console.log('Calculating networking score...');
-      metrics.networking_score = await calculateNetworkingScore(clerkId);
-    } catch (error) {
-      console.error('Error calculating networking score:', error);
-    }
-
-    try {
-      console.log('Calculating compliance score...');
-      metrics.compliance_score = await calculateComplianceScore(clerkId);
-    } catch (error) {
-      console.error('Error calculating compliance score:', error);
-    }
-
-    try {
-      console.log('Calculating billing efficiency...');
-      metrics.billing_efficiency = await calculateBillingEfficiency(clerkId);
-    } catch (error) {
-      console.error('Error calculating billing efficiency:', error);
-    }
-
-    try {
-      console.log('Calculating workflow efficiency...');
-      metrics.workflow_efficiency = await calculateWorkflowEfficiency(clerkId);
-    } catch (error) {
-      console.error('Error calculating workflow efficiency:', error);
-    }
-
-    try {
-      console.log('Calculating learning progress...');
-      metrics.learning_progress = await calculateLearningProgress(clerkId);
-    } catch (error) {
-      console.error('Error calculating learning progress:', error);
-    }
-
-    // Update metrics in database
-    console.log('Updating metrics in database...');
-    const { error: updateError } = await supabase
-      .from('user_metrics')
-      .upsert({
+    // Send to API
+    const response = await fetch('/api/metrics', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
         profile_id: profileId,
-        ...metrics
-      });
+        ...metricsData
+      }),
+    });
 
-    if (updateError) {
-      console.error('Error updating user metrics:', updateError);
-      throw updateError;
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Error response from metrics API:', errorData);
+      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
     }
-    
-    console.log('Successfully updated metrics');
+
+    const data = await response.json();
+    console.log('Metrics updated successfully:', data);
+
+    // Return the updated metrics directly from the response
+    return data;
   } catch (error) {
-    console.error('Error in updateUserMetrics:', error);
+    console.error('Error updating metrics:', error);
     throw error;
   }
 } 

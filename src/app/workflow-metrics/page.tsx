@@ -48,10 +48,22 @@ export default function WorkflowMetricsDashboard() {
     setError(null);
     const fetchMetrics = async () => {
       try {
+        // First get the profile ID from the clerk_id
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('clerk_id', user.id)
+          .single();
+        
+        if (profileError || !profile) {
+          throw new Error('Profile not found');
+        }
+
+        // Then get the metrics using the profile ID
         const { data, error } = await supabase
           .from("user_metrics")
           .select("*")
-          .eq("user_id", user.id)
+          .eq("profile_id", profile.id)
           .single();
         if (error) throw error;
         setMetrics(data);
