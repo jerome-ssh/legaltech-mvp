@@ -894,78 +894,39 @@ export default function UserProfile() {
 
     setUploading(true);
     try {
-      const updateData = {
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        email: formData.email,
-        phone_number: formData.phone_number,
-        address: formData.address,
-        home_address: formData.home_address,
-        gender: formData.gender,
-        firm_name: formData.firm_name,
+      // Prepare the payload to match the API route
+      const payload = {
+        firmName: formData.firm_name,
         specialization: formData.specialization,
-        years_of_practice: formData.years_of_practice ? parseInt(formData.years_of_practice) : null,
-        role_id: formData.role,
-        onboarding_completed: formData.onboarding_completed === 'Yes',
-        updated_at: new Date().toISOString()
+        yearsOfPractice: formData.years_of_practice,
+        avatarUrl: formData.avatar_url,
+        address: formData.address,
+        homeAddress: formData.home_address,
+        gender: formData.gender,
+        professionalIds: professionalIds, // send as-is
+        firstName: formData.first_name,
+        lastName: formData.last_name,
+        onboarding_completed: formData.onboarding_completed === 'Yes' || formData.onboarding_completed === true,
+        role: roleId ? (roles.find(r => r.id === roleId)?.name || 'attorney') : 'attorney',
+        email: formData.email,
+        phoneNumber: formData.phone_number
       };
 
-      console.log('Updating profile with data:', updateData);
+      console.log('Submitting profile update to API:', payload);
 
-      // First check if we have a profile ID
-      if (!profile?.id) {
-        throw new Error("Profile ID not found. Cannot update profile.");
-      }
-      
-      // Try to update using profile ID but don't use .single() which fails when no rows are returned
-      const { data: updatedProfileArray, error: updateError } = await supabaseClient!
-        .from('profiles')
-        .update(updateData)
-        .eq('id', profile.id)
-        .select('*');
+      const response = await fetch('/api/profile/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
-      // Log results for debugging
-      console.log('Update operation results:', { updatedProfileArray, updateError });
-      
-      if (updateError) {
-        console.error('Error updating with profile.id:', updateError);
-        
-        // Try using clerk_id as fallback
-        console.log('Attempting fallback update with clerk_id:', clerkUser.id);
-        const { data: clerkUpdatedProfile, error: clerkUpdateError } = await supabaseClient!
-        .from('profiles')
-        .update(updateData)
-        .eq('clerk_id', clerkUser.id)
-          .select('*');
-          
-        if (clerkUpdateError) {
-          console.error('Error updating with clerk_id:', clerkUpdateError);
-          throw clerkUpdateError;
-        }
-        
-        console.log('Profile updated successfully with clerk_id:', clerkUpdatedProfile);
-      } else if (!updatedProfileArray || updatedProfileArray.length === 0) {
-        // If there's no error but no rows updated, attempt with clerk_id
-        console.warn('No rows updated with profile.id - trying clerk_id');
-        
-        const { data: clerkUpdatedProfile, error: clerkUpdateError } = await supabaseClient!
-          .from('profiles')
-          .update(updateData)
-          .eq('clerk_id', clerkUser.id)
-          .select('*');
-          
-        if (clerkUpdateError) {
-          console.error('Error updating with clerk_id:', clerkUpdateError);
-          throw clerkUpdateError;
-        }
-        
-        console.log('Profile updated successfully with clerk_id:', clerkUpdatedProfile);
-      } else {
-        console.log('Profile updated successfully with profile.id:', updatedProfileArray);
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to update profile');
       }
 
-      // Update local state regardless of which path succeeded
-      setProfile(prev => prev ? { ...prev, ...updateData } as UserProfile : null);
+      // Update local state with returned profile
+      setProfile(data.profile);
       setIsEditing(false);
       toast({
         title: 'Success',
