@@ -20,6 +20,21 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
   // Use avatarUrl from ProfileContext
   const { avatarUrl } = useProfile();
 
+  // Track sidebar width for continuous avatar scaling
+  const [sidebarWidth, setSidebarWidth] = useState(80); // px, matches w-20
+  const minSidebar = 80; // w-20
+  const maxSidebar = 256; // w-64
+  const minAvatar = 48; // w-12
+  const maxAvatar = 96; // w-24
+
+  // Update sidebar width on expand/collapse
+  useEffect(() => {
+    setSidebarWidth(collapsed ? minSidebar : maxSidebar);
+  }, [collapsed]);
+
+  // Calculate avatar size based on sidebar width
+  const avatarSize = minAvatar + ((sidebarWidth - minSidebar) / (maxSidebar - minSidebar)) * (maxAvatar - minAvatar);
+
   // Helper to get initials
   const getInitials = (user: any) => {
     if (!user) return '';
@@ -31,7 +46,11 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <aside className={`group ${collapsed ? "w-20" : "w-64"} bg-white shadow-md p-4 transition-all duration-300 ease-in-out hover:w-64 flex flex-col`}>
+      <aside
+        className={`group ${collapsed ? "w-20" : "w-64"} bg-white shadow-md p-4 transition-all duration-300 ease-in-out hover:w-64 flex flex-col`}
+        onMouseEnter={() => setCollapsed(false)}
+        onMouseLeave={() => setCollapsed(true)}
+      >
         <div>
           <div className="flex items-center justify-between mb-10">
             <div className={`text-2xl font-bold text-blue-600 ${collapsed ? "hidden group-hover:block" : "block"}`}>LawMate</div>
@@ -69,15 +88,18 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
               className="focus:outline-none"
               title="View Profile"
             >
-              <Avatar className="w-12 h-12 border-2 border-blue-500 shadow hover:shadow-lg transition-all">
+              <Avatar
+                style={{ width: avatarSize, height: avatarSize, transition: 'width 0.3s, height 0.3s' }}
+                className={`border-2 border-blue-500 shadow hover:shadow-lg transition-all duration-300`}
+              >
                 {user === undefined ? (
                   <span className="w-full h-full flex items-center justify-center font-bold text-lg text-gray-400 animate-pulse">--</span>
                 ) : (
                   <>
                     {avatarUrl ? (
-                      <AvatarImage src={avatarUrl} alt={user?.fullName || getInitials(user)} />
+                      <AvatarImage src={avatarUrl} alt={user?.fullName || getInitials(user)} className="object-cover w-full h-full rounded-full" />
                     ) : user?.imageUrl ? (
-                      <AvatarImage src={user.imageUrl} alt={user?.fullName || getInitials(user)} />
+                      <AvatarImage src={user.imageUrl} alt={user?.fullName || getInitials(user)} className="object-cover w-full h-full rounded-full" />
                     ) : null}
                     <AvatarFallback>
                       <span className="w-full h-full flex items-center justify-center font-bold text-lg text-blue-700">{getInitials(user)}</span>
