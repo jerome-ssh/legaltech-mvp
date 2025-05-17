@@ -57,9 +57,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Convert Clerk ID to UUID for the profile ID
-    const profileId = clerkIdToUUID(userId);
-    console.log('API route: Generated profile ID:', profileId);
+    // Use Clerk ID directly as profile ID
+    const profileId = userId;
+    console.log('API route: Using Clerk ID as profile ID:', profileId);
 
     // Fetch user data from Clerk
     const clerkUser = await clerkClient.users.getUser(userId);
@@ -120,22 +120,20 @@ export async function POST(request: Request) {
       }
     }
 
-    // First, get the Supabase user ID from the profiles table
-    console.log('API route: Looking up Supabase user ID for Clerk ID:', userId);
-    const { data: existingProfile, error: lookupError } = await supabase
+    // Check if profile exists
+    const { data: existingProfile, error: profileError } = await supabase
       .from('profiles')
-      .select('id')
+      .select('*')
       .eq('clerk_id', userId)
       .single();
 
-    // Only treat as error if it's not the 'no rows found' error
-    if (lookupError && lookupError.code !== 'PGRST116') {
-      console.error('API route: Error looking up profile:', lookupError);
+    if (profileError && profileError.code !== 'PGRST116') {
+      console.error('API route: Error checking profile:', profileError);
       return NextResponse.json(
         { 
           success: false,
-          error: "Failed to find user profile", 
-          details: lookupError.message 
+          error: "Failed to check profile", 
+          details: profileError.message 
         },
         { status: 500 }
       );
@@ -147,9 +145,9 @@ export async function POST(request: Request) {
       const { data: newProfile, error: createError } = await supabase
         .from('profiles')
         .insert({
-          id: profileId, // Use the generated UUID
-          user_id: profileId, // Use the same UUID for user_id
-          clerk_id: userId, // Store the original Clerk ID
+          id: profileId,
+          user_id: profileId,
+          clerk_id: userId,
           email: email || clerkUser.emailAddresses[0]?.emailAddress || null,
           phone_number: phoneNumber || clerkUser.phoneNumbers[0]?.phoneNumber || null,
           first_name: firstName || clerkUser.firstName || null,
@@ -161,7 +159,7 @@ export async function POST(request: Request) {
           address: address || null,
           home_address: homeAddress || null,
           gender: gender || null,
-          role: role,
+          role_id: role,
           onboarding_completed: onboarding_completed,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
@@ -184,12 +182,12 @@ export async function POST(request: Request) {
       // Insert professional IDs for new profile
       if (professionalIds && Array.isArray(professionalIds) && professionalIds.length > 0) {
         const profIdRows = professionalIds.map((entry: any) => ({
-          user_id: profileId,
+          profile_id: profileId,
           country: entry.country,
           state: entry.state || null,
           professional_id: entry.id || null,
           year_issued: entry.yearIssued ? parseInt(entry.yearIssued) : null,
-          verification_status: 'not_verified',
+          // verification_status field removed
           no_id: !!entry.noId
         }));
         const { error: profIdInsertError } = await supabase
@@ -200,18 +198,28 @@ export async function POST(request: Request) {
           // Not fatal, but log it
         }
       } else {
+        try {
         // Always create a default professional_ids row if none provided
-        await supabase
+          console.log('API route: Creating default professional ID record');
+          const { error: defaultProfIdError } = await supabase
           .from('professional_ids')
           .insert({
             profile_id: newProfile.id,
             country: '',
-            state: '',
-            professional_id: '',
-            year_issued: null,
-            verification_status: 'not_verified',
+              // Only include essential fields
             no_id: false
           });
+          
+          if (defaultProfIdError) {
+            console.error('API route: Error creating default professional ID:', defaultProfIdError);
+            // Continue despite error - not critical for onboarding
+          } else {
+            console.log('API route: Successfully created default professional ID');
+          }
+        } catch (error) {
+          console.error('API route: Unexpected error creating default professional ID:', error);
+          // Continue despite error
+        }
       }
 
       console.log('API route: Profile created successfully:', newProfile);
@@ -224,7 +232,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Process professional IDs if provided
+    // --- PROFESSIONAL IDS LOGIC ---
     if (professionalIds && Array.isArray(professionalIds)) {
       console.log('API route: Processing professional IDs update:', {
         hasProfessionalIds: true,
@@ -234,40 +242,168 @@ export async function POST(request: Request) {
         clerkId: userId
       });
 
-      // Get the UUID for the user
-      const profileId = clerkIdToUUID(userId);
-
       // Delete existing professional IDs for this user
       const { error: deleteError } = await supabase
         .from('professional_ids')
         .delete()
-        .eq('user_id', profileId);
+        .eq('profile_id', profileId);
 
       if (deleteError) {
         console.error('API route: Error deleting existing professional IDs:', deleteError);
       }
 
       // Insert new professional IDs
-      for (const entry of professionalIds) {
-        console.log('API route: Processing professional ID entry:', entry);
+      try {
+        // Create simplified professional ID objects to avoid schema issues
+        const profIdRows = professionalIds.map((entry: any) => {
+          // Only include essential fields
+          return {
+        profile_id: profileId,
+            country: entry.country || '',
+        state: entry.state || null,
+        professional_id: entry.id || null,
+        year_issued: entry.yearIssued ? parseInt(entry.yearIssued) : null,
+        no_id: !!entry.noId
+          };
+        });
         
-        if (entry.noId || entry.id) {
-          const { error: insertError } = await supabase
-            .from('professional_ids')
-            .insert({
-              user_id: profileId,
-              country: entry.country,
-              state: entry.state || null,
-              id: entry.id || null,
-              year_issued: entry.yearIssued || null,
-              no_id: entry.noId
+        console.log('API route: Prepared professional IDs for insertion:', profIdRows);
+        
+      if (profIdRows.length > 0) {
+          // Try insertion with verbose error logging
+          const { data: insertData, error: profIdInsertError } = await supabase
+          .from('professional_ids')
+            .insert(profIdRows)
+            .select();
+            
+        if (profIdInsertError) {
+            console.error('API route: Error inserting professional IDs:', {
+              message: profIdInsertError.message,
+              code: profIdInsertError.code,
+              details: profIdInsertError.details,
+              hint: profIdInsertError.hint
             });
+            
+            // Instead of failing, continue with the profile update
+            console.warn('API route: Continuing despite professional IDs error');
+          } else {
+            console.log('API route: Successfully inserted professional IDs:', insertData);
+          }
+        }
+      } catch (error) {
+        // Log but don't fail
+        console.error('API route: Error in professional IDs update:', error);
+        console.warn('API route: Continuing despite error');
+      }
+    }
 
-          if (insertError) {
-            console.error('API route: Error inserting professional ID:', insertError);
+    // --- FIRM/SOLO ONBOARDING LOGIC ---
+    let firmId = null;
+    let isSolo = false;
+    let isOwner = false;
+    if (role === 'admin' && (body.is_owner || body.is_solo === false)) {
+      // FIRM ONBOARDING
+      isOwner = true;
+      // Try to find existing firm by name
+      if (firmName) {
+        const { data: existingFirm } = await supabase
+          .from('firms')
+          .select('id')
+          .eq('name', firmName)
+          .single();
+        if (existingFirm) {
+          firmId = existingFirm.id;
+        } else {
+          // Create new firm
+          const { data: newFirm, error: firmError } = await supabase
+            .from('firms')
+            .insert({
+              name: firmName,
+              contact_email: email || clerkUser.emailAddresses[0]?.emailAddress || null,
+              created_by: userId,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .select()
+            .single();
+          if (firmError) {
+            console.error('API route: Error creating firm:', firmError);
+            // Not fatal, continue with profile update
+          } else {
+            firmId = newFirm.id;
+            console.log('API route: Firm created:', newFirm);
           }
         }
       }
+      // Create or update firm_users record
+      if (firmId) {
+        const { data: existingFirmUser } = await supabase
+          .from('firm_users')
+          .select('id')
+          .eq('firm_id', firmId)
+          .eq('user_id', profileId)
+          .single();
+        if (!existingFirmUser) {
+          const { error: firmUserError } = await supabase
+            .from('firm_users')
+            .insert({
+              firm_id: firmId,
+              user_id: profileId,
+              role_id: role,
+              is_owner: true,
+              status: 'active',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            });
+          if (firmUserError) {
+            console.error('API route: Error creating firm_users record:', firmUserError);
+          }
+        }
+      }
+    } else if (body.is_solo === true || role === 'attorney') {
+      // SOLO PRACTITIONER
+      isSolo = true;
+      firmId = null;
+    }
+    // --- END FIRM/SOLO LOGIC ---
+
+    // Enforce that only admins can assign privileged roles
+    const privilegedRoles = ['admin', 'partner', 'managing partner', 'Managing Partner', 'Partner / Equity Partner'];
+    if (privilegedRoles.includes(role)) {
+      // Fetch current user's role
+      const { data: currentProfile, error: currentProfileError } = await supabase
+        .from('profiles')
+        .select('role_id, roles:role_id(name)')
+        .eq('clerk_id', userId)
+        .single();
+      if (currentProfileError || !currentProfile || !currentProfile.roles || currentProfile.roles[0]?.name !== 'admin') {
+        return NextResponse.json({ success: false, error: 'Only admins can assign privileged roles' }, { status: 403 });
+      }
+    }
+
+    // Fetch the role_id for the provided role name (default to 'attorney')
+    let role_id = null;
+    try {
+      const roleName = body.role || 'attorney';
+      const { data: roleData, error: roleError } = await supabase
+        .from('roles')
+        .select('id')
+        .eq('name', roleName)
+        .single();
+      if (roleError || !roleData) {
+        throw new Error(roleError?.message || 'Role not found');
+      }
+      role_id = roleData.id;
+    } catch (err) {
+      console.error('API route: Error fetching role_id:', err);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Failed to fetch role_id',
+          details: err instanceof Error ? err.message : 'Unknown error',
+        },
+        { status: 500 }
+      );
     }
 
     // Update existing profile
@@ -286,9 +422,11 @@ export async function POST(request: Request) {
         address: address || null,
         home_address: homeAddress || null,
         gender: gender || null,
-        role: role,
+        role_id: role_id,
         onboarding_completed: onboarding_completed,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        firm_id: firmId,
+        is_solo: isSolo
       })
       .eq('clerk_id', userId)
       .select()

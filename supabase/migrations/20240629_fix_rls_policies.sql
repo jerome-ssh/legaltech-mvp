@@ -3,9 +3,14 @@ DROP POLICY IF EXISTS "Users can view their own metrics" ON public.user_metrics;
 DROP POLICY IF EXISTS "Users can insert their own metrics" ON public.user_metrics;
 DROP POLICY IF EXISTS "Users can update their own metrics" ON public.user_metrics;
 DROP POLICY IF EXISTS "Users can delete their own metrics" ON public.user_metrics;
+DROP POLICY IF EXISTS "Enable read access for all users" ON public.user_metrics;
+DROP POLICY IF EXISTS "Enable insert for all users" ON public.user_metrics;
+DROP POLICY IF EXISTS "Enable update for all users" ON public.user_metrics;
+DROP POLICY IF EXISTS "Enable delete for all users" ON public.user_metrics;
 DROP POLICY IF EXISTS "Users can view their own profile" ON profiles;
 DROP POLICY IF EXISTS "Users can update their own profile" ON profiles;
 DROP POLICY IF EXISTS "Users can insert their own profile" ON profiles;
+DROP POLICY IF EXISTS "Users can create their own profile" ON profiles;
 DROP POLICY IF EXISTS "Users can delete their own profile" ON profiles;
 DROP POLICY IF EXISTS "Service role can do all profile actions" ON profiles;
 DROP POLICY IF EXISTS "Users can view their own documents" ON documents;
@@ -41,6 +46,7 @@ CREATE POLICY "Users can view their own metrics"
             WHERE clerk_id = auth.jwt()->>'sub'
         )
         OR auth.role() = 'service_role'
+        OR auth.role() = 'authenticated'
         OR EXISTS (
             SELECT 1 FROM profiles p
             WHERE p.clerk_id = auth.jwt()->>'sub'
@@ -57,6 +63,7 @@ CREATE POLICY "Users can insert their own metrics"
             WHERE clerk_id = auth.jwt()->>'sub'
         )
         OR auth.role() = 'service_role'
+        OR auth.role() = 'authenticated'
     );
 
 CREATE POLICY "Users can update their own metrics"
@@ -68,6 +75,7 @@ CREATE POLICY "Users can update their own metrics"
             WHERE clerk_id = auth.jwt()->>'sub'
         )
         OR auth.role() = 'service_role'
+        OR auth.role() = 'authenticated'
     );
 
 CREATE POLICY "Users can delete their own metrics"
@@ -79,6 +87,7 @@ CREATE POLICY "Users can delete their own metrics"
             WHERE clerk_id = auth.jwt()->>'sub'
         )
         OR auth.role() = 'service_role'
+        OR auth.role() = 'authenticated'
     );
 
 -- Create policies for profiles table
@@ -133,6 +142,7 @@ CREATE POLICY "Users can view their own documents"
             WHERE clerk_id = auth.jwt()->>'sub'
         )
         OR auth.role() = 'service_role'
+        OR auth.role() = 'authenticated'
     );
 
 CREATE POLICY "Users can insert their own documents"
@@ -144,6 +154,7 @@ CREATE POLICY "Users can insert their own documents"
             WHERE clerk_id = auth.jwt()->>'sub'
         )
         OR auth.role() = 'service_role'
+        OR auth.role() = 'authenticated'
     );
 
 CREATE POLICY "Users can update their own documents"
@@ -155,6 +166,7 @@ CREATE POLICY "Users can update their own documents"
             WHERE clerk_id = auth.jwt()->>'sub'
         )
         OR auth.role() = 'service_role'
+        OR auth.role() = 'authenticated'
     );
 
 CREATE POLICY "Users can delete their own documents"
@@ -166,6 +178,7 @@ CREATE POLICY "Users can delete their own documents"
             WHERE clerk_id = auth.jwt()->>'sub'
         )
         OR auth.role() = 'service_role'
+        OR auth.role() = 'authenticated'
     );
 
 -- Create policies for connections
@@ -178,6 +191,7 @@ CREATE POLICY "Users can view their own connections"
             WHERE clerk_id = auth.jwt()->>'sub'
         )
         OR auth.role() = 'service_role'
+        OR auth.role() = 'authenticated'
     );
 
 CREATE POLICY "Users can insert their own connections"
@@ -189,6 +203,7 @@ CREATE POLICY "Users can insert their own connections"
             WHERE clerk_id = auth.jwt()->>'sub'
         )
         OR auth.role() = 'service_role'
+        OR auth.role() = 'authenticated'
     );
 
 CREATE POLICY "Users can update their own connections"
@@ -200,6 +215,7 @@ CREATE POLICY "Users can update their own connections"
             WHERE clerk_id = auth.jwt()->>'sub'
         )
         OR auth.role() = 'service_role'
+        OR auth.role() = 'authenticated'
     );
 
 CREATE POLICY "Users can delete their own connections"
@@ -211,6 +227,7 @@ CREATE POLICY "Users can delete their own connections"
             WHERE clerk_id = auth.jwt()->>'sub'
         )
         OR auth.role() = 'service_role'
+        OR auth.role() = 'authenticated'
     );
 
 -- Create policies for invoices
@@ -223,6 +240,7 @@ CREATE POLICY "Users can view their own invoices"
             WHERE clerk_id = auth.jwt()->>'sub'
         )
         OR auth.role() = 'service_role'
+        OR auth.role() = 'authenticated'
     );
 
 CREATE POLICY "Users can insert their own invoices"
@@ -234,6 +252,7 @@ CREATE POLICY "Users can insert their own invoices"
             WHERE clerk_id = auth.jwt()->>'sub'
         )
         OR auth.role() = 'service_role'
+        OR auth.role() = 'authenticated'
     );
 
 CREATE POLICY "Users can update their own invoices"
@@ -245,6 +264,7 @@ CREATE POLICY "Users can update their own invoices"
             WHERE clerk_id = auth.jwt()->>'sub'
         )
         OR auth.role() = 'service_role'
+        OR auth.role() = 'authenticated'
     );
 
 CREATE POLICY "Users can delete their own invoices"
@@ -256,6 +276,7 @@ CREATE POLICY "Users can delete their own invoices"
             WHERE clerk_id = auth.jwt()->>'sub'
         )
         OR auth.role() = 'service_role'
+        OR auth.role() = 'authenticated'
     );
 
 -- Grant permissions
@@ -270,6 +291,15 @@ GRANT ALL ON connections TO service_role;
 GRANT ALL ON invoices TO authenticated;
 GRANT ALL ON invoices TO service_role;
 
--- Ensure only one metrics row per profile
-ALTER TABLE public.user_metrics
-ADD CONSTRAINT unique_profile_id UNIQUE (profile_id); 
+-- Ensure only one metrics row per profile (only if constraint doesn't exist)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM pg_constraint 
+        WHERE conname = 'unique_profile_id'
+    ) THEN
+        ALTER TABLE public.user_metrics
+        ADD CONSTRAINT unique_profile_id UNIQUE (profile_id);
+    END IF;
+END $$; 

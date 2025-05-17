@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from "react-image-crop";
-import { Loader2, Pencil, Trash, X, Camera, UserCircle2, Phone, MapPin, Building, Briefcase, Check } from "lucide-react";
+import { Loader2, Pencil, Trash, X, Camera, UserCircle2, Phone, MapPin, Building, Briefcase, Check, Mail } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -34,11 +34,21 @@ import { UserMetrics, updateUserMetrics } from '@/lib/metrics';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { Dialog, DialogContent, DialogOverlay } from '@radix-ui/react-dialog';
-import countryList from 'react-select-country-list';
+import { SearchableSelect, Option } from '@/components/ui/searchable-select';
+import { 
+  getAllCountries, 
+  getStatesByCountry, 
+  getCountriesWithPopularFirst,
+  getCountryNameByCode,
+  getStateNameByCode
+} from '@/lib/geo-data';
 import { Select } from "@/components/ui/select";
 import { User } from '@clerk/nextjs/server';
 import { getAuthenticatedSupabase } from '@/lib/supabase';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { v4 as uuidv4 } from 'uuid';
+import { CountrySelect, StateSelect } from "@/components/ui/form-elements";
+import { getFirmSuggestions } from "@/lib/onboarding-utils";
 
 interface UserProfile {
   id: string;
@@ -80,7 +90,6 @@ interface ProfileFormData {
   onboarding_completed: string | boolean;
   language?: string;
   timezone?: string;
-  practice_area_id: string;
   jurisdiction_id?: string;
   avatar_url: string;
 }
@@ -92,13 +101,26 @@ interface ProfessionalId {
   state: string | null;
   professional_id: string | null;
   year_issued: number | null;
-  verification_status: string;
+  // verification_status field removed
   no_id: boolean;
   created_at: string;
   document_url?: string;
   document_name?: string;
   issuing_authority?: string;
   issue_date?: string;
+  certifications?: Certification[];
+  parent_id?: string; // Parent record ID for the certifications JSONB approach
+}
+
+interface Certification {
+  id: string;
+  name: string;
+  country: string;
+  state?: string | null; // Allow null for state
+  issuing_authority?: string;
+  issue_date?: string;
+  document_url?: string;
+  document_name?: string;
 }
 
 const supabase = createClientComponentClient();
@@ -129,6 +151,71 @@ const uiToDbRole = (uiRole: string) => {
   return uiRole;
 };
 
+// Add this function after the imports to fetch practice areas directly from the API
+const fetchPracticeAreas = async () => {
+  try {
+    const response = await fetch('/api/practice-areas', {
+      method: 'GET',
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch practice areas: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.practice_areas || [];
+  } catch (error) {
+    console.error('Error fetching practice areas:', error);
+    return [];
+  }
+};
+
+// Comprehensive list of specializations matching the onboarding page
+const allSpecializations = [
+  "Administrative Law",
+  "Admiralty (Maritime) Law",
+  "Animal Law",
+  "Antitrust Law",
+  "Aviation and Space Law",
+  "Banking and Finance Law",
+  "Bankruptcy Law",
+  "Business (Corporate) Law",
+  "Civil Rights Law",
+  "Commercial Law",
+  "Constitutional Law",
+  "Consumer Protection Law",
+  "Contract Law",
+  "Criminal Law",
+  "Cybersecurity (Cyber) Law",
+  "Education Law",
+  "Elder Law",
+  "Employment and Labor Law",
+  "Energy and Infrastructure Law",
+  "Entertainment Law",
+  "Environmental Law",
+  "Estate Planning (Wills and Trusts)",
+  "Family Law",
+  "Gaming Law",
+  "Health Law",
+  "Human Rights Law",
+  "Immigration Law",
+  "Intellectual Property (IP) Law",
+  "International Law",
+  "Media Law",
+  "Personal Injury Law",
+  "Product Liability Law",
+  "Public Interest Law",
+  "Real Estate (Property) Law",
+  "Sports Law",
+  "Tax Law",
+  "Technology Law (Fintech, Blockchain, AI)",
+  "Tort Law"
+];
+
 export default function UserProfile() {
   const { user: clerkUser, isLoaded: isClerkLoaded } = useUser();
   const { getToken } = useAuth();
@@ -154,7 +241,6 @@ export default function UserProfile() {
     onboarding_completed: 'No',
     language: '',
     timezone: '',
-    practice_area_id: '',
     jurisdiction_id: '',
     avatar_url: '',
   });
@@ -181,7 +267,6 @@ export default function UserProfile() {
   const [editingProfessionalIds, setEditingProfessionalIds] = useState<Record<string, ProfessionalId>>({});
 
   // Helper for country dropdown
-  const countryOptions = countryList().getData();
   const verificationStatusOptions = [
     { value: 'verified', label: 'Verified' },
     { value: 'not_verified', label: 'Not Verified' },
@@ -197,13 +282,21 @@ export default function UserProfile() {
   const [optionsLoading, setOptionsLoading] = useState(true);
   const [optionsError, setOptionsError] = useState<string | null>(null);
 
-  // 1. Add a state for roles and role_id
-  const [roles, setRoles] = useState<{ id: string, name: string }[]>([]);
-  const [roleId, setRoleId] = useState<string | null>(null);
-
-  // Add inside the UserProfile component, after the existing state declarations
+  // Replace the stateOptions state and filter countries state
+  const [stateOptions, setStateOptions] = useState<Option[]>([]);
+  const [selectedCountry, setSelectedCountry] = useState<Option | null>(null);
+  const [selectedState, setSelectedState] = useState<Option | null>(null);
   const [countrySearch, setCountrySearch] = useState('');
-  const [filteredCountries, setFilteredCountries] = useState<{value: string, label: string}[]>([]);
+  const [countryOptions] = useState<Option[]>(getAllCountries());
+
+  // Replace the getStatesForCountry function with our new implementation
+  const loadStatesForCountry = useCallback((countryCode: string) => {
+    const states = getStatesByCountry(countryCode);
+    setStateOptions(states);
+  }, []);
+    
+  // Replace filtered countries state
+  const [popularCountries] = useState<Option[]>(getCountriesWithPopularFirst());
 
   // Add a new state variable to track the active tab
   const [activeTab, setActiveTab] = useState<string>("personal");
@@ -211,6 +304,42 @@ export default function UserProfile() {
   // Add new state variables to track open/completed forms
   const [openForms, setOpenForms] = useState<Set<string>>(new Set());
   const [completedForms, setCompletedForms] = useState<Set<string>>(new Set());
+
+  // 1. Add a state for roles and role_id
+  const [roles, setRoles] = useState<{ id: string, name: string }[]>([]);
+  const [roleId, setRoleId] = useState<string | null>(null);
+
+  // Add these state variables in the UserProfile component after the existing state declarations
+  const [firmSuggestions, setFirmSuggestions] = useState<string[]>([]);
+  const [specializations, setSpecializations] = useState<Option[]>(
+    allSpecializations.map(spec => ({ label: spec, value: spec.toLowerCase().replace(/\s+/g, '_') }))
+  );
+  const [specializationFocused, setSpecializationFocused] = useState(false);
+  const [specializationSearch, setSpecializationSearch] = useState("");
+  const specializationDropdownRef = useRef<HTMLDivElement>(null);
+  const firmInputRef = useRef<HTMLInputElement>(null);
+  
+  // Add this effect to handle clicks outside the specialization dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        specializationDropdownRef.current &&
+        !specializationDropdownRef.current.contains(event.target as Node)
+      ) {
+        setSpecializationFocused(false);
+      }
+    }
+    
+    if (specializationFocused) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [specializationFocused]);
 
   // Initialize Supabase client with anon key
   useEffect(() => {
@@ -339,7 +468,6 @@ export default function UserProfile() {
         onboarding_completed: profile.onboarding_completed || false,
         language: profile.language || '',
         timezone: profile.timezone || '',
-        practice_area_id: profile.practice_area_id || '',
         jurisdiction_id: profile.jurisdiction_id || '',
         avatar_url: profile.avatar_url || ''
       });
@@ -398,12 +526,26 @@ export default function UserProfile() {
       setOptionsLoading(true);
       setOptionsError(null);
       try {
+        // Fetch practice areas in a better way, with fallback
         const [{ data: paData, error: paError }, { data: jData, error: jError }] = await Promise.all([
           supabaseClient.from("practice_areas").select("id, name"),
           supabaseClient.from("jurisdictions").select("id, name")
         ]);
-        if (paError) setOptionsError(paError.message);
-        else setPracticeAreas(paData || []);
+        
+        if (paError || !paData || paData.length === 0) {
+          // If we can't get practice areas from Supabase, try the API
+          console.log('Falling back to API for practice areas');
+          const apiPracticeAreas = await fetchPracticeAreas();
+          // Convert API format to Supabase format
+          const formattedAreas = apiPracticeAreas.map((name: string) => ({
+            id: name.toLowerCase().replace(/\s+/g, '_'),
+            name
+          }));
+          setPracticeAreas(formattedAreas);
+        } else {
+          setPracticeAreas(paData);
+        }
+        
         if (jError) setOptionsError(jError.message);
         else setJurisdictions(jData || []);
       } catch (err: unknown) {
@@ -716,9 +858,34 @@ export default function UserProfile() {
     }
   };
 
+  // Update handleInputChange to handle firm suggestions
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Generate firm suggestions if changing firm name
+    if (name === 'firm_name') {
+      setFirmSuggestions(getFirmSuggestions(value));
+    }
+  };
+  
+  // Add functions for handling firm and specialization suggestions
+  const handleFirmSuggestionClick = (suggestion: string) => {
+    setFormData(prev => ({ ...prev, firm_name: suggestion }));
+    setFirmSuggestions([]);
+  };
+  
+  const handleSpecializationSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSpecializationSearch(e.target.value);
+  };
+  
+  const handleSpecializationSuggestionClick = (suggestion: Option) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      specialization: suggestion.label 
+    }));
+    setSpecializationSearch("");
+    setSpecializationFocused(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -740,22 +907,64 @@ export default function UserProfile() {
         years_of_practice: formData.years_of_practice ? parseInt(formData.years_of_practice) : null,
         role_id: formData.role,
         onboarding_completed: formData.onboarding_completed === 'Yes',
-        practice_area_id: formData.practice_area_id,
         updated_at: new Date().toISOString()
       };
 
       console.log('Updating profile with data:', updateData);
 
-      const { data: updatedProfile, error } = await supabaseClient!
+      // First check if we have a profile ID
+      if (!profile?.id) {
+        throw new Error("Profile ID not found. Cannot update profile.");
+      }
+      
+      // Try to update using profile ID but don't use .single() which fails when no rows are returned
+      const { data: updatedProfileArray, error: updateError } = await supabaseClient!
+        .from('profiles')
+        .update(updateData)
+        .eq('id', profile.id)
+        .select('*');
+
+      // Log results for debugging
+      console.log('Update operation results:', { updatedProfileArray, updateError });
+      
+      if (updateError) {
+        console.error('Error updating with profile.id:', updateError);
+        
+        // Try using clerk_id as fallback
+        console.log('Attempting fallback update with clerk_id:', clerkUser.id);
+        const { data: clerkUpdatedProfile, error: clerkUpdateError } = await supabaseClient!
         .from('profiles')
         .update(updateData)
         .eq('clerk_id', clerkUser.id)
-        .select('*')
-        .single();
+          .select('*');
+          
+        if (clerkUpdateError) {
+          console.error('Error updating with clerk_id:', clerkUpdateError);
+          throw clerkUpdateError;
+        }
+        
+        console.log('Profile updated successfully with clerk_id:', clerkUpdatedProfile);
+      } else if (!updatedProfileArray || updatedProfileArray.length === 0) {
+        // If there's no error but no rows updated, attempt with clerk_id
+        console.warn('No rows updated with profile.id - trying clerk_id');
+        
+        const { data: clerkUpdatedProfile, error: clerkUpdateError } = await supabaseClient!
+          .from('profiles')
+          .update(updateData)
+          .eq('clerk_id', clerkUser.id)
+          .select('*');
+          
+        if (clerkUpdateError) {
+          console.error('Error updating with clerk_id:', clerkUpdateError);
+          throw clerkUpdateError;
+        }
+        
+        console.log('Profile updated successfully with clerk_id:', clerkUpdatedProfile);
+      } else {
+        console.log('Profile updated successfully with profile.id:', updatedProfileArray);
+      }
 
-      if (error) throw error;
-
-      console.log('Profile updated successfully:', updatedProfile);
+      // Update local state regardless of which path succeeded
       setProfile(prev => prev ? { ...prev, ...updateData } as UserProfile : null);
       setIsEditing(false);
       toast({
@@ -767,126 +976,8 @@ export default function UserProfile() {
       setError(error instanceof Error ? error.message : 'An error occurred');
       toast({
         title: 'Error',
-        description: 'Failed to update profile',
+        description: 'Failed to update profile. Please check console for details.',
         variant: 'destructive',
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleProfessionalIdChange = (id: string, field: string, value: any) => {
-    console.log(`Updating ${field} to ${value} for professional ID ${id}`);
-    
-    setEditingProfessionalIds((prev: Record<string, ProfessionalId>) => {
-      // Ensure we have this record in our state
-      if (!prev[id]) {
-        console.warn(`Warning: No professional ID ${id} found in state`);
-        return prev;
-      }
-      
-      const newState = {
-        ...prev,
-        [id]: {
-          ...prev[id],
-          [field]: value,
-        },
-      };
-      
-      console.log(`New editing state for ${id}:`, newState[id]);
-      return newState;
-    });
-  };
-
-  const handleUpdateProfessionalId = async (id: string) => {
-    const updated = editingProfessionalIds[id];
-    if (!updated) return;
-    setUploading(true);
-    
-    // Ensure we're not in global editing mode when updating jurisdiction records
-    if (isEditing) {
-      setIsEditing(false);
-    }
-    
-    try {
-      // Debug logging of what values we're trying to save
-      console.log('Updating professional ID with values:', {
-        id,
-        country: updated.country,
-        state: updated.state,
-        professional_id: updated.professional_id,
-        no_id: updated.no_id,
-        issuing_authority: updated.issuing_authority,
-        issue_date: updated.issue_date,
-        document_url: updated.document_url,
-        document_name: updated.document_name,
-      });
-      
-      // Ensure we have at least one required field
-      if (!updated.country || !updated.professional_id) {
-        toast({
-          title: 'Missing required fields',
-          description: 'Please fill in at least the Country and Certification Name fields.',
-          variant: 'destructive'
-        });
-        setUploading(false);
-        return;
-      }
-      
-      const { data: updatedProfId, error } = await supabaseClient!
-        .from('professional_ids')
-        .upsert({
-          id: id,
-          profile_id: profile?.id,
-          country: updated.country,
-          state: updated.state,
-          professional_id: updated.professional_id,
-          no_id: typeof updated.no_id === 'string' ? updated.no_id === 'true' : Boolean(updated.no_id),
-          issuing_authority: updated.issuing_authority || null,
-          issue_date: updated.issue_date || null,
-          // Preserve document fields to avoid overwriting them
-          document_url: updated.document_url || null,
-          document_name: updated.document_name || null,
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Database error updating professional ID:', error);
-        throw error;
-      }
-      
-      console.log('Successfully updated professional ID in database:', updatedProfId);
-      
-      toast({ title: 'Success', description: 'Jurisdiction details updated.' });
-      
-      // Update local state - preserve other professional IDs
-      if (updatedProfId) {
-        console.log('Updating state with:', updatedProfId);
-        
-        setProfessionalIds(prev => 
-          prev.map(profId => profId.id === updatedProfId.id ? updatedProfId : profId)
-        );
-        
-        setEditingProfessionalIds(prev => ({
-          ...prev,
-          [updatedProfId.id]: { ...updatedProfId }
-        }));
-        
-        // Mark this form as completed and remove from open forms
-        setCompletedForms(prev => new Set([...prev, id]));
-        setOpenForms(prev => {
-          const newSet = new Set([...prev]);
-          newSet.delete(id);
-          return newSet;
-        });
-      }
-    } catch (error) {
-      console.error('Error updating professional ID:', error);
-      toast({ 
-        title: 'Error', 
-        description: 'Failed to update jurisdiction details.', 
-        variant: 'destructive' 
       });
     } finally {
       setUploading(false);
@@ -904,7 +995,9 @@ export default function UserProfile() {
       const { data, error } = await supabaseClient
         .from('professional_ids')
         .select('*')
-        .eq('profile_id', profile.id);
+        .eq('profile_id', profile.id)
+        .order('created_at', { ascending: true })
+        .limit(1);
 
       if (error) {
         console.error('Error fetching professional IDs:', error);
@@ -912,14 +1005,48 @@ export default function UserProfile() {
       }
 
       console.log('Professional IDs fetched:', data);
+      
+      // Check if we have a record with certifications JSONB array
+      if (data && data.length > 0 && data[0].certifications && Array.isArray(data[0].certifications) && data[0].certifications.length > 0) {
+        // If we have certifications in JSONB, use those
+        console.log('Found certifications in JSONB:', data[0].certifications);
+        
+        // Convert certifications from JSONB array to professional_ids records
+        const certificationRecords = data[0].certifications.map((cert: Certification) => ({
+          id: cert.id,
+          profile_id: profile.id,
+          country: cert.country || '',
+          state: cert.state || null,
+          professional_id: cert.name || null,
+          no_id: false,
+          created_at: new Date().toISOString(),
+          document_url: cert.document_url || null,
+          document_name: cert.document_name || null,
+          issuing_authority: cert.issuing_authority || null,
+          issue_date: cert.issue_date || null,
+          // Include the parent record id for updates
+          parent_id: data[0].id
+        }));
+        
+        setProfessionalIds(certificationRecords);
+        
+        // Initialize editing state for each certification
+        const editingState: Record<string, ProfessionalId> = {};
+        certificationRecords.forEach((profId: ProfessionalId) => {
+          editingState[profId.id] = { ...profId };
+        });
+        setEditingProfessionalIds(editingState);
+      } else {
+        // No certifications in JSONB or no records found
       setProfessionalIds(data || []);
       
       // Initialize editing state for each professional ID
       const editingState: Record<string, ProfessionalId> = {};
-      data?.forEach(profId => {
+        data?.forEach((profId: any) => {
         editingState[profId.id] = { ...profId };
       });
       setEditingProfessionalIds(editingState);
+      }
     } catch (error) {
       console.error('Unexpected error fetching professional IDs:', error);
     }
@@ -931,6 +1058,104 @@ export default function UserProfile() {
       fetchProfessionalIds();
     }
   }, [profile, fetchProfessionalIds]);
+
+  // Function to fetch user metrics from the database
+  const fetchUserMetrics = useCallback(async () => {
+    if (!clerkUser || !profile) {
+      console.log('Missing dependencies for fetchUserMetrics:', {
+        hasClerkUser: !!clerkUser,
+        hasProfile: !!profile
+      });
+      return;
+    }
+    
+    try {
+      console.log('Starting metrics fetch for user:', clerkUser.id);
+      
+      // Fetch metrics using the API route
+      const response = await fetch(`/api/metrics?profile_id=${profile.id}`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch metrics: ${response.status}`);
+      }
+      
+      const metricsData = await response.json();
+      
+      if (metricsData) {
+        console.log('Found existing metrics:', metricsData);
+        setMetrics(metricsData);
+        
+        // Check if metrics need to be updated (e.g., if profile_completion is 0)
+        if (metricsData.profile_completion === 0) {
+          console.log('Metrics need updating, calculating new metrics...');
+          try {
+            // Calculate new metrics
+            const calculatedMetrics = await updateUserMetrics(clerkUser.id);
+            
+            // Post the new metrics to the API
+            const updateResponse = await fetch('/api/metrics', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                profile_id: profile.id,
+                ...calculatedMetrics
+              }),
+            });
+            
+            if (!updateResponse.ok) {
+              throw new Error(`Failed to update metrics: ${updateResponse.status}`);
+            }
+            
+            const updatedMetrics = await updateResponse.json();
+            console.log('Updated metrics:', updatedMetrics);
+            setMetrics(updatedMetrics);
+          } catch (calcError) {
+            console.error('Error calculating metrics:', calcError);
+          }
+        }
+      } else {
+        console.log('No metrics found, calculating new metrics');
+        try {
+          // Calculate new metrics
+          const calculatedMetrics = await updateUserMetrics(clerkUser.id);
+          
+          // Post the new metrics to the API
+          const updateResponse = await fetch('/api/metrics', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              profile_id: profile.id,
+              ...calculatedMetrics
+            }),
+          });
+          
+          if (!updateResponse.ok) {
+            throw new Error(`Failed to update metrics: ${updateResponse.status}`);
+          }
+          
+          const updatedMetrics = await updateResponse.json();
+          console.log('Updated metrics:', updatedMetrics);
+          setMetrics(updatedMetrics);
+        } catch (calcError) {
+          console.error('Error calculating metrics:', calcError);
+        }
+      }
+    } catch (error) {
+      console.error('Error in fetchUserMetrics:', error);
+    }
+  }, [clerkUser, profile]);
+  
+  // Add a useEffect to refetch metrics when profile changes
+  useEffect(() => {
+    if (profile && clerkUser && supabaseClient) {
+      console.log('Profile changed, refetching metrics...');
+      fetchUserMetrics();
+    }
+  }, [profile, clerkUser, supabaseClient, fetchUserMetrics]);
 
   // Modified initialization to consider all existing forms as open initially
   // Reset form state when professional IDs are loaded or changed
@@ -977,74 +1202,93 @@ export default function UserProfile() {
     try {
       setUploading(true);
       
-      // Ensure we're not in global editing mode when adding jurisdiction records
-      if (isEditing) {
-        setIsEditing(false);
+      // First check if we have a parent record
+      const { data: parentRecords, error: parentError } = await supabaseClient
+        .from('professional_ids')
+        .select('*')
+        .eq('profile_id', profile.id)
+        .order('created_at', { ascending: true })
+        .limit(1);
+        
+      if (parentError) {
+        console.error('Error checking for parent record:', parentError);
+        throw parentError;
       }
       
-      // Create a new empty professional ID record
-      const newProfId = {
+      let parentId: string;
+      
+      // If no parent record exists, create one
+      if (!parentRecords || parentRecords.length === 0) {
+        const { data: newParent, error: createError } = await supabaseClient
+          .from('professional_ids')
+          .insert({
         profile_id: profile.id,
         country: '',
         state: null,
         professional_id: null,
         no_id: false,
-        created_at: new Date().toISOString()
-      };
-      
-      // Check again before DB operation to ensure we still don't have too many open forms
-      if (openForms.size >= 2) {
-        toast({
-          title: 'Too many open forms',
-          description: 'Please complete at least one of your open forms before adding a new one.',
-          variant: 'destructive'
-        });
-        setUploading(false);
-        return;
-      }
-      
-      const { data, error } = await supabaseClient
-        .from('professional_ids')
-        .insert(newProfId)
+            certifications: []
+          })
         .select()
         .single();
         
-      if (error) {
-        throw error;
+        if (createError) {
+          console.error('Error creating parent record:', createError);
+          throw createError;
+        }
+        
+        parentId = newParent.id;
+      } else {
+        parentId = parentRecords[0].id;
       }
       
-      if (data) {
+      // Generate a new certification ID with timestamp to ensure uniqueness
+      const newCertId = `cert-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+      
+      // Create a new certification record in memory
+      const newCertification: ProfessionalId = {
+        id: newCertId,
+        profile_id: profile.id,
+        country: '',
+        state: null,
+        professional_id: null,
+        year_issued: null,
+        // verification_status field removed
+        no_id: false,
+        created_at: new Date().toISOString(),
+        parent_id: parentId
+      };
+      
         // Add to local state
-        setProfessionalIds(prev => [...prev, data]);
+      setProfessionalIds(prev => [...prev, newCertification]);
         setEditingProfessionalIds(prev => ({
           ...prev,
-          [data.id]: { ...data }
+        [newCertId]: { ...newCertification }
         }));
         
-        // Mark this form as open
-        setOpenForms(prev => {
-          // Ensure we don't exceed the limit
-          if (prev.size >= 2) {
-            toast({
-              title: 'Too many open forms',
-              description: 'Please complete at least one of your open forms first.',
-              variant: 'destructive'
-            });
-            return prev;
-          }
-          return new Set([...prev, data.id]);
-        });
-        
+      // Mark this form as open
+      setOpenForms(prev => {
+        // Ensure we don't exceed the limit
+        if (prev.size >= 2) {
         toast({
-          title: 'Success',
-          description: 'New jurisdiction record created'
-        });
-      }
+            title: 'Too many open forms',
+            description: 'Please complete at least one of your open forms first.',
+            variant: 'destructive'
+          });
+          return prev;
+        }
+        return new Set([...prev, newCertId]);
+      });
+      
+      toast({
+        title: 'New form created',
+        description: 'Please fill out the jurisdiction details and save to complete.'
+      });
     } catch (error) {
       console.error('Error creating new professional ID:', error);
       toast({ 
         title: 'Error', 
-        description: 'Failed to create new jurisdiction record', 
+        description: 'Failed to create new jurisdiction record. Please try again.', 
         variant: 'destructive' 
       });
     } finally {
@@ -1074,24 +1318,95 @@ export default function UserProfile() {
   };
 
   // Function to delete a professional ID
-  const handleDeleteProfessionalId = async (id: string) => {
+  const handleDeleteProfessionalId = async (id: string | number) => {
     if (!supabaseClient) return;
     
     try {
       setUploading(true);
+      
+      // Log important debugging information
+      console.log('Deleting professional ID:', {
+        id,
+        type: typeof id,
+        isString: typeof id === 'string',
+        isNumber: typeof id === 'number'
+      });
       
       // Ensure we're not in global editing mode when deleting jurisdiction records
       if (isEditing) {
         setIsEditing(false);
       }
       
+      // Check if this is a certification ID (starts with "cert-")
+      // First ensure id is a string and not null/undefined
+      if (typeof id === 'string' && id.startsWith('cert-')) {
+        // This is a certification in the certifications JSONB array
+        const profId = editingProfessionalIds[id];
+        if (!profId || !profId.parent_id) {
+          throw new Error('Cannot find parent record for certification');
+        }
+        
+        // Get the parent record
+        const { data: parentRecord, error: fetchError } = await supabaseClient
+          .from('professional_ids')
+          .select('certifications')
+          .eq('id', profId.parent_id)
+          .single();
+          
+        if (fetchError) {
+          console.error('Error fetching parent record:', fetchError);
+          throw fetchError;
+        }
+        
+        // Filter out this certification from the array
+        const certifications = (parentRecord.certifications || [])
+          .filter((cert: Certification) => cert.id !== id);
+        
+        // Update the parent record
+        const { error: updateError } = await supabaseClient
+          .from('professional_ids')
+          .update({ 
+            certifications
+            // removed updated_at field as it doesn't exist in the table
+          })
+          .eq('id', profId.parent_id);
+          
+        if (updateError) {
+          console.error('Error updating certifications array:', updateError);
+          throw updateError;
+        }
+      } else {
+        // This is a direct database record - ensure ID is numeric
+        console.log('Deleting professional ID record with ID:', id);
+        
+        // For database records, we need a numeric ID
+        let numericId: number;
+        
+        if (typeof id === 'number') {
+          // If it's already a number, use it directly
+          numericId = id;
+        } else if (typeof id === 'string') {
+          // Try to convert string to number
+          numericId = parseInt(id, 10);
+          if (isNaN(numericId)) {
+            console.error('Invalid ID format, cannot convert to number:', id);
+            throw new Error(`Invalid ID format: ${id} cannot be converted to a number`);
+          }
+        } else {
+          // Handle the case where id is undefined, null, or another type
+          console.error('Invalid ID type:', typeof id);
+          throw new Error(`Invalid ID type: ${typeof id} (expected string or number)`);
+        }
+        
+        // Delete using numeric ID
       const { error } = await supabaseClient
         .from('professional_ids')
         .delete()
-        .eq('id', id);
+          .eq('id', numericId);
         
       if (error) {
         throw error;
+        }
       }
       
       // Update local state
@@ -1117,6 +1432,131 @@ export default function UserProfile() {
       setUploading(false);
     }
   };
+  
+  // Add missing handleProfessionalIdChange function
+  const handleProfessionalIdChange = (id: string, field: string, value: any) => {
+    setEditingProfessionalIds(prev => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        [field]: value
+      }
+    }));
+  };
+  
+  // Add missing handleUpdateProfessionalId function
+  const handleUpdateProfessionalId = async (id: string) => {
+    if (!profile || !supabaseClient) return;
+    
+    try {
+      setUploading(true);
+      
+      const profId = editingProfessionalIds[id];
+      if (!profId) {
+        throw new Error('Professional ID not found in editing state');
+      }
+      
+      // Validate required fields
+      if (!profId.country || !profId.professional_id) {
+        toast({
+          title: 'Missing information',
+          description: 'Country and certification name are required fields',
+          variant: 'destructive'
+        });
+        return;
+      }
+      
+      // Check if we have a parent record to update
+      if (profId.parent_id) {
+        // Get the current certifications array from the parent record
+        const { data: parentRecord, error: fetchError } = await supabaseClient
+          .from('professional_ids')
+          .select('certifications')
+          .eq('id', profId.parent_id)
+          .single();
+          
+        if (fetchError) {
+          console.error('Error fetching parent record:', fetchError);
+          throw fetchError;
+        }
+        
+        // Create or update the certification in the certifications array
+        const certifications = parentRecord.certifications || [];
+        const certIndex = certifications.findIndex((c: Certification) => c.id === id);
+        
+        const certData: Certification = {
+          id: profId.id,
+          name: profId.professional_id || '',
+          country: profId.country,
+          state: profId.state || null,
+          issuing_authority: profId.issuing_authority,
+          issue_date: profId.issue_date,
+          document_url: profId.document_url,
+          document_name: profId.document_name
+        };
+        
+        if (certIndex >= 0) {
+          // Update existing certification
+          certifications[certIndex] = certData;
+        } else {
+          // Add new certification
+          certifications.push(certData);
+        }
+        
+        // Update the parent record with the updated certifications array
+        const { error: updateError } = await supabaseClient
+          .from('professional_ids')
+          .update({ certifications })
+          .eq('id', profId.parent_id);
+          
+        if (updateError) {
+          console.error('Error updating parent record:', updateError);
+          throw updateError;
+        }
+      } else {
+        // Direct update to the record if no parent_id
+        const { error: updateError } = await supabaseClient
+          .from('professional_ids')
+          .update({
+            country: profId.country,
+            state: profId.state,
+            professional_id: profId.professional_id,
+            no_id: profId.no_id || false,
+            issuing_authority: profId.issuing_authority,
+            issue_date: profId.issue_date,
+            // verification_status field removed
+          })
+          .eq('id', id);
+          
+        if (updateError) {
+          console.error('Error updating professional ID:', updateError);
+          throw updateError;
+        }
+      }
+      
+      // Mark this form as completed
+      setCompletedForms(prev => new Set([...prev, id]));
+      setOpenForms(prev => {
+        const newSet = new Set([...prev]);
+        newSet.delete(id);
+        return newSet;
+      });
+      
+      toast({
+        title: 'Success',
+        description: 'Jurisdiction details saved successfully'
+      });
+    } catch (error) {
+      console.error('Error updating professional ID:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save jurisdiction details',
+        variant: 'destructive' 
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   // Fallbacks for profile fields
   const displayProfile: Partial<UserProfile> = profile || {};
@@ -1133,58 +1573,29 @@ export default function UserProfile() {
     learning_progress: 0,
   };
 
-  // Filter countries based on search input
-  useEffect(() => {
-    if (countrySearch.trim() === '') {
-      // Show common countries first when no search term
-      const commonCountries = ['US', 'CA', 'GB', 'AU'].map(code => 
-        countryOptions.find(c => c.value === code)
-      ).filter(Boolean) as {value: string, label: string}[];
-      
-      // Then add all other countries
-      const otherCountries = countryOptions.filter(c => 
-        !commonCountries.some(common => common && common.value === c.value)
-      );
-      
-      setFilteredCountries([...commonCountries, ...otherCountries]);
-    } else {
-      // Filter based on search term
-      setFilteredCountries(
-        countryOptions.filter(
-          c => c.label.toLowerCase().includes(countrySearch.toLowerCase())
-        )
-      );
-    }
-  }, [countrySearch]);
-
-  // Handle country search input
-  const handleCountrySearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCountrySearch(e.target.value);
-  };
-
-  // Handle country selection
-  const handleCountrySelect = (id: string, value: string) => {
-    handleProfessionalIdChange(id, 'country', value);
-    setCountrySearch('');
-  };
-
   // Handle document upload
   const handleDocumentUpload = async (id: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    // Prevent default browser behavior that might cause form reloading
+    event.preventDefault();
+    
     const file = event.target.files?.[0];
     if (!file) return;
     
     setUploading(true);
     
-    // Ensure we're not in global editing mode when uploading documents
-    if (isEditing) {
-      setIsEditing(false);
-    }
-    
     try {
+      // Create form data with the file and ids
       const formData = new FormData();
       formData.append('file', file);
       formData.append('professionalId', id);
       
+      // Find the record to get the parent_id if available
+      const record = editingProfessionalIds[id];
+      if (record?.parent_id) {
+        formData.append('parentId', record.parent_id);
+      }
+      
+      // Upload the file
       const response = await fetch('/api/certificate/upload', {
         method: 'POST',
         body: formData,
@@ -1193,7 +1604,7 @@ export default function UserProfile() {
       const result = await response.json();
       
       if (result.success) {
-        // Update the local state with the document URL
+        // Update only the document fields in the local state without affecting other inputs
         setEditingProfessionalIds(prev => ({
           ...prev,
           [id]: {
@@ -1207,29 +1618,6 @@ export default function UserProfile() {
           title: 'Success',
           description: 'Certificate document uploaded successfully.',
         });
-        
-        // Refresh the professional IDs to get the updated data
-        if (supabaseClient) {
-          const { data } = await supabaseClient
-            .from('professional_ids')
-            .select('*')
-            .eq('profile_id', profile?.id);
-            
-          if (data) {
-            // Preserve the current array structure by mapping over the updated data
-            setProfessionalIds(data);
-            
-            // Update the editing state with the refreshed data
-            const editingState: Record<string, ProfessionalId> = { ...editingProfessionalIds };
-            data.forEach(profId => {
-              editingState[profId.id] = { 
-                ...editingState[profId.id] || {}, 
-                ...profId 
-              };
-            });
-            setEditingProfessionalIds(editingState);
-          }
-        }
       } else {
         throw new Error(result.error || 'Failed to upload document');
       }
@@ -1242,6 +1630,11 @@ export default function UserProfile() {
       });
     } finally {
       setUploading(false);
+      
+      // Reset the file input to allow selecting the same file again if needed
+      if (event.target) {
+        event.target.value = '';
+      }
     }
   };
 
@@ -1306,6 +1699,99 @@ export default function UserProfile() {
     }
   };
 
+  // Function to migrate legacy records to the new certifications JSONB approach
+  const migrateToCertificationsJSONB = async () => {
+    if (!profile || !supabaseClient) return;
+    
+    try {
+      setUploading(true);
+      console.log('Migrating to certifications JSONB approach...');
+      
+      // Get all professional_ids for this profile
+      const { data: allRecords, error: fetchError } = await supabaseClient
+        .from('professional_ids')
+        .select('*')
+        .eq('profile_id', profile.id)
+        .order('created_at', { ascending: true });
+        
+      if (fetchError) {
+        console.error('Error fetching records for migration:', fetchError);
+        throw fetchError;
+      }
+      
+      if (!allRecords || allRecords.length === 0) {
+        console.log('No records to migrate');
+        return;
+      }
+      
+      // First record will be the parent
+      const parentRecord = allRecords[0];
+      
+      // Check if already migrated
+      if (parentRecord.certifications && Array.isArray(parentRecord.certifications) && parentRecord.certifications.length > 0) {
+        console.log('Already migrated to certifications JSONB');
+        return;
+      }
+      
+      // Convert all records to certifications array
+      const certifications = allRecords.map(record => ({
+        id: record.id.toString(),
+        name: record.professional_id || 'Certification',
+        country: record.country || '',
+        state: record.state || null,
+        issuing_authority: record.issuing_authority || null,
+        issue_date: record.issue_date || null,
+        document_url: record.document_url || null,
+        document_name: record.document_name || null
+      }));
+      
+      // Update the parent record with the certifications array
+      const { error: updateError } = await supabaseClient
+        .from('professional_ids')
+        .update({ certifications })
+        .eq('id', parentRecord.id);
+        
+      if (updateError) {
+        console.error('Error updating parent record with certifications:', updateError);
+        throw updateError;
+      }
+      
+      console.log('Successfully updated parent record with certifications');
+      
+      // Delete all records except the parent
+      if (allRecords.length > 1) {
+        const recordIdsToDelete = allRecords.slice(1).map(r => r.id);
+        const { error: deleteError } = await supabaseClient
+          .from('professional_ids')
+          .delete()
+          .in('id', recordIdsToDelete);
+          
+        if (deleteError) {
+          console.error('Error deleting redundant records:', deleteError);
+        } else {
+          console.log(`Deleted ${recordIdsToDelete.length} redundant records`);
+        }
+      }
+      
+      // Refresh the records to get the updated data
+      await fetchProfessionalIds();
+      
+      toast({
+        title: 'Success',
+        description: 'Migrated to new data structure'
+      });
+    } catch (error) {
+      console.error('Error migrating to certifications JSONB:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to migrate data structure',
+        variant: 'destructive'
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   // Add error boundary
   if (error) {
     return (
@@ -1344,28 +1830,32 @@ export default function UserProfile() {
 
   return (
     <LayoutWithSidebar>
-      <div className="container mx-auto py-8 space-y-8">
+      <div className="container mx-auto py-8 space-y-8 bg-white">
         {/* Hero Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="md:col-span-2">
+          <Card className="md:col-span-2 overflow-hidden shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-95 bg-gradient-to-br from-white via-sky-50/80 to-pink-50/70">
             <CardContent className="p-6">
-              <div className="flex items-start gap-6">
+              <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
                 <div className="relative">
                   {profile?.avatar_url ? (
-                    <div className="relative w-24 h-24 cursor-pointer" onClick={() => setShowPreview(true)}>
+                    <div className="relative w-28 h-28 cursor-pointer" onClick={() => setShowPreview(true)}>
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-400 to-blue-400 opacity-70 blur-sm"></div>
                       <Image
                         src={`${profile.avatar_url}?t=${new Date().getTime()}`}
                         alt="Profile picture"
-                        width={96}
-                        height={96}
-                        style={{ height: "auto" }}
-                        className="rounded-full object-cover"
+                        width={112}
+                        height={112}
+                        style={{ height: "112px", objectFit: "cover" }}
+                        className="rounded-full z-10 relative border-2 border-white"
                         priority
                       />
                     </div>
                   ) : (
-                    <div className="w-24 h-24 flex items-center justify-center bg-gray-200 rounded-full cursor-pointer" onClick={() => setShowPreview(true)}>
-                      <span className="text-3xl font-bold text-gray-500">{profile?.first_name?.[0] || clerkUser?.firstName?.[0]}{profile?.last_name?.[0] || clerkUser?.lastName?.[0]}</span>
+                    <div className="relative w-28 h-28 flex items-center justify-center rounded-full cursor-pointer" onClick={() => setShowPreview(true)}>
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-400 to-blue-400 opacity-70 blur-sm"></div>
+                      <div className="absolute inset-0.5 rounded-full bg-gradient-to-br from-white to-blue-50 flex items-center justify-center z-10">
+                        <span className="text-3xl font-bold text-indigo-700">{profile?.first_name?.[0] || clerkUser?.firstName?.[0]}{profile?.last_name?.[0] || clerkUser?.lastName?.[0]}</span>
+                      </div>
                     </div>
                   )}
                   <input
@@ -1378,34 +1868,80 @@ export default function UserProfile() {
                   />
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600"
+                    className="absolute bottom-0 right-0 bg-indigo-500 text-white rounded-full p-2 hover:bg-indigo-600 transition-colors duration-200 shadow-md z-20"
                     disabled={uploading}
                   >
                     <Camera className="w-4 h-4" />
                   </button>
                 </div>
 
-                <div className="flex-1">
-                  <h2 className="text-2xl font-semibold">{clerkUser?.fullName || 'User'}</h2>
-                  <p className="text-gray-500">{clerkUser?.emailAddresses[0]?.emailAddress}</p>
-                  <div className="mt-4">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="flex items-center gap-1">
-                        <Award className="w-4 h-4" />
-                        {displayProfile.specialization || 'Legal Professional'}
-                      </Badge>
-                      <Badge variant="outline" className="flex items-center gap-1">
-                        <Building className="w-4 h-4" />
-                        {displayProfile.firm_name || 'Independent Practice'}
-                      </Badge>
+                <div className="flex-1 space-y-4 text-center md:text-left">
+                  <div>
+                    <h2 className="text-2xl font-semibold text-gray-800">{clerkUser?.fullName || 'User'}</h2>
+                    <p className="text-sm text-indigo-600 font-medium">
+                      {roleId && roles.find(r => r.id === roleId)?.name ? 
+                        (roles.find(r => r.id === roleId)?.name || '').charAt(0).toUpperCase() + 
+                        (roles.find(r => r.id === roleId)?.name || '').slice(1) : 
+                        'Legal Professional'}
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Mail className="w-4 h-4 mr-2 text-indigo-500" />
+                      {clerkUser?.emailAddresses[0]?.emailAddress}
                     </div>
+                    
+                    {displayProfile.phone_number && (
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Phone className="w-4 h-4 mr-2 text-indigo-500" />
+                        {displayProfile.phone_number}
+                      </div>
+                    )}
+                    
+                    {displayProfile.firm_name && (
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Building className="w-4 h-4 mr-2 text-indigo-500" />
+                        {displayProfile.firm_name}
+                      </div>
+                    )}
+                    
+                    {displayProfile.address && (
+                      <div className="flex items-center text-sm text-gray-600">
+                        <MapPin className="w-4 h-4 mr-2 text-indigo-500" />
+                        {displayProfile.address}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                    {displayProfile.specialization && (
+                      <Badge variant="secondary" className="flex items-center gap-1 bg-gradient-to-r from-indigo-50 to-blue-50 text-indigo-700 border border-indigo-100 shadow-sm">
+                        <Award className="w-3 h-3" />
+                        {displayProfile.specialization}
+                      </Badge>
+                    )}
+                    
+                    {professionalIds && professionalIds.length > 0 && (
+                      <Badge variant="outline" className="flex items-center gap-1 border-indigo-200 shadow-sm">
+                        <Shield className="w-3 h-3 text-indigo-500" />
+                        {professionalIds.length} {professionalIds.length === 1 ? 'Certification' : 'Certifications'}
+                      </Badge>
+                    )}
+                    
+                    {displayProfile.years_of_practice && (
+                      <Badge variant="outline" className="flex items-center gap-1 border-indigo-200 shadow-sm">
+                        <Clock className="w-3 h-3 text-indigo-500" />
+                        {displayProfile.years_of_practice} {Number(displayProfile.years_of_practice) === 1 ? 'Year' : 'Years'} of Practice
+                      </Badge>
+                    )}
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-95 bg-gradient-to-tr from-white via-pink-50/70 to-sky-50/80">
             <CardContent className="p-6">
               <div className="space-y-4">
                 <div>
@@ -1436,7 +1972,7 @@ export default function UserProfile() {
 
         {/* Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card>
+          <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-r from-white via-sky-50/70 to-pink-50/60">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Activity className="w-4 h-4" />
@@ -1449,7 +1985,7 @@ export default function UserProfile() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-br from-white via-pink-50/70 to-sky-50/60">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Clock className="w-4 h-4" />
@@ -1462,7 +1998,7 @@ export default function UserProfile() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-tl from-white via-sky-50/70 to-pink-50/60">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Brain className="w-4 h-4" />
@@ -1475,7 +2011,7 @@ export default function UserProfile() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-tr from-white via-pink-50/70 to-sky-50/60">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Users className="w-4 h-4" />
@@ -1488,7 +2024,7 @@ export default function UserProfile() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-bl from-white via-sky-50/70 to-pink-50/60">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Shield className="w-4 h-4" />
@@ -1501,7 +2037,7 @@ export default function UserProfile() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-br from-white via-pink-50/60 to-sky-50/70">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Target className="w-4 h-4" />
@@ -1516,7 +2052,7 @@ export default function UserProfile() {
         </div>
 
         {/* Professional Information Card */}
-        <Card>
+        <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-95 bg-gradient-to-b from-white via-sky-50/60 to-pink-50/60">
           <CardHeader>
             <CardTitle>Professional Information</CardTitle>
             <CardDescription>Update your professional details</CardDescription>
@@ -1590,18 +2126,19 @@ export default function UserProfile() {
                   </div>
                   <div>
                     <Label>Gender</Label>
-                    <select
-                      name="gender"
-                      value={formData.gender || ''}
-                      onChange={handleInputChange}
-                      disabled={!isEditing || uploading}
-                      className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <option value="">Select Gender</option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
-                    </select>
+                    <SearchableSelect
+                      options={[
+                        { value: 'Male', label: 'Male' },
+                        { value: 'Female', label: 'Female' },
+                        { value: 'Other', label: 'Other' }
+                      ]}
+                      value={formData.gender ? { value: formData.gender, label: formData.gender } : null}
+                      onChange={(selected) => 
+                        setFormData(prev => ({ ...prev, gender: selected ? selected.value : '' }))
+                      }
+                      placeholder="Select gender"
+                      isDisabled={!isEditing || uploading}
+                    />
                   </div>
                 </div>
               </TabsContent>
@@ -1609,13 +2146,30 @@ export default function UserProfile() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label>Law Firm</Label>
+                    <div className="relative">
                     <Input
                       name="firm_name"
                       value={formData.firm_name || ''}
                       onChange={handleInputChange}
-                      placeholder="Law Firm"
+                        placeholder="Enter your law firm name"
                       disabled={!isEditing || uploading}
-                    />
+                        ref={firmInputRef}
+                      />
+                      {firmSuggestions.length > 0 && isEditing && !uploading && (
+                        <div className="absolute z-10 w-full mt-1 bg-white rounded-md shadow-lg">
+                          {firmSuggestions.map((suggestion, index) => (
+                            <div
+                              key={index}
+                              className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                              onClick={() => handleFirmSuggestionClick(suggestion)}
+                            >
+                              {suggestion}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">Start typing for suggestions</div>
                   </div>
                   <div className="mb-4">
                     <label className="block font-medium">Practice Area</label>
@@ -1624,18 +2178,42 @@ export default function UserProfile() {
                     ) : optionsError ? (
                       <div className="text-red-500">{optionsError}</div>
                     ) : (
-                      <Select
-                        name="practice_area_id"
-                        value={formData.practice_area_id || ""}
-                        onValueChange={value => setFormData(prev => ({ ...prev, practice_area_id: value }))}
+                      <div className="relative" ref={specializationDropdownRef}>
+                        <Input
+                          name="specialization"
+                          value={formData.specialization || ''}
+                          onChange={handleInputChange}
+                          placeholder="Enter your practice area"
                         disabled={!isEditing || uploading}
-                      >
-                        <option value="">Select a practice area</option>
-                        {practiceAreas.map(pa => (
-                          <option key={pa.id} value={pa.id}>{pa.name}</option>
-                        ))}
-                      </Select>
+                          onFocus={() => isEditing && !uploading && setSpecializationFocused(true)}
+                        />
+                        {specializationFocused && !uploading && (
+                          <div className="absolute z-10 w-full mt-1 bg-white rounded-md shadow-lg max-h-60 overflow-y-auto">
+                            <input
+                              type="text"
+                              value={specializationSearch}
+                              onChange={handleSpecializationSearch}
+                              placeholder="Search specialization..."
+                              className="w-full px-3 py-2 border-b border-gray-200 focus:outline-none"
+                              autoFocus
+                              onClick={e => e.stopPropagation()}
+                            />
+                            {specializations
+                              .filter(s => s.label.toLowerCase().includes(specializationSearch.toLowerCase()))
+                              .map((specialization, index) => (
+                                <div
+                                  key={index}
+                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                  onMouseDown={() => handleSpecializationSuggestionClick(specialization)}
+                                >
+                                  {specialization.label}
+                                </div>
+                              ))}
+                          </div>
+                        )}
+                      </div>
                     )}
+                    <div className="text-xs text-gray-500 mt-1">Your primary area of legal practice</div>
                   </div>
                   <div>
                     <Label>Years of Practice</Label>
@@ -1649,35 +2227,24 @@ export default function UserProfile() {
                   </div>
                   <div>
                     <Label>Role</Label>
-                    <select
-                      name="role"
-                      value={roleId || ''}
-                      onChange={e => {
-                        const selectedId = e.target.value;
-                        setRoleId(selectedId);
+                    <SearchableSelect
+                      options={roles.map(r => ({ 
+                        value: r.id, 
+                        label: r.name.charAt(0).toUpperCase() + r.name.slice(1) 
+                      }))}
+                      value={roleId ? { 
+                        value: roleId,
+                        label: roles.find(r => r.id === roleId)?.name.charAt(0).toUpperCase() + 
+                               (roles.find(r => r.id === roleId)?.name.slice(1) || '')
+                      } : null}
+                      onChange={(selected) => {
+                        const selectedId = selected ? selected.value : '';
+                        setRoleId(selectedId || null);
                         setFormData(prev => ({ ...prev, role: selectedId }));
                       }}
-                      disabled={!isEditing || uploading}
-                      className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <option value="">Select Role</option>
-                      {roles.map(r => (
-                        <option key={r.id} value={r.id}>{r.name.charAt(0).toUpperCase() + r.name.slice(1)}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <Label>Onboarding Completed</Label>
-                    <select
-                      name="onboarding_completed"
-                      value={typeof formData.onboarding_completed === 'string' ? formData.onboarding_completed : (formData.onboarding_completed ? 'Yes' : 'No')}
-                      onChange={handleInputChange}
-                      disabled={!isEditing || uploading}
-                      className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <option value="No">No</option>
-                      <option value="Yes">Yes</option>
-                    </select>
+                      placeholder="Select a role"
+                      isDisabled={!isEditing || uploading}
+                    />
                   </div>
                 </div>
               </TabsContent>
@@ -1698,48 +2265,49 @@ export default function UserProfile() {
                       // If this form is marked as completed and not open, don't show the edit form
                       const isCompleted = completedForms.has(profId.id) && !openForms.has(profId.id);
                       
-                      if (isCompleted) {
-                        return (
-                          <div key={profId.id} className="border rounded-lg p-4 bg-gray-50">
-                            <div className="flex justify-between items-center mb-1">
-                              <h3 className="text-md font-medium flex items-center">
-                                <Check className="w-4 h-4 mr-2 text-green-500" />
-                                {editing.country || 'New'} {editing.state ? `- ${editing.state}` : ''} Record
-                              </h3>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={() => handleEditButtonClick(profId.id)}
-                                disabled={uploading}
-                              >
-                                <Pencil className="w-4 h-4 mr-1" />
-                                Edit
-                              </Button>
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {editing.professional_id} {editing.document_url && '(Document attached)'}
-                            </div>
+                      return isCompleted ? (
+                        <div key={profId.id} className="border rounded-lg p-4 bg-gradient-to-r from-white to-green-50 shadow-sm transition-all duration-300">
+                          <div className="flex justify-between items-center mb-1">
+                            <h3 className="text-md font-medium flex items-center">
+                              <Check className="w-5 h-5 mr-2 text-green-500" />
+                              {editing.country || 'New'} {editing.state ? `- ${editing.state}` : ''} Record
+                            </h3>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleEditButtonClick(profId.id)}
+                              disabled={uploading}
+                              className="hover:bg-green-100"
+                            >
+                              <Pencil className="w-4 h-4 mr-1" />
+                              Edit
+                            </Button>
                           </div>
-                        );
-                      }
-                      
-                      // Show full edit form for open/incomplete forms
-                      return (
-                        <div key={profId.id} className="border rounded-lg p-4 bg-gray-50">
+                          <div className="text-sm text-gray-600 flex items-center">
+                            <span className="mr-2">{editing.professional_id}</span>
+                            {editing.document_url && (
+                              <Badge variant="outline" className="text-xs bg-green-50 border-green-200">
+                                Document attached
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div key={profId.id} className="border rounded-lg p-4 bg-gray-50 shadow-sm">
                           <div className="flex justify-between items-center mb-4">
                             <h3 className="text-md font-medium">
                               {editing.country || 'New'} {editing.state ? `- ${editing.state}` : ''} Record
                             </h3>
                             <div className="flex gap-2">
-                              <Button 
-                                variant="destructive" 
-                                size="sm" 
-                                onClick={() => handleDeleteProfessionalId(profId.id)}
-                                disabled={uploading}
-                              >
-                                <Trash className="w-4 h-4 mr-1" />
-                                Delete
-                              </Button>
+                            <Button 
+                              variant="destructive" 
+                              size="sm" 
+                              onClick={() => handleDeleteProfessionalId(profId.id)}
+                              disabled={uploading}
+                            >
+                              <Trash className="w-4 h-4 mr-1" />
+                              Delete
+                            </Button>
                             </div>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1756,47 +2324,51 @@ export default function UserProfile() {
                             
                             <div>
                               <Label>Country</Label>
-                              <div className="relative">
-                                <Input
-                                  type="text"
-                                  placeholder="Search countries..."
-                                  value={countrySearch}
-                                  onChange={handleCountrySearch}
-                                  disabled={uploading}
-                                  className="mb-1"
-                                />
-                                {countrySearch && (
-                                  <div className="absolute z-10 w-full max-h-40 overflow-y-auto border rounded-md bg-white shadow-lg">
-                                    {filteredCountries.map((c) => (
-                                      <div
-                                        key={c.value}
-                                        className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                                        onClick={() => {
-                                          handleCountrySelect(profId.id, c.value);
-                                          setCountrySearch('');
-                                        }}
-                                      >
-                                        {c.label}
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                                <div className="flex items-center mt-1">
-                                  <span className="text-sm">Selected: </span>
-                                  <span className="text-sm font-medium ml-1">
-                                    {editing.country ? countryOptions.find(c => c.value === editing.country)?.label || editing.country : 'None'}
-                                  </span>
-                                </div>
-                              </div>
+                              <SearchableSelect
+                                options={popularCountries}
+                                value={editing.country ? { label: getCountryNameByCode(editing.country), value: editing.country } : null}
+                                onChange={(selectedOption) => {
+                                  if (selectedOption) {
+                                    // When country changes, update country value and load states
+                                    handleProfessionalIdChange(profId.id, 'country', selectedOption.value);
+                                    
+                                    // Update states dropdown
+                                    loadStatesForCountry(selectedOption.value);
+                                    
+                                    // Clear the state field when country changes
+                                    handleProfessionalIdChange(profId.id, 'state', '');
+                                  } else {
+                                    // Handle clearing the selection
+                                    handleProfessionalIdChange(profId.id, 'country', '');
+                                    handleProfessionalIdChange(profId.id, 'state', '');
+                                    setStateOptions([]);
+                                  }
+                                }}
+                                placeholder="Select a country"
+                                isDisabled={uploading}
+                              />
                             </div>
                             
                             <div>
                               <Label>State/Province</Label>
-                              <Input
-                                value={editing.state || ''}
-                                onChange={e => handleProfessionalIdChange(profId.id, 'state', e.target.value)}
-                                placeholder="State or Province"
-                                disabled={uploading}
+                              <SearchableSelect
+                                options={editing.country ? getStatesByCountry(editing.country) : []}
+                                value={editing.state && editing.country ? 
+                                  { 
+                                    label: getStateNameByCode(editing.country, editing.state) || editing.state, 
+                                    value: editing.state 
+                                  } : null
+                                }
+                                onChange={(selectedOption) => {
+                                  handleProfessionalIdChange(
+                                    profId.id, 
+                                    'state', 
+                                    selectedOption ? selectedOption.value : ''
+                                  );
+                                }}
+                                placeholder={editing.country ? "Select a state/province" : "Select a country first"}
+                                isDisabled={uploading || !editing.country}
+                                noOptionsMessage={() => "No states/provinces found for this country"}
                               />
                             </div>
                             
@@ -1812,57 +2384,72 @@ export default function UserProfile() {
                             
                             <div>
                               <Label>Issue Date</Label>
+                              <div className="relative">
                               <Input
-                                type="date"
-                                value={editing.issue_date || ''}
-                                onChange={e => handleProfessionalIdChange(profId.id, 'issue_date', e.target.value)}
+                                  type="date"
+                                  value={editing.issue_date || ''}
+                                  onChange={e => handleProfessionalIdChange(profId.id, 'issue_date', e.target.value)}
                                 disabled={uploading}
+                                  max={new Date().toISOString().split('T')[0]} // Restrict to today and earlier
+                                  className="pr-10" // Make room for the icon
+                                  onClick={(e) => e.currentTarget.showPicker()} // Only open picker on click
+                                  onFocus={(e) => e.target.blur()} // Prevent auto-focus from opening the picker
                               />
+                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                  <Clock className="h-4 w-4 text-gray-400" />
+                            </div>
+                            </div>
+                              <p className="text-xs text-gray-500 mt-1">Click to select a date</p>
                             </div>
                             
                             <div className="md:col-span-2">
                               <Label>Certification Document</Label>
                               <div className="mt-1 space-y-2">
                                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                                  <Input
-                                    type="file"
-                                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                                    onChange={(e) => handleDocumentUpload(profId.id, e)}
-                                    disabled={uploading}
-                                    className="hidden"
-                                    id={`file-upload-${profId.id}`}
-                                  />
-                                  <label 
-                                    htmlFor={`file-upload-${profId.id}`}
-                                    className="cursor-pointer text-blue-600 hover:text-blue-800"
-                                  >
-                                    {editing.document_url ? "Replace document" : "Upload certificate"}
-                                  </label>
-                                  <p className="text-xs text-gray-500 mt-1">PDF, JPEG or PNG, max 5MB</p>
-                                </div>
-                                
-                                {editing.document_url && (
-                                  <div className="flex items-center justify-between p-2 bg-gray-100 rounded">
-                                    <span className="text-sm truncate">{editing.document_name || 'Document'}</span>
-                                    <div className="flex gap-2">
-                                      <a 
-                                        href={editing.document_url} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        className="text-blue-600 text-sm hover:underline"
-                                      >
-                                        View
-                                      </a>
-                                      <button
-                                        onClick={() => handleDeleteDocument(profId.id)}
-                                        className="text-red-600 text-sm hover:underline"
-                                        type="button"
-                                      >
-                                        Remove
-                                      </button>
+                                  <form onSubmit={e => e.preventDefault()}>
+                                    <Input
+                                      type="file"
+                                      accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                      onChange={(e) => handleDocumentUpload(profId.id, e)}
+                                disabled={uploading}
+                                      className="hidden"
+                                      id={`file-upload-${profId.id}`}
+                                    />
+                                    <label 
+                                      htmlFor={`file-upload-${profId.id}`}
+                                      className="cursor-pointer text-blue-600 hover:text-blue-800"
+                                    >
+                                      {editing.document_url ? "Replace document" : "Upload certificate"}
+                                    </label>
+                                    <p className="text-xs text-gray-500 mt-1">PDF, JPEG or PNG, max 5MB</p>
+                                  </form>
+                                  
+                                  {editing.document_url && (
+                                    <div className="flex items-center justify-between p-2 mt-2 bg-gray-100 rounded">
+                                      <span className="text-sm truncate">{editing.document_name || 'Document'}</span>
+                                      <div className="flex gap-2">
+                                        <a 
+                                          href={editing.document_url} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="text-blue-600 text-sm hover:underline"
+                                        >
+                                          View
+                                        </a>
+                                        <button
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            handleDeleteDocument(profId.id);
+                                          }}
+                                          className="text-red-600 text-sm hover:underline"
+                                          type="button"
+                                        >
+                                          Remove
+                                        </button>
+                                      </div>
                                     </div>
-                                  </div>
-                                )}
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -1870,9 +2457,19 @@ export default function UserProfile() {
                             <Button
                               onClick={() => handleUpdateProfessionalId(profId.id)}
                               disabled={uploading}
+                              className="bg-indigo-600 hover:bg-indigo-700"
                             >
-                              {uploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-                              Update
+                              {uploading ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  Saving...
+                                </>
+                              ) : (
+                                <>
+                                  <Check className="w-4 h-4 mr-2" />
+                                  Save & Submit
+                                </>
+                              )}
                             </Button>
                           </div>
                         </div>
@@ -1893,39 +2490,39 @@ export default function UserProfile() {
             </Tabs>
             {/* Only show the Edit Profile button for Personal and Professional tabs */}
             {activeTab !== "jurisdiction" && (
-              <div className="flex justify-end gap-2 pt-4">
-                {isEditing ? (
-                  <>
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsEditing(false)}
-                      disabled={uploading}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={handleSubmit}
-                      disabled={uploading}
-                    >
-                      {uploading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        'Save Changes'
-                      )}
-                    </Button>
-                  </>
-                ) : (
+            <div className="flex justify-end gap-2 pt-4">
+              {isEditing ? (
+                <>
                   <Button
-                    onClick={() => setIsEditing(true)}
+                    variant="outline"
+                    onClick={() => setIsEditing(false)}
                     disabled={uploading}
                   >
-                    Edit Profile
+                    Cancel
                   </Button>
-                )}
-              </div>
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={uploading}
+                  >
+                    {uploading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      'Save Changes'
+                    )}
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  onClick={() => setIsEditing(true)}
+                  disabled={uploading}
+                >
+                  Edit Profile
+                </Button>
+              )}
+            </div>
             )}
           </CardContent>
         </Card>

@@ -13,6 +13,8 @@ import { ProfileStrength } from "@/components/onboarding/ProfileStrength";
 import { getSpecializationsByBarNumber, getFirmSuggestions, socialProofData, specializationsByBar } from "@/lib/onboarding-utils";
 import countryList from 'react-select-country-list';
 import { v5 as uuidv5 } from 'uuid';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+const supabase = createClientComponentClient();
 
 interface OnboardingForm {
     firm_name: string;
@@ -79,7 +81,7 @@ export default function Onboarding() {
     const router = useRouter();
     const { user, isLoaded } = useUser();
     const { getToken } = useAuth();
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [currentStep, setCurrentStep] = useState(1);
     const [form, setForm] = useState<OnboardingForm>({
         firm_name: "",
@@ -123,6 +125,10 @@ export default function Onboarding() {
     const [authState, setAuthState] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading');
     const checkTimeoutRef = useRef<NodeJS.Timeout>();
     const mountedRef = useRef(true);
+    const [roles, setRoles] = useState<{ id: string, name: string }[]>([]);
+    const [roleId, setRoleId] = useState<string | null>(null);
+    const [role, setRole] = useState('attorney');
+    const [onboardingPath, setOnboardingPath] = useState<string | null>(null);
 
     // Handle component mount/unmount
     useEffect(() => {
@@ -242,7 +248,14 @@ export default function Onboarding() {
                         throw new Error(`Failed to check profile status: ${checkRes.status} ${checkRes.statusText}`);
                     }
 
-                    const checkData = await checkRes.json();
+                    let checkData;
+                    try {
+                        checkData = await checkRes.json();
+                    } catch (e) {
+                        toast.error('Server returned invalid JSON for profile check.');
+                        throw new Error('Server returned invalid JSON');
+                    }
+
                     console.log('[Onboarding] Profile check data:', {
                         exists: checkData.exists,
                         onboarding_completed: checkData.onboarding_completed,
@@ -271,8 +284,8 @@ export default function Onboarding() {
                     // If profile doesn't exist, create it
                     if (!checkData.exists) {
                         console.log('[Onboarding] Profile does not exist, creating initial profile...');
-                        const profileId = clerkIdToUUID(user.id);
-                        console.log('[Onboarding] Generated profile ID:', profileId);
+                        const profileId = user.id;
+                        console.log('[Onboarding] Using Clerk ID as profile ID:', profileId);
 
                         const response = await fetch('/api/profile/update', {
                             method: 'POST',
@@ -524,7 +537,8 @@ export default function Onboarding() {
                 currentStep,
                 formData: {
                     ...form,
-                    professionalIds
+                    professionalIds,
+                    role
                 }
             });
 
@@ -547,7 +561,8 @@ export default function Onboarding() {
                 professionalIds,
                 firstName: form.first_name,
                 lastName: form.last_name,
-                onboarding_completed: true
+                onboarding_completed: true,
+                role_id: roleId
             };
 
             console.log('[Onboarding] Sending profile update payload:', payload);
@@ -563,7 +578,14 @@ export default function Onboarding() {
                 statusText: response.statusText
             });
 
-            const responseData = await response.json();
+            let responseData;
+            try {
+                responseData = await response.json();
+            } catch (e) {
+                toast.error('Server returned invalid JSON for profile update.');
+                throw new Error('Server returned invalid JSON');
+            }
+
             console.log('[Onboarding] Profile update response data:', responseData);
 
             if (!responseData.success && responseData.code === 'PHONE_NUMBER_IN_USE') {
@@ -583,7 +605,8 @@ export default function Onboarding() {
                     firmName: form.firm_name,
                     specialization: form.specialization,
                     yearsOfPractice: form.years_of_practice,
-                    gender: form.gender
+                    gender: form.gender,
+                    role
                 }
             });
 
@@ -704,11 +727,61 @@ export default function Onboarding() {
         }
     }
 
+    // Fetch roles from Supabase on mount
+    useEffect(() => {
+        async function fetchRoles() {
+            const res = await fetch('/api/roles');
+            const data = await res.json();
+            if (data.success && Array.isArray(data.roles)) {
+                // If API returns only names, fetch ids from Supabase
+                if (typeof data.roles[0] === 'string') {
+                    const { data: dbRoles } = await supabase.from('roles').select('id, name');
+                    setRoles(dbRoles || []);
+                } else {
+                    setRoles(data.roles);
+                }
+            }
+        }
+        fetchRoles();
+    }, []);
+
+    useEffect(() => {
+        // Fetch onboarding_path from profile (or session)
+        async function fetchPath() {
+            setLoading(true);
+            const res = await fetch('/api/profile/onboarding-path');
+            const data = await res.json();
+            setOnboardingPath(data.onboarding_path || null);
+            setLoading(false);
+        }
+        fetchPath();
+    }, []);
+
+    useEffect(() => {
+        if (!loading) {
+            if (!onboardingPath) {
+                router.replace('/onboarding/choose-path');
+            } else if (onboardingPath === 'firm') {
+                router.replace('/onboarding/firm');
+            } else if (onboardingPath === 'solo') {
+                router.replace('/onboarding/solo');
+            }
+        }
+    }, [loading, onboardingPath, router]);
+
     // Show loading state while auth is being determined
     if (authState === 'loading' || !isLoaded) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+        );
+    }
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-pulse w-24 h-24 bg-gray-200 rounded-full" />
             </div>
         );
     }
@@ -1096,6 +1169,26 @@ export default function Onboarding() {
                                             className="w-full mb-4"
                                         />
                                     )}
+                                    <div className="mb-4">
+                                        <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                                        <select
+                                            id="role"
+                                            name="role"
+                                            value={roleId ?? ''}
+                                            onChange={e => {
+                                                const selectedId = e.target.value;
+                                                setRoleId(selectedId);
+                                                const selected = roles.find(r => r.id === selectedId);
+                                                setRole(selected ? selected.name : '');
+                                            }}
+                                            className="block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                            required
+                                        >
+                                            {roles.map(r => (
+                                                <option key={r.id} value={r.id}>{r.name.charAt(0).toUpperCase() + r.name.slice(1)}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
