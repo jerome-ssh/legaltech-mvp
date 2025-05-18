@@ -1,240 +1,132 @@
 "use client";
-import React, { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { Plus, Star, Search, Mail, Phone, MessageCircle, Zap, Bell } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
-import { toast } from "react-hot-toast";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ClientsTab } from "@/components/crm/ClientsTab";
+import { LeadsTab } from "@/components/crm/LeadsTab";
+import { MessagesTab } from "@/components/crm/MessagesTab";
 
-interface FormData {
-  clientName: string;
-  caseType: string;
-  description: string;
-  priority: 'low' | 'medium' | 'high';
-}
+const clients = [
+  {
+    name: "Acme Corp",
+    email: "acme@exampole.com",
+    phone: "(555) 123-4557",
+    status: "At Risk: No recent activity",
+    statusType: "at-risk",
+    amountDue: null,
+    cases: 0,
+    details: "At Risk",
+  },
+  {
+    name: "John Smith",
+    email: "john@example.com",
+    phone: "(553) 987-6543",
+    status: "Overdue",
+    statusType: "overdue",
+    amountDue: "$1,500",
+    cases: 1,
+    details: "Overdue",
+  },
+  {
+    name: "Big Bank",
+    email: "contact@biguank.com",
+    phone: "(555) 555-5555",
+    status: "Likely to Retain",
+    statusType: "likely",
+    amountDue: null,
+    cases: 3,
+    details: "Likely to Retain",
+  },
+  {
+    name: "Mary Johnson",
+    email: "mary@example.com",
+    phone: "(555) 777-3988",
+    status: "No issues detected",
+    statusType: "ok",
+    amountDue: "$0 Due",
+    cases: 0,
+    details: "No issues detected",
+  },
+];
 
-interface FormErrors {
-  clientName?: string;
-  caseType?: string;
-  description?: string;
-}
+const tabs = ["Clients", "Leads", "Communications"];
 
-export default function CRM() {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState<FormData>({
-    clientName: "",
-    caseType: "",
-    description: "",
-    priority: "medium",
-  });
-  const [errors, setErrors] = useState<FormErrors>({});
+type Lead = { id: number; name: string; source: string; value: string };
+const leadsData: Record<string, Lead[]> = {
+  Inquiry: [
+    { id: 1, name: "Jane Doe", source: "Website", value: "$5,000" },
+    { id: 2, name: "Acme Inc.", source: "Referral", value: "$2,500" },
+  ],
+  Consultation: [
+    { id: 3, name: "Bob Smith", source: "LinkedIn", value: "$3,000" },
+  ],
+  Proposal: [
+    { id: 4, name: "Global Corp", source: "Event", value: "$8,000" },
+  ],
+  Retained: [
+    { id: 5, name: "Mary Lee", source: "Website", value: "$10,000" },
+  ],
+};
+const leadColumns = ["Inquiry", "Consultation", "Proposal", "Retained"];
 
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
+const communications = [
+  {
+    id: 1,
+    type: "Email",
+    subject: "Welcome to LawMate!",
+    sender: "support@lawmate.com",
+    date: "2024-07-01T10:00:00Z",
+    content: "Your account has been created. Let us know if you need help!",
+  },
+  {
+    id: 2,
+    type: "Call",
+    subject: "Consultation Call",
+    sender: "John Smith",
+    date: "2024-06-30T15:30:00Z",
+    content: "Discussed case details and next steps.",
+  },
+  {
+    id: 3,
+    type: "Message",
+    subject: "Document Uploaded",
+    sender: "Acme Corp",
+    date: "2024-06-29T09:15:00Z",
+    content: "Uploaded contract draft for review.",
+  },
+];
 
-    if (!formData.clientName.trim()) {
-      newErrors.clientName = "Client name is required";
-    }
-    if (!formData.caseType) {
-      newErrors.caseType = "Case type is required";
-    }
-    if (!formData.description.trim()) {
-      newErrors.description = "Description is required";
-    }
+const leadStatusMap: Record<string, string[]> = {
+  Inquiry: ["inquiry"],
+  Consultation: ["consultation"],
+  Proposal: ["proposal"],
+  Retained: ["retained"]
+};
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('cases')
-        .insert([
-          {
-            client_name: formData.clientName.trim(),
-            case_type: formData.caseType,
-            description: formData.description.trim(),
-            priority: formData.priority,
-            status: 'open',
-            created_at: new Date().toISOString(),
-          }
-        ])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      toast.success('Case created successfully');
-
-      // Reset form
-      setFormData({
-        clientName: "",
-        caseType: "",
-        description: "",
-        priority: "medium",
-      });
-      setErrors({});
-
-      // Redirect to dashboard using router
-      router.push('/');
-    } catch (error) {
-      console.error('Error creating case:', error);
-      toast.error('Failed to create case. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+export default function CRMPage() {
   return (
-    <div className="flex-1 p-8">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Create New Case</h1>
-
-        <Card>
-          <CardContent className="p-6">
-            {isLoading ? (
-              <form className="space-y-6">
-                <div className="space-y-2">
-                  <Skeleton className="h-10 w-full" />
-                </div>
-                <div className="space-y-2">
-                  <Skeleton className="h-10 w-full" />
-                </div>
-                <div className="space-y-2">
-                  <Skeleton className="h-10 w-full" />
-                </div>
-                <div className="space-y-2">
-                  <Skeleton className="h-24 w-full" />
-                </div>
-                <div className="flex justify-end gap-4">
-                  <Skeleton className="h-10 w-32" />
-                </div>
-              </form>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Client Name</label>
-                  <Input
-                    value={formData.clientName}
-                    onChange={(e) => {
-                      setFormData({ ...formData, clientName: e.target.value });
-                      if (errors.clientName) {
-                        setErrors({ ...errors, clientName: undefined });
-                      }
-                    }}
-                    placeholder="Enter client name"
-                    required
-                    disabled={isLoading}
-                    className={errors.clientName ? "border-red-500" : ""}
-                  />
-                  {errors.clientName && (
-                    <p className="text-sm text-red-500">{errors.clientName}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Case Type</label>
-                  <Select
-                    value={formData.caseType}
-                    onValueChange={(value) => {
-                      setFormData({ ...formData, caseType: value });
-                      if (errors.caseType) {
-                        setErrors({ ...errors, caseType: undefined });
-                      }
-                    }}
-                    disabled={isLoading}
-                  >
-                    <SelectTrigger className={errors.caseType ? "border-red-500" : ""}>
-                      <SelectValue placeholder="Select case type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="document_review">Document Review</SelectItem>
-                      <SelectItem value="legal_research">Legal Research</SelectItem>
-                      <SelectItem value="case_analysis">Case Analysis</SelectItem>
-                      <SelectItem value="contract_review">Contract Review</SelectItem>
-                      <SelectItem value="compliance_check">Compliance Check</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {errors.caseType && (
-                    <p className="text-sm text-red-500">{errors.caseType}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Priority</label>
-                  <Select
-                    value={formData.priority}
-                    onValueChange={(value: 'low' | 'medium' | 'high') => setFormData({ ...formData, priority: value })}
-                    disabled={isLoading}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select priority" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Description</label>
-                  <Textarea
-                    value={formData.description}
-                    onChange={(e) => {
-                      setFormData({ ...formData, description: e.target.value });
-                      if (errors.description) {
-                        setErrors({ ...errors, description: undefined });
-                      }
-                    }}
-                    placeholder="Enter case description"
-                    required
-                    disabled={isLoading}
-                    className={errors.description ? "border-red-500" : ""}
-                  />
-                  {errors.description && (
-                    <p className="text-sm text-red-500">{errors.description}</p>
-                  )}
-                </div>
-
-                <div className="flex justify-end gap-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => router.push('/')}
-                    disabled={isLoading}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={isLoading}>
-                    {isLoading ? 'Creating...' : 'Create Case'}
-                  </Button>
-                </div>
-              </form>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+    <div className="container mx-auto py-6">
+      <h1 className="text-3xl font-bold mb-6">CRM Dashboard</h1>
+      <Tabs defaultValue="clients" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="clients">Clients</TabsTrigger>
+          <TabsTrigger value="leads">Leads</TabsTrigger>
+          <TabsTrigger value="messages">Communications</TabsTrigger>
+        </TabsList>
+        <TabsContent value="clients">
+          <ClientsTab />
+        </TabsContent>
+        <TabsContent value="leads">
+          <LeadsTab />
+        </TabsContent>
+        <TabsContent value="messages">
+          <MessagesTab />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 } 

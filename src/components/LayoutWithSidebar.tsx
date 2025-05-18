@@ -1,13 +1,12 @@
 "use client";
-import React, { useState, useEffect, createContext, useContext } from "react";
-import Link from "next/link";
+import React, { useState, useEffect, createContext, useContext, useCallback } from "react";
 import {
   LayoutDashboard, FileText, Users, CreditCard, BarChart2, HelpCircle, Settings,
   ChevronLeft, ChevronRight
 } from "lucide-react";
 import { useUser } from '@clerk/nextjs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 // ProfileContext for sharing profile data (including avatar_url)
 export const ProfileContext = createContext<{ 
@@ -25,80 +24,101 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
   const [collapsed, setCollapsed] = useState(true);
   const { user } = useUser();
   const router = useRouter();
-  // Use avatarUrl and clerkImageUrl from ProfileContext
+  const pathname = usePathname();
   const { avatarUrl, clerkImageUrl, isLoading } = useProfile();
 
-  // Track sidebar width for continuous avatar scaling
-  const [sidebarWidth, setSidebarWidth] = useState(80); // px, matches w-20
-  const minSidebar = 80; // w-20
-  const maxSidebar = 256; // w-64
-  const minAvatar = 48; // w-12
-  const maxAvatar = 96; // w-24
+  // Memoize the collapse handlers
+  const handleMouseEnter = useCallback(() => setCollapsed(false), []);
+  const handleMouseLeave = useCallback(() => setCollapsed(true), []);
+  const toggleCollapse = useCallback(() => setCollapsed(prev => !prev), []);
 
-  // Update sidebar width on expand/collapse
-  useEffect(() => {
-    setSidebarWidth(collapsed ? minSidebar : maxSidebar);
-  }, [collapsed]);
-
-  // Calculate avatar size based on sidebar width
-  const avatarSize = minAvatar + ((sidebarWidth - minSidebar) / (maxSidebar - minSidebar)) * (maxAvatar - minAvatar);
+  // Navigation handler
+  const handleNavigation = useCallback((path: string) => {
+    if (pathname !== path) {
+      router.push(path);
+    }
+  }, [pathname, router]);
 
   // Helper to get initials
-  const getInitials = (user: any) => {
+  const getInitials = useCallback((user: any) => {
     if (!user) return '';
     const first = user.firstName || '';
     const last = user.lastName || '';
     return (first[0] || '') + (last[0] || '');
-  };
+  }, []);
 
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
       <aside
-        className={`group ${collapsed ? "w-20" : "w-64"} shadow-md p-4 transition-all duration-300 ease-in-out hover:w-64 flex flex-col bg-white dark:bg-[#23315c]`}
-        onMouseEnter={() => setCollapsed(false)}
-        onMouseLeave={() => setCollapsed(true)}
+        className={`group ${collapsed ? "w-20" : "w-64"} shadow-md p-4 transition-all duration-200 ease-in-out hover:w-64 flex flex-col bg-white dark:bg-[#23315c]`}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         <div>
           <div className="flex items-center justify-between mb-10">
             <div className={`text-2xl font-bold text-blue-600 dark:text-white ${collapsed ? "hidden group-hover:block" : "block"}`}>LawMate</div>
-            <button onClick={() => setCollapsed(!collapsed)} className="p-1 hover:bg-gray-100 rounded-md transition-colors">
+            <button 
+              onClick={toggleCollapse} 
+              className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+            >
               {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
             </button>
           </div>
           <nav className="space-y-6 text-black dark:text-white">
-            <Link href="/dashboard" className="flex items-center gap-2 text-black dark:text-white font-semibold">
-              <LayoutDashboard className="w-5 h-5 text-black dark:text-white" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Dashboard</span>
-            </Link>
-            <Link href="/documents" className="flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white">
-              <FileText className="w-5 h-5 text-black dark:text-white" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Documents</span>
-            </Link>
-            <Link href="/clients" className="flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white">
-              <Users className="w-5 h-5 text-black dark:text-white" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Clients</span>
-            </Link>
-            <Link href="/billing" className="flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white">
-              <CreditCard className="w-5 h-5 text-black dark:text-white" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Billing</span>
-            </Link>
-            <Link href="/analytics" className="flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white">
-              <BarChart2 className="w-5 h-5 text-black dark:text-white" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Analytics</span>
-            </Link>
-            <Link href="/help" className="flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white">
-              <HelpCircle className="w-5 h-5 text-black dark:text-white" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Help</span>
-            </Link>
-            <Link href="/settings" className="flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white">
-              <Settings className="w-5 h-5 text-black dark:text-white" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Settings</span>
-            </Link>
+            <button 
+              onClick={() => handleNavigation('/dashboard')}
+              className={`w-full flex items-center gap-2 text-black dark:text-white font-semibold hover:text-blue-600 transition-colors ${pathname === '/dashboard' ? 'text-blue-600' : ''}`}
+            >
+              <LayoutDashboard className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Dashboard</span>
+            </button>
+            <button 
+              onClick={() => handleNavigation('/documents')}
+              className={`w-full flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white transition-colors ${pathname === '/documents' ? 'text-blue-600' : ''}`}
+            >
+              <FileText className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Documents</span>
+            </button>
+            <button 
+              onClick={() => handleNavigation('/crm')}
+              className={`w-full flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white transition-colors ${pathname === '/crm' ? 'text-blue-600' : ''}`}
+            >
+              <Users className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>CRM</span>
+            </button>
+            <button 
+              onClick={() => handleNavigation('/billing')}
+              className={`w-full flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white transition-colors ${pathname === '/billing' ? 'text-blue-600' : ''}`}
+            >
+              <CreditCard className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Billing</span>
+            </button>
+            <button 
+              onClick={() => handleNavigation('/analytics')}
+              className={`w-full flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white transition-colors ${pathname === '/analytics' ? 'text-blue-600' : ''}`}
+            >
+              <BarChart2 className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Analytics</span>
+            </button>
+            <button 
+              onClick={() => handleNavigation('/help')}
+              className={`w-full flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white transition-colors ${pathname === '/help' ? 'text-blue-600' : ''}`}
+            >
+              <HelpCircle className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Help</span>
+            </button>
+            <button 
+              onClick={() => handleNavigation('/settings')}
+              className={`w-full flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white transition-colors ${pathname === '/settings' ? 'text-blue-600' : ''}`}
+            >
+              <Settings className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Settings</span>
+            </button>
           </nav>
           {/* Avatar right after nav, with small margin */}
           <div className="flex flex-col items-center mt-80">
             <button
-              onClick={() => router.push('/user-profile')}
+              onClick={() => handleNavigation('/user-profile')}
               className="focus:outline-none"
               title="View Profile"
             >
               <Avatar
-                style={{ width: avatarSize, height: avatarSize, transition: 'width 0.3s, height 0.3s' }}
-                className={`border-2 border-blue-500 shadow hover:shadow-lg transition-all duration-300`}
+                className={`border-2 border-blue-500 shadow hover:shadow-lg transition-all duration-200`}
+                style={{ width: collapsed ? 48 : 96, height: collapsed ? 48 : 96 }}
               >
                 {isLoading ? (
                   <span className="w-full h-full flex items-center justify-center font-bold text-lg text-gray-400 animate-pulse">--</span>

@@ -1793,10 +1793,10 @@ export default function UserProfile() {
   return (
     <ProfileContext.Provider value={{ avatarUrl: profile?.avatar_url || null, clerkImageUrl: null, isLoading: false }}>
     <LayoutWithSidebar>
-        <div className="container mx-auto py-8 space-y-8 bg-white dark:bg-gradient-to-br dark:from-[#3a4666] dark:via-[#6e7bbf] dark:to-[#f7c4e6]/10 dark:text-blue-950">
+      <div className="container mx-auto py-8 space-y-8">
         {/* Hero Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="md:col-span-2 overflow-hidden shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-95 bg-gradient-to-br from-white via-sky-50/80 to-pink-50/10 dark:from-[#3a4666] dark:via-[#6e7bbf] dark:to-[#f7c4e6]/10 dark:text-blue-950">
+            <Card className="md:col-span-2 overflow-hidden shadow-sm transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100/50 hover:shadow-[0_4px_32px_0_rgba(59,130,246,0.12)] dark:hover:shadow-[0_4px_32px_0_rgba(255,255,255,0.27)]">
             <CardContent className="p-6">
                 <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
                 <div className="relative">
@@ -1840,8 +1840,8 @@ export default function UserProfile() {
 
                   <div className="flex-1 space-y-4 text-center md:text-left">
                     <div>
-                      <h2 className="text-2xl font-semibold text-gray-800">{clerkUser?.fullName || 'User'}</h2>
-                      <p className="text-sm text-indigo-600 font-medium">
+                      <h2 className="text-2xl font-semibold text-gray-800 dark:text-[#6C63FF]">{clerkUser?.fullName || 'User'}</h2>
+                      <p className="text-sm text-indigo-600 font-medium dark:text-[#6C63FF]">
                         {roleId && roles.find(r => r.id === roleId)?.name ? 
                           (roles.find(r => r.id === roleId)?.name || '').charAt(0).toUpperCase() + 
                           (roles.find(r => r.id === roleId)?.name || '').slice(1) : 
@@ -1850,28 +1850,28 @@ export default function UserProfile() {
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Mail className="w-4 h-4 mr-2 text-indigo-500" />
+                      <div className="flex items-center text-sm text-gray-600 dark:text-[#6C63FF]">
+                        <Mail className="w-4 h-4 mr-2 text-indigo-500 dark:text-[#6C63FF]" />
                         {clerkUser?.emailAddresses[0]?.emailAddress}
                       </div>
                       
                       {displayProfile.phone_number && (
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Phone className="w-4 h-4 mr-2 text-indigo-500" />
+                        <div className="flex items-center text-sm text-gray-600 dark:text-[#6C63FF]">
+                          <Phone className="w-4 h-4 mr-2 text-indigo-500 dark:text-[#6C63FF]" />
                           {displayProfile.phone_number}
                         </div>
                       )}
                       
                       {displayProfile.firm_name && (
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Building className="w-4 h-4 mr-2 text-indigo-500" />
+                        <div className="flex items-center text-sm text-gray-600 dark:text-[#6C63FF]">
+                          <Building className="w-4 h-4 mr-2 text-indigo-500 dark:text-[#6C63FF]" />
                           {displayProfile.firm_name}
                         </div>
                       )}
                       
                       {displayProfile.address && (
-                        <div className="flex items-center text-sm text-gray-600">
-                          <MapPin className="w-4 h-4 mr-2 text-indigo-500" />
+                        <div className="flex items-center text-sm text-gray-600 dark:text-[#6C63FF]">
+                          <MapPin className="w-4 h-4 mr-2 text-indigo-500 dark:text-[#6C63FF]" />
                           {displayProfile.address}
                         </div>
                       )}
@@ -1879,22 +1879,22 @@ export default function UserProfile() {
                     
                     <div className="flex flex-wrap gap-2 justify-center md:justify-start">
                       {displayProfile.specialization && (
-                        <Badge variant="secondary" className="flex items-center gap-1 bg-gradient-to-r from-indigo-50 to-blue-50 text-indigo-700 border border-indigo-100 shadow-sm">
-                          <Award className="w-3 h-3" />
+                        <Badge variant="secondary" className="flex items-center gap-1 bg-gradient-to-r from-indigo-50 to-blue-50 text-indigo-700 border border-indigo-100 shadow-sm dark:text-[#6C63FF] dark:border-[#6C63FF]">
+                          <Award className="w-3 h-3 dark:text-[#6C63FF]" />
                           {displayProfile.specialization}
                       </Badge>
                       )}
                       
                       {professionalIds && professionalIds.length > 0 && (
-                        <Badge variant="outline" className="flex items-center gap-1 border-indigo-200 shadow-sm">
-                          <Shield className="w-3 h-3 text-indigo-500" />
+                        <Badge variant="outline" className="flex items-center gap-1 border-indigo-200 shadow-sm dark:text-[#6C63FF] dark:border-[#6C63FF]">
+                          <Shield className="w-3 h-3 text-indigo-500 dark:text-[#6C63FF]" />
                           {professionalIds.length} {professionalIds.length === 1 ? 'Certification' : 'Certifications'}
                       </Badge>
                       )}
                       
                       {displayProfile.years_of_practice && (
-                        <Badge variant="outline" className="flex items-center gap-1 border-indigo-200 shadow-sm">
-                          <Clock className="w-3 h-3 text-indigo-500" />
+                        <Badge variant="outline" className="flex items-center gap-1 border-indigo-200 shadow-sm dark:text-[#6C63FF] dark:border-[#6C63FF]">
+                          <Clock className="w-3 h-3 text-indigo-500 dark:text-[#6C63FF]" />
                           {displayProfile.years_of_practice} {Number(displayProfile.years_of_practice) === 1 ? 'Year' : 'Years'} of Practice
                         </Badge>
                       )}
@@ -1904,7 +1904,7 @@ export default function UserProfile() {
             </CardContent>
           </Card>
 
-            <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-95 bg-gradient-to-tr from-white via-pink-50/10 to-sky-50/80 dark:from-[#3a4666] dark:via-[#6e7bbf] dark:to-[#f7c4e6]/10 dark:text-blue-950">
+            <Card className="shadow-sm transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100/50 hover:shadow-[0_4px_32px_0_rgba(59,130,246,0.12)] dark:hover:shadow-[0_4px_32px_0_rgba(255,255,255,0.27)]">
             <CardContent className="p-6">
               <div className="space-y-4">
                 <div>
@@ -1935,7 +1935,7 @@ export default function UserProfile() {
 
         {/* Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-r from-white via-sky-50/70 to-pink-50/10 dark:from-[#3a4666] dark:via-[#6e7bbf] dark:to-[#f7c4e6]/10 dark:text-blue-950">
+            <Card className="shadow-sm transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100/50 hover:shadow-[0_4px_32px_0_rgba(59,130,246,0.12)] dark:hover:shadow-[0_4px_32px_0_rgba(255,255,255,0.27)]">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Activity className="w-4 h-4" />
@@ -1943,12 +1943,12 @@ export default function UserProfile() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{displayMetrics.productivity_score}%</div>
-              <p className="text-xs text-gray-500 mt-1">Weekly efficiency score</p>
+              <div className="text-2xl font-bold text-black dark:text-black">{displayMetrics.productivity_score}%</div>
+              <p className="text-xs text-gray-700 mt-1 dark:text-black">Weekly efficiency score</p>
             </CardContent>
           </Card>
 
-            <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-br from-white via-pink-50/10 to-sky-50/60 dark:from-[#3a4666] dark:via-[#6e7bbf] dark:to-[#f7c4e6]/10 dark:text-blue-950">
+            <Card className="shadow-sm transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100/50 hover:shadow-[0_4px_32px_0_rgba(59,130,246,0.12)] dark:hover:shadow-[0_4px_32px_0_rgba(255,255,255,0.27)]">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Clock className="w-4 h-4" />
@@ -1956,12 +1956,12 @@ export default function UserProfile() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{displayMetrics.time_saved}h</div>
-              <p className="text-xs text-gray-500 mt-1">This month through automation</p>
+              <div className="text-2xl font-bold text-black dark:text-black">{displayMetrics.time_saved}h</div>
+              <p className="text-xs text-gray-700 mt-1 dark:text-black">This month through automation</p>
             </CardContent>
           </Card>
 
-            <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-tl from-white via-sky-50/70 to-pink-50/10 dark:from-[#3a4666] dark:via-[#6e7bbf] dark:to-[#f7c4e6]/10 dark:text-blue-950">
+            <Card className="shadow-sm transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100/50 hover:shadow-[0_4px_32px_0_rgba(59,130,246,0.12)] dark:hover:shadow-[0_4px_32px_0_rgba(255,255,255,0.27)]">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Brain className="w-4 h-4" />
@@ -1969,12 +1969,12 @@ export default function UserProfile() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{displayMetrics.ai_interactions}</div>
-              <p className="text-xs text-gray-500 mt-1">AI features used this month</p>
+              <div className="text-2xl font-bold text-black dark:text-black">{displayMetrics.ai_interactions}</div>
+              <p className="text-xs text-gray-700 mt-1 dark:text-black">AI features used this month</p>
             </CardContent>
           </Card>
 
-            <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-tr from-white via-pink-50/10 to-sky-50/60 dark:from-[#3a4666] dark:via-[#6e7bbf] dark:to-[#f7c4e6]/10 dark:text-blue-950">
+            <Card className="shadow-sm transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100/50 hover:shadow-[0_4px_32px_0_rgba(59,130,246,0.12)] dark:hover:shadow-[0_4px_32px_0_rgba(255,255,255,0.27)]">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Users className="w-4 h-4" />
@@ -1982,12 +1982,12 @@ export default function UserProfile() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{displayMetrics.networking_score}%</div>
-              <p className="text-xs text-gray-500 mt-1">Professional connections</p>
+              <div className="text-2xl font-bold text-black dark:text-black">{displayMetrics.networking_score}%</div>
+              <p className="text-xs text-gray-700 mt-1 dark:text-black">Professional connections</p>
             </CardContent>
           </Card>
 
-            <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-bl from-white via-sky-50/70 to-pink-50/10 dark:from-[#3a4666] dark:via-[#6e7bbf] dark:to-[#f7c4e6]/10 dark:text-blue-950">
+            <Card className="shadow-sm transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100/50 hover:shadow-[0_4px_32px_0_rgba(59,130,246,0.12)] dark:hover:shadow-[0_4px_32px_0_rgba(255,255,255,0.27)]">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Shield className="w-4 h-4" />
@@ -1995,12 +1995,12 @@ export default function UserProfile() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{displayMetrics.compliance_score}%</div>
-              <p className="text-xs text-gray-500 mt-1">Data security & compliance</p>
+              <div className="text-2xl font-bold text-black dark:text-black">{displayMetrics.compliance_score}%</div>
+              <p className="text-xs text-gray-700 mt-1 dark:text-black">Data security & compliance</p>
             </CardContent>
           </Card>
 
-            <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-br from-white via-pink-50/10 to-sky-50/60 dark:from-[#3a4666] dark:via-[#6e7bbf] dark:to-[#f7c4e6]/10 dark:text-blue-950">
+            <Card className="shadow-sm transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100/50 hover:shadow-[0_4px_32px_0_rgba(59,130,246,0.12)] dark:hover:shadow-[0_4px_32px_0_rgba(255,255,255,0.27)]">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Target className="w-4 h-4" />
@@ -2008,14 +2008,14 @@ export default function UserProfile() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{displayMetrics.billing_efficiency}%</div>
-              <p className="text-xs text-gray-500 mt-1">Invoice processing speed</p>
+              <div className="text-2xl font-bold text-black dark:text-black">{displayMetrics.billing_efficiency}%</div>
+              <p className="text-xs text-gray-700 mt-1 dark:text-black">Invoice processing speed</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Professional Information Card */}
-          <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-95 bg-gradient-to-b from-white via-sky-50/60 to-pink-50/10 dark:from-[#3a4666] dark:via-[#6e7bbf] dark:to-[#f7c4e6]/10 dark:text-blue-950">
+          <Card className="shadow-sm transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100/50 hover:shadow-[0_4px_32px_0_rgba(59,130,246,0.12)] dark:hover:shadow-[0_4px_32px_0_rgba(255,255,255,0.27)]">
           <CardHeader>
             <CardTitle>Professional Information</CardTitle>
             <CardDescription>Update your professional details</CardDescription>
@@ -2036,7 +2036,7 @@ export default function UserProfile() {
                       value={formData.first_name || ''}
                       onChange={handleInputChange}
                       placeholder="First Name"
-                      className="mb-2"
+                      className="mb-2 bg-white text-black dark:bg-white dark:text-black"
                       disabled={!isEditing || uploading}
                     />
                     <Input
@@ -2044,6 +2044,7 @@ export default function UserProfile() {
                       value={formData.last_name || ''}
                       onChange={handleInputChange}
                       placeholder="Last Name"
+                      className="bg-white text-black dark:bg-white dark:text-black"
                       disabled={!isEditing || uploading}
                     />
                   </div>
@@ -2054,6 +2055,7 @@ export default function UserProfile() {
                       value={formData.email || ''}
                       onChange={handleInputChange}
                       placeholder="Email"
+                      className="bg-white text-black dark:bg-white dark:text-black"
                       disabled={!isEditing || uploading}
                     />
                   </div>
@@ -2064,6 +2066,7 @@ export default function UserProfile() {
                       value={formData.phone_number || ''}
                       onChange={handleInputChange}
                       placeholder="Phone Number"
+                      className="bg-white text-black dark:bg-white dark:text-black"
                       disabled={!isEditing || uploading}
                     />
                   </div>
@@ -2074,6 +2077,7 @@ export default function UserProfile() {
                       value={formData.address || ''}
                       onChange={handleInputChange}
                       placeholder="Address"
+                      className="bg-white text-black dark:bg-white dark:text-black"
                       disabled={!isEditing || uploading}
                     />
                   </div>
@@ -2084,6 +2088,7 @@ export default function UserProfile() {
                       value={formData.home_address || ''}
                       onChange={handleInputChange}
                       placeholder="Home Address"
+                      className="bg-white text-black dark:bg-white dark:text-black"
                       disabled={!isEditing || uploading}
                     />
                   </div>
@@ -2115,6 +2120,7 @@ export default function UserProfile() {
                       value={formData.firm_name || ''}
                       onChange={handleInputChange}
                           placeholder="Enter your law firm name"
+                      className="bg-white text-black dark:bg-white dark:text-black"
                       disabled={!isEditing || uploading}
                           ref={firmInputRef}
                         />
@@ -2147,6 +2153,7 @@ export default function UserProfile() {
                             value={formData.specialization || ''}
                             onChange={handleInputChange}
                             placeholder="Enter your practice area"
+                            className="bg-white text-black dark:bg-white dark:text-black"
                         disabled={!isEditing || uploading}
                             onFocus={() => isEditing && !uploading && setSpecializationFocused(true)}
                           />
@@ -2185,6 +2192,7 @@ export default function UserProfile() {
                       value={formData.years_of_practice || ''}
                       onChange={handleInputChange}
                       placeholder="Years of Practice"
+                      className="bg-white text-black dark:bg-white dark:text-black"
                       disabled={!isEditing || uploading}
                     />
                   </div>
@@ -2280,6 +2288,7 @@ export default function UserProfile() {
                                   value={editing.professional_id || ''}
                                   onChange={e => handleProfessionalIdChange(profId.id, 'professional_id', e.target.value)}
                                   placeholder="Bar Admission, Specialist Certification, etc."
+                                  className="bg-white text-black dark:bg-white dark:text-black"
                                   disabled={uploading}
                                 />
                                 <div className="text-xs text-gray-500 mt-1">Enter the name of your certification or license</div>
@@ -2341,6 +2350,7 @@ export default function UserProfile() {
                                   value={editing.issuing_authority || ''}
                                   onChange={e => handleProfessionalIdChange(profId.id, 'issuing_authority', e.target.value)}
                                   placeholder="State Bar, Law Society, etc."
+                                  className="bg-white text-black dark:bg-white dark:text-black"
                                 disabled={uploading}
                               />
                             </div>
@@ -2352,9 +2362,9 @@ export default function UserProfile() {
                                     type="date"
                                     value={editing.issue_date || ''}
                                     onChange={e => handleProfessionalIdChange(profId.id, 'issue_date', e.target.value)}
+                                    className="pr-10 bg-white text-black dark:bg-white dark:text-black"
                                 disabled={uploading}
                                     max={new Date().toISOString().split('T')[0]} // Restrict to today and earlier
-                                    className="pr-10" // Make room for the icon
                                     onClick={(e) => e.currentTarget.showPicker()} // Only open picker on click
                                     onFocus={(e) => e.target.blur()} // Prevent auto-focus from opening the picker
                               />

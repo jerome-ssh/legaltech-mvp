@@ -358,7 +358,7 @@ export async function calculateAIIntractions(clerkId: string): Promise<number> {
 
     if (!response.ok) {
       console.error('Failed to fetch AI interactions:', await response.text());
-      return 0;
+  return 0;
     }
 
     const data = await response.json();
@@ -385,7 +385,7 @@ export async function calculateNetworkingScore(clerkId: string): Promise<number>
 
     if (!response.ok) {
       console.error('Failed to fetch networking score:', await response.text());
-      return 0;
+  return 0;
     }
 
     const data = await response.json();
@@ -412,7 +412,7 @@ export async function calculateComplianceScore(clerkId: string): Promise<number>
 
     if (!response.ok) {
       console.error('Failed to fetch compliance score:', await response.text());
-      return 0;
+  return 0;
     }
 
     const data = await response.json();
@@ -439,7 +439,7 @@ export async function calculateBillingEfficiency(clerkId: string): Promise<numbe
 
     if (!response.ok) {
       console.error('Failed to fetch billing efficiency:', await response.text());
-      return 0;
+  return 0;
     }
 
     const data = await response.json();
@@ -466,7 +466,7 @@ export async function calculateWorkflowEfficiency(clerkId: string): Promise<numb
 
     if (!response.ok) {
       console.error('Failed to fetch workflow efficiency:', await response.text());
-      return 0;
+  return 0;
     }
 
     const data = await response.json();
@@ -479,11 +479,11 @@ export async function calculateWorkflowEfficiency(clerkId: string): Promise<numb
 
 export async function calculateLearningProgress(clerkId: string): Promise<number> {
   try {
-    const supabase = createClientComponentClient();
+  const supabase = createClientComponentClient();
     const profileId = await getUserUuid(clerkId);
   
-    // Since learning_progress table might not exist yet, return 0
-    return 0;
+  // Since learning_progress table might not exist yet, return 0
+  return 0;
   } catch (error) {
     console.error('Error calculating learning progress:', error);
     return 0;

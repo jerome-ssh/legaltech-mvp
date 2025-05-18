@@ -471,28 +471,28 @@ export default function Analytics() {
 
         {/* Summary Statistics Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="shadow-sm hover:shadow-2xl hover:shadow-blue-500/30 transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100">
+          <Card className="shadow-sm transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100/50 hover:shadow-[0_4px_32px_0_rgba(59,130,246,0.12)] dark:hover:shadow-[0_4px_32px_0_rgba(255,255,255,0.27)]">
             <CardContent className="p-6">
               <h3 className="text-sm font-medium text-black dark:text-black">Total Cases</h3>
               <p className="text-3xl font-bold text-black mt-2 dark:text-black">{summaryStats.totalCases}</p>
               <p className="text-sm text-gray-700 mt-1 dark:text-black">{summaryStats.activeCases} Active</p>
             </CardContent>
           </Card>
-          <Card className="shadow-sm hover:shadow-2xl hover:shadow-blue-500/30 transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100">
+          <Card className="shadow-sm transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100/50 hover:shadow-[0_4px_32px_0_rgba(59,130,246,0.12)] dark:hover:shadow-[0_4px_32px_0_rgba(255,255,255,0.27)]">
             <CardContent className="p-6">
               <h3 className="text-sm font-medium text-black dark:text-black">Total Revenue</h3>
               <p className="text-3xl font-bold text-black mt-2 dark:text-black">${summaryStats.totalRevenue.toLocaleString()}</p>
               <p className="text-sm text-gray-700 mt-1 dark:text-black">Last 30 days</p>
             </CardContent>
           </Card>
-          <Card className="shadow-sm hover:shadow-2xl hover:shadow-blue-500/30 transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100">
+          <Card className="shadow-sm transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100/50 hover:shadow-[0_4px_32px_0_rgba(59,130,246,0.12)] dark:hover:shadow-[0_4px_32px_0_rgba(255,255,255,0.27)]">
             <CardContent className="p-6">
               <h3 className="text-sm font-medium text-black dark:text-black">Success Rate</h3>
               <p className="text-3xl font-bold text-black mt-2 dark:text-black">{summaryStats.successRate.toFixed(1)}%</p>
               <p className="text-sm text-gray-700 mt-1 dark:text-black">Based on closed cases</p>
             </CardContent>
           </Card>
-          <Card className="shadow-sm hover:shadow-2xl hover:shadow-blue-500/30 transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100">
+          <Card className="shadow-sm transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100/50 hover:shadow-[0_4px_32px_0_rgba(59,130,246,0.12)] dark:hover:shadow-[0_4px_32px_0_rgba(255,255,255,0.27)]">
             <CardContent className="p-6">
               <h3 className="text-sm font-medium text-black dark:text-black">Client Satisfaction</h3>
               <p className="text-3xl font-bold text-black mt-2 dark:text-black">{summaryStats.clientSatisfaction}/5</p>
@@ -548,14 +548,12 @@ export default function Analytics() {
           {chartConfigs.map(({ title, chart, data }, i) => (
             <Card
               key={i}
-              className={`shadow-sm transition-all duration-300 cursor-pointer hover:shadow-2xl hover:shadow-blue-500/30 ${focusedChartIndex === i
-                ? "shadow-[0_0_25px_rgba(59,130,246,0.5)] border-2 border-blue-500 scale-[1.01]"
-                : ""
-                }`}
+              tabIndex={0}
+              className={`shadow-sm transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100/50 hover:shadow-[0_4px_32px_0_rgba(59,130,246,0.12)] dark:hover:shadow-[0_4px_32px_0_rgba(255,255,255,0.27)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${focusedChartIndex === i ? 'ring-2 ring-blue-500' : ''}`}
               onClick={() => setFocusedChartIndex(focusedChartIndex === i ? null : i)}
             >
               <CardContent className="p-6">
-                <h2 className="font-semibold text-lg text-black mb-4 dark:text-white">{title}</h2>
+                <h2 className="font-semibold text-lg text-black mb-4 dark:text-black">{title}</h2>
                 <ResponsiveContainer width="100%" height={300}>
                   {chart ? chart(data) : <React.Fragment />}
                 </ResponsiveContainer>
