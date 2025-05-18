@@ -2,6 +2,8 @@ import { authMiddleware } from "@clerk/nextjs";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { AppError, ErrorCodes } from "@/lib/errors";
+import { isProduction } from "@/config/env";
 
 // Debug logging for environment variables
 console.log('Environment variables in middleware:', {
@@ -53,18 +55,12 @@ function isSocialSignIn(userData: any): boolean {
 
 export default authMiddleware({
   publicRoutes: publicPaths,
-  debug: true, // Enable Clerk's debug mode
+  debug: !isProduction,
   afterAuth: async (auth, req) => {
-    // Enhanced debug logging
-    console.log('Auth object:', auth);
-
     // Handle public routes and sign-up related routes
     if (isPublic(req.nextUrl.pathname)) {
       // For sign-up routes, check if user is already authenticated
       if (req.nextUrl.pathname.startsWith('/signup') && auth.userId) {
-        console.log('Authenticated user attempting sign-up, checking profile status');
-        
-        // Check if user already has a profile
         try {
           const token = await auth.getToken();
           
@@ -93,22 +89,11 @@ export default authMiddleware({
                   .single();
 
                 if (existingPhoneProfile) {
-                  const isApiRequest = req.nextUrl.pathname.startsWith('/api/');
-                  if (isApiRequest) {
-                    return NextResponse.json(
-                      {
-                        success: false,
-                        error: "Phone number is already associated with another account",
-                        code: "PHONE_NUMBER_IN_USE"
-                      },
-                      { status: 400 }
-                    );
-                  } else {
-                    // Redirect to login with error code for page requests
-                    const loginUrl = new URL('/login', req.url);
-                    loginUrl.searchParams.set('error', 'PHONE_NUMBER_IN_USE');
-                    return NextResponse.redirect(loginUrl);
-                  }
+                  throw new AppError(
+                    "Phone number is already associated with another account",
+                    ErrorCodes.VALIDATION.DUPLICATE_RECORD,
+                    400
+                  );
                 }
               }
 
@@ -122,22 +107,11 @@ export default authMiddleware({
                   .single();
 
                 if (existingEmailProfile) {
-                  const isApiRequest = req.nextUrl.pathname.startsWith('/api/');
-                  if (isApiRequest) {
-                    return NextResponse.json(
-                      {
-                        success: false,
-                        error: "Email is already associated with another account",
-                        code: "EMAIL_IN_USE"
-                      },
-                      { status: 400 }
-                    );
-                  } else {
-                    // Redirect to login with error code for page requests
-                    const loginUrl = new URL('/login', req.url);
-                    loginUrl.searchParams.set('error', 'EMAIL_IN_USE');
-                    return NextResponse.redirect(loginUrl);
-                  }
+                  throw new AppError(
+                    "Email is already associated with another account",
+                    ErrorCodes.VALIDATION.DUPLICATE_RECORD,
+                    400
+                  );
                 }
               }
             }
@@ -157,16 +131,32 @@ export default authMiddleware({
           if (res.ok) {
             const { exists, onboarding_completed } = await res.json();
             if (exists) {
-              console.log('User already has profile, redirecting to appropriate page');
               return NextResponse.redirect(new URL(
                 onboarding_completed ? '/dashboard' : '/onboarding',
                 req.url
               ));
             }
           }
-        } catch (err) {
-          console.error('Error checking profile during sign-up:', err);
-          // On error, allow access to sign-up to handle the error case
+        } catch (error) {
+          if (error instanceof AppError) {
+            const isApiRequest = req.nextUrl.pathname.startsWith('/api/');
+            if (isApiRequest) {
+              return NextResponse.json(
+                {
+                  success: false,
+                  error: error.message,
+                  code: error.code
+                },
+                { status: error.status }
+              );
+            } else {
+              const loginUrl = new URL('/login', req.url);
+              loginUrl.searchParams.set('error', error.code);
+              return NextResponse.redirect(loginUrl);
+            }
+          }
+          // On unexpected error, allow access to sign-up to handle the error case
+          console.error('Error checking profile during sign-up:', error);
         }
       }
 
@@ -210,8 +200,8 @@ export default authMiddleware({
               ));
             }
           }
-        } catch (err) {
-          console.error('Error checking profile during auth flow:', err);
+        } catch (error) {
+          console.error('Error checking profile during auth flow:', error);
           // On error, allow access to continue the auth flow
         }
       }

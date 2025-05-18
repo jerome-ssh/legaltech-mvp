@@ -131,18 +131,29 @@ export function MessagesTab() {
     const uploaded: { url: string; name: string; type: string }[] = [];
     for (const file of files) {
       const filePath = `messages/${Date.now()}-${file.name}`;
+      console.log('Uploading file to Supabase:', file.name, filePath);
       const { data, error } = await supabase.storage.from('message-attachments').upload(filePath, file, {
         cacheControl: '3600',
         upsert: false,
       });
-      if (error) throw error;
-      const { data: publicUrlData } = supabase.storage.from('message-attachments').getPublicUrl(filePath);
+      console.log('Upload response:', { data, error });
+      if (error) {
+        console.error('Supabase upload error:', error);
+        throw error;
+      }
+      const { data: publicUrlData, error: publicUrlError } = supabase.storage.from('message-attachments').getPublicUrl(filePath);
+      console.log('Public URL response:', { publicUrlData, publicUrlError });
+      if (publicUrlError) {
+        console.error('Supabase public URL error:', publicUrlError);
+        throw publicUrlError;
+      }
       uploaded.push({ url: publicUrlData.publicUrl, name: file.name, type: file.type });
     }
     return uploaded;
   };
 
   const handleSendReply = async () => {
+    console.log('handleSendReply called', { reply, attachments, selectedThreadCaseId });
     if (!reply.trim() && attachments.length === 0) return;
     if (!selectedThreadCaseId) return;
     setUploading(true);
@@ -156,9 +167,12 @@ export function MessagesTab() {
           throw uploadErr;
         }
       }
+      console.log('Upload complete, about to call sendMessage', uploadedAttachments);
       // Send message with attachments as JSON
+      console.log('Calling sendMessage...');
       try {
         await sendMessage(reply, selectedThreadCaseId, uploadedAttachments.length > 0 ? uploadedAttachments : undefined);
+        console.log('sendMessage resolved');
       } catch (insertErr) {
         console.error('Supabase insert error:', insertErr);
         throw insertErr;

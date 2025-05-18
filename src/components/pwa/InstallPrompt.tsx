@@ -4,10 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { X, Download } from 'lucide-react';
 
-function isFirefox() {
-  return typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().includes('firefox');
-}
-
 export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showPrompt, setShowPrompt] = useState(false);
@@ -17,10 +13,7 @@ export default function InstallPrompt() {
 
   useEffect(() => {
     setIsStandalone(window.matchMedia('(display-mode: standalone)').matches);
-    if (isFirefox()) {
-      setInstallable(true); // Always show install button for Firefox
-      return;
-    }
+    
     // Listen for the beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
@@ -35,10 +28,6 @@ export default function InstallPrompt() {
   }, []);
 
   const handleInstall = async () => {
-    if (isFirefox()) {
-      setShowButton(false); // Just close the button on Firefox
-      return;
-    }
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
@@ -80,8 +69,8 @@ export default function InstallPrompt() {
           </div>
         </div>
       )}
-      {/* Custom Dialog for Chrome/Edge */}
-      {showPrompt && !isFirefox() && (
+      {/* Custom Dialog */}
+      {showPrompt && (
         <Dialog open={showPrompt} onOpenChange={setShowPrompt}>
           <DialogContent className="sm:max-w-md border-4 border-pink-400 shadow-2xl animate-pulse">
             <DialogHeader>
@@ -118,7 +107,7 @@ export default function InstallPrompt() {
                 <Button variant="outline" onClick={handleDismiss}>
                   Not now
                 </Button>
-                <Button onClick={handleInstall} className="bg-gradient-to-r from-sky-500 to-pink-500 text-white font-bold">
+                <Button onClick={handleInstall}>
                   Install
                 </Button>
               </div>

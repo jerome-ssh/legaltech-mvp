@@ -105,8 +105,10 @@ export function useMessages() {
   ) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('User from supabase.auth.getUser:', user);
       if (!user) throw new Error('No authenticated user');
 
+      console.log('Inserting message into Supabase...');
       const { data, error } = await supabase
         .from('messages')
         .insert({
@@ -118,6 +120,9 @@ export function useMessages() {
         })
         .select()
         .single();
+      console.log('Insert finished');
+
+      console.log('Supabase message insert response:', { data, error });
 
       if (error) throw error;
 
