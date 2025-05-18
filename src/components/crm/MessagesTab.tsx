@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow, isToday, isThisWeek } from 'date-fns';
-import { Search, Send, Filter, Bell, Mail, MessageCircle, X, Paperclip, Star, Users, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Send, Filter, Bell, Mail, MessageCircle, X, Paperclip, Star, Users, ChevronDown, ChevronUp, CheckCheck } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -132,20 +132,20 @@ export function MessagesTab() {
     for (const file of files) {
       const filePath = `messages/${Date.now()}-${file.name}`;
       console.log('Uploading file to Supabase:', file.name, filePath);
-      const { data, error } = await supabase.storage.from('message-attachments').upload(filePath, file, {
+      const { data } = await supabase.storage.from('message-attachments').upload(filePath, file, {
         cacheControl: '3600',
         upsert: false,
       });
-      console.log('Upload response:', { data, error });
-      if (error) {
-        console.error('Supabase upload error:', error);
-        throw error;
+      console.log('Upload response:', { data });
+      if (!data) {
+        console.error('Supabase upload error: No data returned');
+        throw new Error('No data returned from Supabase upload');
       }
-      const { data: publicUrlData, error: publicUrlError } = supabase.storage.from('message-attachments').getPublicUrl(filePath);
-      console.log('Public URL response:', { publicUrlData, publicUrlError });
-      if (publicUrlError) {
-        console.error('Supabase public URL error:', publicUrlError);
-        throw publicUrlError;
+      const { data: publicUrlData } = supabase.storage.from('message-attachments').getPublicUrl(filePath);
+      console.log('Public URL response:', { publicUrlData });
+      if (!publicUrlData) {
+        console.error('Supabase public URL error: No data returned');
+        throw new Error('No data returned from Supabase public URL');
       }
       uploaded.push({ url: publicUrlData.publicUrl, name: file.name, type: file.type });
     }
@@ -440,7 +440,11 @@ export function MessagesTab() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{msg.sender_name || msg.sender_id}</span>
-                        {!msg.read && <Badge className="bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-200">Unread</Badge>}
+                        {msg.read ? (
+                          <CheckCheck className="h-4 w-4 text-blue-500" />
+                        ) : (
+                          <Badge className="bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-200">Unread</Badge>
+                        )}
                         {idx === 0 && <Badge variant="secondary">First Message</Badge>}
                       </div>
                       <div className="text-xs text-muted-foreground mb-1">{formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })}</div>
