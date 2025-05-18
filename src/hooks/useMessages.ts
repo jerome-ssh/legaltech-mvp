@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
+import { useUser } from '@clerk/nextjs';
+import { getAuthenticatedSupabase } from '@/lib/supabaseClient';
 
 export interface Message {
   id: string;
@@ -21,6 +22,7 @@ interface SupabaseMessage {
   read: boolean;
   sender_id: string;
   case_id: string;
+  attachments?: string | null;
   users: {
     full_name: string;
   } | null;
@@ -34,27 +36,39 @@ export function useMessages() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { user, isLoaded } = useUser();
 
   const fetchMessages = useCallback(async () => {
+    if (!isLoaded || !user) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
+      const supabase = await getAuthenticatedSupabase();
+      
       const { data, error } = await supabase
         .from('messages')
-        .select('*')
+        .select(`
+          *,
+          users:users(full_name),
+          cases:cases(title)
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // For now, just map the basic fields
-      const formattedMessages = (data as any[]).map(msg => ({
+      const formattedMessages = (data as SupabaseMessage[]).map(msg => ({
         id: msg.id,
         message_text: msg.message_text,
         created_at: msg.created_at,
         read: msg.read,
-        sender_name: msg.sender_id, // fallback to sender_id for now
-        case_title: msg.case_id,    // fallback to case_id for now
+        sender_name: msg.users?.full_name || msg.sender_id,
+        case_title: msg.cases?.title || msg.case_id,
         case_id: msg.case_id,
-        sender_id: msg.sender_id
+        sender_id: msg.sender_id,
+        attachments: msg.attachments
       }));
 
       setMessages(formattedMessages);
@@ -68,10 +82,13 @@ export function useMessages() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, user, isLoaded]);
 
   const markAsRead = useCallback(async (messageId: string) => {
+    if (!isLoaded || !user) return;
+
     try {
+      const supabase = await getAuthenticatedSupabase();
       const { error } = await supabase
         .from('messages')
         .update({ read: true })
@@ -96,19 +113,19 @@ export function useMessages() {
         variant: 'destructive'
       });
     }
-  }, [toast]);
+  }, [toast, user, isLoaded]);
 
   const sendMessage = useCallback(async (
     messageText: string,
     caseId: string,
     attachments?: { url: string; name: string; type: string }[]
   ) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      console.log('User from supabase.auth.getUser:', user);
-      if (!user) throw new Error('No authenticated user');
+    if (!isLoaded || !user) {
+      throw new Error('No authenticated user');
+    }
 
-      console.log('Inserting message into Supabase...');
+    try {
+      const supabase = await getAuthenticatedSupabase();
       const { data, error } = await supabase
         .from('messages')
         .insert({
@@ -120,9 +137,6 @@ export function useMessages() {
         })
         .select()
         .single();
-      console.log('Insert finished');
-
-      console.log('Supabase message insert response:', { data, error });
 
       if (error) throw error;
 
@@ -143,11 +157,13 @@ export function useMessages() {
       });
       throw err;
     }
-  }, [fetchMessages, toast]);
+  }, [fetchMessages, toast, user, isLoaded]);
 
   useEffect(() => {
-    fetchMessages();
-  }, [fetchMessages]);
+    if (isLoaded) {
+      fetchMessages();
+    }
+  }, [fetchMessages, isLoaded]);
 
   return {
     messages,

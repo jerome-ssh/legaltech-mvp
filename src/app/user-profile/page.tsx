@@ -44,7 +44,7 @@ import {
 } from '@/lib/geo-data';
 import { Select } from "@/components/ui/select";
 import { User } from '@clerk/nextjs/server';
-import { getAuthenticatedSupabase } from '@/lib/supabase';
+import { getAuthenticatedSupabase } from '@/lib/supabaseClient';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
 import { CountrySelect, StateSelect } from "@/components/ui/form-elements";
@@ -1841,12 +1841,14 @@ export default function UserProfile() {
                   <div className="flex-1 space-y-4 text-center md:text-left">
                     <div>
                       <h2 className="text-2xl font-semibold text-gray-800 dark:text-[#6C63FF]">{clerkUser?.fullName || 'User'}</h2>
-                      <p className="text-sm text-indigo-600 font-medium dark:text-[#6C63FF]">
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="secondary" className="bg-gradient-to-r from-indigo-50 to-blue-50 text-indigo-700 border border-indigo-100 shadow-sm dark:text-[#6C63FF] dark:border-[#6C63FF]">
                         {roleId && roles.find(r => r.id === roleId)?.name ? 
                           (roles.find(r => r.id === roleId)?.name || '').charAt(0).toUpperCase() + 
                           (roles.find(r => r.id === roleId)?.name || '').slice(1) : 
                           'Legal Professional'}
-                      </p>
+                        </Badge>
+                      </div>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -1893,10 +1895,18 @@ export default function UserProfile() {
                       )}
                       
                       {displayProfile.years_of_practice && (
+                        <div className="flex gap-2">
                         <Badge variant="outline" className="flex items-center gap-1 border-indigo-200 shadow-sm dark:text-[#6C63FF] dark:border-[#6C63FF]">
                           <Clock className="w-3 h-3 text-indigo-500 dark:text-[#6C63FF]" />
                           {displayProfile.years_of_practice} {Number(displayProfile.years_of_practice) === 1 ? 'Year' : 'Years'} of Practice
+                          </Badge>
+                          {roleId && roles.find(r => r.id === roleId)?.name && (
+                            <Badge variant="outline" className="flex items-center gap-1 border-indigo-200 shadow-sm dark:text-[#6C63FF] dark:border-[#6C63FF]">
+                              {roles.find(r => r.id === roleId)?.name.charAt(0).toUpperCase() +
+                                (roles.find(r => r.id === roleId)?.name.slice(1) || '')}
                         </Badge>
+                          )}
+                        </div>
                       )}
                   </div>
                 </div>

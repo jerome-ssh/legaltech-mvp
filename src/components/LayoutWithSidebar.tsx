@@ -2,11 +2,14 @@
 import React, { useState, useEffect, createContext, useContext, useCallback } from "react";
 import {
   LayoutDashboard, FileText, Users, CreditCard, BarChart2, HelpCircle, Settings,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, Sun, Moon
 } from "lucide-react";
 import { useUser } from '@clerk/nextjs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useRouter, usePathname } from 'next/navigation';
+import { ColorModeContext } from '@/components/providers/MuiThemeProvider';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 
 // ProfileContext for sharing profile data (including avatar_url)
 export const ProfileContext = createContext<{ 
@@ -26,6 +29,7 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
   const router = useRouter();
   const pathname = usePathname();
   const { avatarUrl, clerkImageUrl, isLoading } = useProfile();
+  const colorMode = useContext(ColorModeContext);
 
   // Memoize the collapse handlers
   const handleMouseEnter = useCallback(() => setCollapsed(false), []);
@@ -139,6 +143,27 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
             {!collapsed && user && (
               <span className="mt-2 text-xs text-gray-700 font-medium text-center max-w-[120px] truncate dark:text-white">{user.fullName || user.firstName || user.lastName}</span>
             )}
+            {/* Theme Toggle Button under avatar */}
+            <div className="mt-6 flex justify-center w-full">
+              <Tooltip title={colorMode.mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+                <IconButton
+                  onClick={colorMode.toggleColorMode}
+                  aria-label="Toggle theme"
+                  size="large"
+                  sx={{
+                    border: '1px solid #e0e0e0',
+                    background: colorMode.mode === 'dark' ? '#22223b' : '#fff',
+                    transition: 'background 0.2s',
+                  }}
+                >
+                  {colorMode.mode === 'dark' ? (
+                    <Sun className="w-7 h-7 text-yellow-400" />
+                  ) : (
+                    <Moon className="w-7 h-7 text-blue-700" />
+                  )}
+                </IconButton>
+              </Tooltip>
+            </div>
           </div>
         </div>
       </aside>

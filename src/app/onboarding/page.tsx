@@ -12,7 +12,6 @@ import { ProgressIndicator } from "@/components/onboarding/ProgressIndicator";
 import countryList from 'react-select-country-list';
 import { v5 as uuidv5 } from 'uuid';
 import { commonFirmNames } from "@/lib/onboarding-utils";
-import { createClient } from '@supabase/supabase-js';
 
 interface OnboardingForm {
     firm_name: string;
@@ -204,9 +203,6 @@ const yearOptions = [
 ];
 const practiceAreaOptions = practiceAreas.map(area => ({ value: area, label: area }));
 const firmNameOptions = commonFirmNames.map(name => ({ value: name, label: name }));
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function Onboarding() {
     const router = useRouter();
@@ -274,8 +270,9 @@ export default function Onboarding() {
 
     useEffect(() => {
         async function fetchRoles() {
-            const { data, error } = await supabase.from('roles').select('name');
-            if (!error && data) {
+            const response = await fetch('/api/roles');
+            const data = await response.json();
+            if (data) {
                 setRoleOptions(
                     data
                         .map((r: { name: string }) => ({ value: r.name, label: r.name.charAt(0).toUpperCase() + r.name.slice(1) }))

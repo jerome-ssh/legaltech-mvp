@@ -363,6 +363,7 @@ export default function Dashboard() {
                     <p className="text-sm text-gray-500">Unread Messages</p>
                     <p className="text-xl font-bold">{dashboardData.unreadMessages}</p>
                   </div>
+                  <Link href="/crm?tab=messages" className="absolute inset-0" aria-label="Go to Messages" />
                 </CardContent>
               </Card>
               <Card className="shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100/50">

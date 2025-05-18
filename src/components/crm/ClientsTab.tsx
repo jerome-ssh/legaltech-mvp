@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AppError } from '@/lib/errors';
+import { CRMErrorBoundary } from './ErrorBoundary';
 
 interface Client {
   id: string;
@@ -24,34 +25,66 @@ interface Case {
   status: string;
 }
 
-export function ClientsTab() {
+function ClientsTabContent() {
   const [clients, setClients] = useState<Client[]>([]);
   const [cases, setCases] = useState<Case[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let mounted = true;
+
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [clientsRes, casesRes] = await Promise.all([
-          supabase.from('clients').select('*'),
-          supabase.from('cases').select('id, client_id, status')
+        setError(null);
+
+        // Fetch clients and cases in parallel
+        const [clientsResponse, casesResponse] = await Promise.all([
+          fetch('/api/clients'),
+          fetch('/api/cases')
         ]);
 
-        if (clientsRes.error) throw clientsRes.error;
-        if (casesRes.error) throw casesRes.error;
+        if (!clientsResponse.ok) {
+          throw new Error('Failed to fetch clients');
+        }
+        if (!casesResponse.ok) {
+          throw new Error('Failed to fetch cases');
+        }
 
-        setClients(clientsRes.data || []);
-        setCases(casesRes.data || []);
+        const [clientsData, casesData] = await Promise.all([
+          clientsResponse.json(),
+          casesResponse.json()
+        ]);
+
+        if (mounted) {
+          setClients(clientsData.data);
+          setCases(casesData.data);
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load clients');
+        console.error('Error in fetchData:', err);
+        if (mounted) {
+          if (err instanceof AppError) {
+            setError(err.message);
+          } else if (err instanceof Error) {
+            setError(`Error: ${err.message}`);
+          } else {
+            setError('An unexpected error occurred while loading clients');
+            console.error('Unknown error type:', err);
+          }
+        }
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchData();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   if (loading) {
@@ -139,5 +172,13 @@ export function ClientsTab() {
         })}
       </div>
     </div>
+  );
+}
+
+export function ClientsTab() {
+  return (
+    <CRMErrorBoundary>
+      <ClientsTabContent />
+    </CRMErrorBoundary>
   );
 } 

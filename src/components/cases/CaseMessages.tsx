@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
+import { getAuthenticatedSupabase } from '@/lib/supabaseClient';
 
 interface CaseMessagesProps {
   caseId: string;
@@ -11,15 +11,27 @@ export default function CaseMessages({ caseId }: CaseMessagesProps) {
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createClientComponentClient();
+  const [supabaseClient, setSupabaseClient] = useState<any>(null);
 
   useEffect(() => {
-    if (!caseId) return;
+    const initSupabase = async () => {
+      try {
+        const client = await getAuthenticatedSupabase();
+        setSupabaseClient(client);
+      } catch (error) {
+        console.error('Error initializing Supabase client:', error);
+      }
+    };
+    initSupabase();
+  }, []);
+
+  useEffect(() => {
+    if (!caseId || !supabaseClient) return;
     setLoading(true);
     setError(null);
     const fetchMessages = async () => {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
           .from("messages")
           .select("id, message_text, sender_id, created_at")
           .eq("case_id", caseId)
@@ -33,7 +45,7 @@ export default function CaseMessages({ caseId }: CaseMessagesProps) {
       }
     };
     fetchMessages();
-  }, [caseId]);
+  }, [caseId, supabaseClient]);
 
   if (loading) return <div className="py-4"><Loader2 className="w-5 h-5 animate-spin" /></div>;
   if (error) return <div className="text-red-500">{error}</div>;

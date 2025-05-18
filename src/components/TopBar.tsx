@@ -20,23 +20,6 @@ export default function TopBar() {
 
   return (
     <div className="flex items-center gap-4 relative">
-      {/* Theme Toggle Button */}
-      <Tooltip title={colorMode.mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
-        <IconButton
-          onClick={colorMode.toggleColorMode}
-          color={colorMode.mode === 'dark' ? 'warning' : 'primary'}
-          aria-label="Toggle theme"
-          size="large"
-          sx={{
-            border: '1px solid #e0e0e0',
-            background: colorMode.mode === 'dark' ? '#22223b' : '#fff',
-            transition: 'background 0.2s',
-          }}
-        >
-          {colorMode.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
-        </IconButton>
-      </Tooltip>
-
       {/* Schedule Button */}
       <button className="bg-pink-400 hover:bg-pink-500 text-white font-extrabold px-5 py-2 rounded-md flex items-center gap-2">
         <Calendar className="w-4 h-4" /> Schedule
