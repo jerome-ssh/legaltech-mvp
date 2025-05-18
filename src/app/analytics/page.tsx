@@ -458,11 +458,11 @@ export default function Analytics() {
   ];
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen">
       {/* Main Content */}
       <div className="flex-1 p-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Analytics Dashboard</h1>
           <div className="flex gap-4">
             <Button variant="outline" onClick={exportToCSV}>Export CSV</Button>
             <Button variant="outline">Export PDF</Button>
@@ -471,60 +471,60 @@ export default function Analytics() {
 
         {/* Summary Statistics Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-white shadow-sm hover:shadow-2xl hover:shadow-blue-500/30 transition-shadow">
+          <Card className="shadow-sm hover:shadow-2xl hover:shadow-blue-500/30 transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100">
             <CardContent className="p-6">
-              <h3 className="text-sm font-medium text-gray-500">Total Cases</h3>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{summaryStats.totalCases}</p>
-              <p className="text-sm text-gray-500 mt-1">{summaryStats.activeCases} Active</p>
+              <h3 className="text-sm font-medium text-black dark:text-black">Total Cases</h3>
+              <p className="text-3xl font-bold text-black mt-2 dark:text-black">{summaryStats.totalCases}</p>
+              <p className="text-sm text-gray-700 mt-1 dark:text-black">{summaryStats.activeCases} Active</p>
             </CardContent>
           </Card>
-          <Card className="bg-white shadow-sm hover:shadow-2xl hover:shadow-blue-500/30 transition-shadow">
+          <Card className="shadow-sm hover:shadow-2xl hover:shadow-blue-500/30 transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100">
             <CardContent className="p-6">
-              <h3 className="text-sm font-medium text-gray-500">Total Revenue</h3>
-              <p className="text-3xl font-bold text-gray-900 mt-2">${summaryStats.totalRevenue.toLocaleString()}</p>
-              <p className="text-sm text-gray-500 mt-1">Last 30 days</p>
+              <h3 className="text-sm font-medium text-black dark:text-black">Total Revenue</h3>
+              <p className="text-3xl font-bold text-black mt-2 dark:text-black">${summaryStats.totalRevenue.toLocaleString()}</p>
+              <p className="text-sm text-gray-700 mt-1 dark:text-black">Last 30 days</p>
             </CardContent>
           </Card>
-          <Card className="bg-white shadow-sm hover:shadow-2xl hover:shadow-blue-500/30 transition-shadow">
+          <Card className="shadow-sm hover:shadow-2xl hover:shadow-blue-500/30 transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100">
             <CardContent className="p-6">
-              <h3 className="text-sm font-medium text-gray-500">Success Rate</h3>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{summaryStats.successRate.toFixed(1)}%</p>
-              <p className="text-sm text-gray-500 mt-1">Based on closed cases</p>
+              <h3 className="text-sm font-medium text-black dark:text-black">Success Rate</h3>
+              <p className="text-3xl font-bold text-black mt-2 dark:text-black">{summaryStats.successRate.toFixed(1)}%</p>
+              <p className="text-sm text-gray-700 mt-1 dark:text-black">Based on closed cases</p>
             </CardContent>
           </Card>
-          <Card className="bg-white shadow-sm hover:shadow-2xl hover:shadow-blue-500/30 transition-shadow">
+          <Card className="shadow-sm hover:shadow-2xl hover:shadow-blue-500/30 transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100">
             <CardContent className="p-6">
-              <h3 className="text-sm font-medium text-gray-500">Client Satisfaction</h3>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{summaryStats.clientSatisfaction}/5</p>
-              <p className="text-sm text-gray-500 mt-1">Average rating</p>
+              <h3 className="text-sm font-medium text-black dark:text-black">Client Satisfaction</h3>
+              <p className="text-3xl font-bold text-black mt-2 dark:text-black">{summaryStats.clientSatisfaction}/5</p>
+              <p className="text-sm text-gray-700 mt-1 dark:text-black">Average rating</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Filters Section */}
-        <div className="flex flex-wrap gap-4 items-center bg-white p-4 rounded-lg shadow-sm">
+        <div className="flex flex-wrap gap-4 items-center bg-white p-4 rounded-lg shadow-sm dark:bg-[#22223b] dark:z-10 dark:relative my-8">
           <Input
             placeholder="Filter by Attorney"
             value={filters.attorney}
             onChange={handleFilterChange}
             name="attorney"
-            className="w-full sm:w-48"
+            className="w-full sm:w-48 dark:bg-[#22223b] dark:text-white dark:border-gray-700"
           />
           <Input
             placeholder="Filter by Client"
             value={filters.client}
             onChange={handleFilterChange}
             name="client"
-            className="w-full sm:w-48"
+            className="w-full sm:w-48 dark:bg-[#22223b] dark:text-white dark:border-gray-700"
           />
           <Select value={timePeriod} onValueChange={setTimePeriod}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Select Time Period" />
+            <SelectTrigger className="w-48 dark:bg-[#22223b] dark:text-white dark:border-gray-700">
+              <SelectValue placeholder="Select Time Period" className="dark:text-white" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="monthly">Monthly</SelectItem>
-              <SelectItem value="quarterly">Quarterly</SelectItem>
-              <SelectItem value="yearly">Yearly</SelectItem>
+            <SelectContent className="dark:bg-[#22223b] dark:text-white">
+              <SelectItem value="monthly" className="dark:text-white">Monthly</SelectItem>
+              <SelectItem value="quarterly" className="dark:text-white">Quarterly</SelectItem>
+              <SelectItem value="yearly" className="dark:text-white">Yearly</SelectItem>
             </SelectContent>
           </Select>
           <div className="flex gap-2 items-center">
@@ -532,13 +532,13 @@ export default function Analytics() {
               selected={dateRange.start}
               onChange={(date) => setDateRange({ ...dateRange, start: date })}
               placeholderText="Start Date"
-              className="border px-2 py-1 rounded text-sm"
+              className="border px-2 py-1 rounded text-sm dark:bg-[#22223b] dark:text-white dark:border-gray-700"
             />
             <DatePicker
               selected={dateRange.end}
               onChange={(date) => setDateRange({ ...dateRange, end: date })}
               placeholderText="End Date"
-              className="border px-2 py-1 rounded text-sm"
+              className="border px-2 py-1 rounded text-sm dark:bg-[#22223b] dark:text-white dark:border-gray-700"
             />
           </div>
         </div>
@@ -548,14 +548,14 @@ export default function Analytics() {
           {chartConfigs.map(({ title, chart, data }, i) => (
             <Card
               key={i}
-              className={`bg-white transition-all duration-300 cursor-pointer hover:shadow-2xl hover:shadow-blue-500/30 ${focusedChartIndex === i
+              className={`shadow-sm transition-all duration-300 cursor-pointer hover:shadow-2xl hover:shadow-blue-500/30 ${focusedChartIndex === i
                 ? "shadow-[0_0_25px_rgba(59,130,246,0.5)] border-2 border-blue-500 scale-[1.01]"
                 : ""
                 }`}
               onClick={() => setFocusedChartIndex(focusedChartIndex === i ? null : i)}
             >
               <CardContent className="p-6">
-                <h2 className="font-semibold text-lg text-gray-900 mb-4">{title}</h2>
+                <h2 className="font-semibold text-lg text-black mb-4 dark:text-white">{title}</h2>
                 <ResponsiveContainer width="100%" height={300}>
                   {chart ? chart(data) : <React.Fragment />}
                 </ResponsiveContainer>

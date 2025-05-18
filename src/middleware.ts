@@ -25,6 +25,8 @@ const publicPaths = [
   "/api/profile/update",
   "/api/profile/check",
   "/api/profile/avatar",
+  "/api/roles",
+  "/api/profile/onboarding-path",
   "/onboarding",
   "/sso-callback",
   "/verify-email",

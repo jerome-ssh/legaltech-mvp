@@ -52,41 +52,41 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen">
       {/* Sidebar */}
       <aside
-        className={`group ${collapsed ? "w-20" : "w-64"} bg-white shadow-md p-4 transition-all duration-300 ease-in-out hover:w-64 flex flex-col`}
+        className={`group ${collapsed ? "w-20" : "w-64"} shadow-md p-4 transition-all duration-300 ease-in-out hover:w-64 flex flex-col bg-white dark:bg-[#23315c]`}
         onMouseEnter={() => setCollapsed(false)}
         onMouseLeave={() => setCollapsed(true)}
       >
         <div>
           <div className="flex items-center justify-between mb-10">
-            <div className={`text-2xl font-bold text-blue-600 ${collapsed ? "hidden group-hover:block" : "block"}`}>LawMate</div>
+            <div className={`text-2xl font-bold text-blue-600 dark:text-white ${collapsed ? "hidden group-hover:block" : "block"}`}>LawMate</div>
             <button onClick={() => setCollapsed(!collapsed)} className="p-1 hover:bg-gray-100 rounded-md transition-colors">
               {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
             </button>
           </div>
-          <nav className="space-y-6 text-gray-700">
-            <Link href="/dashboard" className="flex items-center gap-2 text-blue-600 font-semibold">
-              <LayoutDashboard className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Dashboard</span>
+          <nav className="space-y-6 text-black dark:text-white">
+            <Link href="/dashboard" className="flex items-center gap-2 text-black dark:text-white font-semibold">
+              <LayoutDashboard className="w-5 h-5 text-black dark:text-white" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Dashboard</span>
             </Link>
-            <Link href="/documents" className="flex items-center gap-2 hover:text-blue-600 cursor-pointer">
-              <FileText className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Documents</span>
+            <Link href="/documents" className="flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white">
+              <FileText className="w-5 h-5 text-black dark:text-white" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Documents</span>
             </Link>
-            <Link href="/clients" className="flex items-center gap-2 hover:text-blue-600 cursor-pointer">
-              <Users className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Clients</span>
+            <Link href="/clients" className="flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white">
+              <Users className="w-5 h-5 text-black dark:text-white" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Clients</span>
             </Link>
-            <Link href="/billing" className="flex items-center gap-2 hover:text-blue-600 cursor-pointer">
-              <CreditCard className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Billing</span>
+            <Link href="/billing" className="flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white">
+              <CreditCard className="w-5 h-5 text-black dark:text-white" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Billing</span>
             </Link>
-            <Link href="/analytics" className="flex items-center gap-2 hover:text-blue-600 cursor-pointer">
-              <BarChart2 className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Analytics</span>
+            <Link href="/analytics" className="flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white">
+              <BarChart2 className="w-5 h-5 text-black dark:text-white" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Analytics</span>
             </Link>
-            <Link href="/help" className="flex items-center gap-2 hover:text-blue-600 cursor-pointer">
-              <HelpCircle className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Help</span>
+            <Link href="/help" className="flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white">
+              <HelpCircle className="w-5 h-5 text-black dark:text-white" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Help</span>
             </Link>
-            <Link href="/settings" className="flex items-center gap-2 hover:text-blue-600 cursor-pointer">
-              <Settings className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Settings</span>
+            <Link href="/settings" className="flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white">
+              <Settings className="w-5 h-5 text-black dark:text-white" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Settings</span>
             </Link>
           </nav>
           {/* Avatar right after nav, with small margin */}
@@ -117,7 +117,7 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
               </Avatar>
             </button>
             {!collapsed && user && (
-              <span className="mt-2 text-xs text-gray-700 font-medium text-center max-w-[120px] truncate">{user.fullName || user.firstName || user.lastName}</span>
+              <span className="mt-2 text-xs text-gray-700 font-medium text-center max-w-[120px] truncate dark:text-white">{user.fullName || user.firstName || user.lastName}</span>
             )}
           </div>
         </div>

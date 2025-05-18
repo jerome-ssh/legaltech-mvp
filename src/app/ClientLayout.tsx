@@ -56,7 +56,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   // For authenticated users on protected routes, render the dashboard layout
   if (isSignedIn && protectedRoutes.some(route => pathname.startsWith(route))) {
-    return <LayoutWithSidebar>{children}</LayoutWithSidebar>;
+    return (
+      <LayoutWithSidebar>{children}</LayoutWithSidebar>
+    );
   }
 
   // For onboarding and public routes, render without the dashboard layout

@@ -7,9 +7,9 @@ import { SignOutButton } from "@clerk/nextjs";
 export default function HeaderBar() {
   return (
     <div className="flex justify-between text-black items-center mb-8">
-      <h1 className="text-3xl font-semibold">Dashboard</h1>
+      <h1 className="text-3xl font-semibold dark:text-white">Dashboard</h1>
       <div className="flex items-center gap-4">
-        <Bell className="w-6 h-6 text-gray-600" />
+        <Bell className="w-6 h-6 text-gray-600 dark:text-white" />
         <TopBar />
         <SignOutButton>
           <button

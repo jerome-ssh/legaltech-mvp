@@ -541,11 +541,11 @@ export default function Onboarding() {
             });
             const data = await response.json();
             if (data.success) {
-                setRoles(data.roles);
-            }
+                    setRoles(data.roles);
+                }
         } catch (error) {
             console.error('Error fetching roles:', error);
-        }
+            }
     };
 
     useEffect(() => {
@@ -568,8 +568,8 @@ export default function Onboarding() {
             } catch (error) {
                 console.error('Error fetching onboarding path:', error);
             } finally {
-                setLoading(false);
-            }
+            setLoading(false);
+        }
         };
         fetchPath();
     }, []);

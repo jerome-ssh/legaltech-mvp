@@ -1791,52 +1791,52 @@ export default function UserProfile() {
   }
 
   return (
-    <ProfileContext.Provider value={{ avatarUrl: profile?.avatar_url || null }}>
-      <LayoutWithSidebar>
-        <div className="container mx-auto py-8 space-y-8 bg-white">
-          {/* Hero Section */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="md:col-span-2 overflow-hidden shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-95 bg-gradient-to-br from-white via-sky-50/80 to-pink-50/70">
-              <CardContent className="p-6">
+    <ProfileContext.Provider value={{ avatarUrl: profile?.avatar_url || null, clerkImageUrl: null, isLoading: false }}>
+    <LayoutWithSidebar>
+        <div className="container mx-auto py-8 space-y-8 bg-white dark:bg-gradient-to-br dark:from-[#3a4666] dark:via-[#6e7bbf] dark:to-[#f7c4e6]/10 dark:text-blue-950">
+        {/* Hero Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="md:col-span-2 overflow-hidden shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-95 bg-gradient-to-br from-white via-sky-50/80 to-pink-50/10 dark:from-[#3a4666] dark:via-[#6e7bbf] dark:to-[#f7c4e6]/10 dark:text-blue-950">
+            <CardContent className="p-6">
                 <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-                  <div className="relative">
-                    {profile?.avatar_url ? (
+                <div className="relative">
+                  {profile?.avatar_url ? (
                       <div className="relative w-28 h-28 cursor-pointer" onClick={() => setShowPreview(true)}>
                         <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-400 to-blue-400 opacity-70 blur-sm"></div>
-                        <Image
-                          src={`${profile.avatar_url}?t=${new Date().getTime()}`}
-                          alt="Profile picture"
+                      <Image
+                        src={`${profile.avatar_url}?t=${new Date().getTime()}`}
+                        alt="Profile picture"
                           width={112}
                           height={112}
                           style={{ height: "112px", objectFit: "cover" }}
                           className="rounded-full z-10 relative border-2 border-white"
-                          priority
-                        />
-                      </div>
-                    ) : (
+                        priority
+                      />
+                    </div>
+                  ) : (
                       <div className="relative w-28 h-28 flex items-center justify-center rounded-full cursor-pointer" onClick={() => setShowPreview(true)}>
                         <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-400 to-blue-400 opacity-70 blur-sm"></div>
                         <div className="absolute inset-0.5 rounded-full bg-gradient-to-br from-white to-blue-50 flex items-center justify-center z-10">
                           <span className="text-3xl font-bold text-indigo-700">{profile?.first_name?.[0] || clerkUser?.firstName?.[0]}{profile?.last_name?.[0] || clerkUser?.lastName?.[0]}</span>
                         </div>
-                      </div>
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileSelect}
-                      ref={fileInputRef}
-                      className="hidden"
-                      disabled={uploading}
-                    />
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    ref={fileInputRef}
+                    className="hidden"
+                    disabled={uploading}
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
                       className="absolute bottom-0 right-0 bg-indigo-500 text-white rounded-full p-2 hover:bg-indigo-600 transition-colors duration-200 shadow-md z-20"
-                      disabled={uploading}
-                    >
-                      <Camera className="w-4 h-4" />
-                    </button>
-                  </div>
+                    disabled={uploading}
+                  >
+                    <Camera className="w-4 h-4" />
+                  </button>
+                </div>
 
                   <div className="flex-1 space-y-4 text-center md:text-left">
                     <div>
@@ -1882,14 +1882,14 @@ export default function UserProfile() {
                         <Badge variant="secondary" className="flex items-center gap-1 bg-gradient-to-r from-indigo-50 to-blue-50 text-indigo-700 border border-indigo-100 shadow-sm">
                           <Award className="w-3 h-3" />
                           {displayProfile.specialization}
-                        </Badge>
+                      </Badge>
                       )}
                       
                       {professionalIds && professionalIds.length > 0 && (
                         <Badge variant="outline" className="flex items-center gap-1 border-indigo-200 shadow-sm">
                           <Shield className="w-3 h-3 text-indigo-500" />
                           {professionalIds.length} {professionalIds.length === 1 ? 'Certification' : 'Certifications'}
-                        </Badge>
+                      </Badge>
                       )}
                       
                       {displayProfile.years_of_practice && (
@@ -1898,197 +1898,197 @@ export default function UserProfile() {
                           {displayProfile.years_of_practice} {Number(displayProfile.years_of_practice) === 1 ? 'Year' : 'Years'} of Practice
                         </Badge>
                       )}
-                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-95 bg-gradient-to-tr from-white via-pink-50/70 to-sky-50/80">
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-sm font-medium">Profile Completion</h3>
-                      <span className="text-sm font-medium">{displayMetrics.profile_completion}%</span>
-                    </div>
-                    <Progress value={displayMetrics.profile_completion} className="h-2" />
+            <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-95 bg-gradient-to-tr from-white via-pink-50/10 to-sky-50/80 dark:from-[#3a4666] dark:via-[#6e7bbf] dark:to-[#f7c4e6]/10 dark:text-blue-950">
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-medium">Profile Completion</h3>
+                    <span className="text-sm font-medium">{displayMetrics.profile_completion}%</span>
                   </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-sm font-medium">Workflow Efficiency</h3>
-                      <span className="text-sm font-medium">{displayMetrics.workflow_efficiency}%</span>
-                    </div>
-                    <Progress value={displayMetrics.workflow_efficiency} className="h-2" />
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-sm font-medium">Client Satisfaction</h3>
-                      <span className="text-sm font-medium">{displayMetrics.client_feedback}/5</span>
-                    </div>
-                    <Progress value={displayMetrics.client_feedback * 20} className="h-2" />
-                  </div>
+                  <Progress value={displayMetrics.profile_completion} className="h-2" />
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-medium">Workflow Efficiency</h3>
+                    <span className="text-sm font-medium">{displayMetrics.workflow_efficiency}%</span>
+                  </div>
+                  <Progress value={displayMetrics.workflow_efficiency} className="h-2" />
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-medium">Client Satisfaction</h3>
+                    <span className="text-sm font-medium">{displayMetrics.client_feedback}/5</span>
+                  </div>
+                  <Progress value={displayMetrics.client_feedback * 20} className="h-2" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-          {/* Metrics Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-r from-white via-sky-50/70 to-pink-50/60">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Activity className="w-4 h-4" />
-                  Personal Productivity
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{displayMetrics.productivity_score}%</div>
-                <p className="text-xs text-gray-500 mt-1">Weekly efficiency score</p>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-br from-white via-pink-50/70 to-sky-50/60">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  Time Saved
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{displayMetrics.time_saved}h</div>
-                <p className="text-xs text-gray-500 mt-1">This month through automation</p>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-tl from-white via-sky-50/70 to-pink-50/60">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Brain className="w-4 h-4" />
-                  AI Interactions
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{displayMetrics.ai_interactions}</div>
-                <p className="text-xs text-gray-500 mt-1">AI features used this month</p>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-tr from-white via-pink-50/70 to-sky-50/60">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Users className="w-4 h-4" />
-                  Networking Score
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{displayMetrics.networking_score}%</div>
-                <p className="text-xs text-gray-500 mt-1">Professional connections</p>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-bl from-white via-sky-50/70 to-pink-50/60">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Shield className="w-4 h-4" />
-                  Compliance Score
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{displayMetrics.compliance_score}%</div>
-                <p className="text-xs text-gray-500 mt-1">Data security & compliance</p>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-br from-white via-pink-50/60 to-sky-50/70">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Target className="w-4 h-4" />
-                  Billing Efficiency
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{displayMetrics.billing_efficiency}%</div>
-                <p className="text-xs text-gray-500 mt-1">Invoice processing speed</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Professional Information Card */}
-          <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-95 bg-gradient-to-b from-white via-sky-50/60 to-pink-50/60">
-            <CardHeader>
-              <CardTitle>Professional Information</CardTitle>
-              <CardDescription>Update your professional details</CardDescription>
+        {/* Metrics Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-r from-white via-sky-50/70 to-pink-50/10 dark:from-[#3a4666] dark:via-[#6e7bbf] dark:to-[#f7c4e6]/10 dark:text-blue-950">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Activity className="w-4 h-4" />
+                Personal Productivity
+              </CardTitle>
             </CardHeader>
             <CardContent>
+              <div className="text-2xl font-bold">{displayMetrics.productivity_score}%</div>
+              <p className="text-xs text-gray-500 mt-1">Weekly efficiency score</p>
+            </CardContent>
+          </Card>
+
+            <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-br from-white via-pink-50/10 to-sky-50/60 dark:from-[#3a4666] dark:via-[#6e7bbf] dark:to-[#f7c4e6]/10 dark:text-blue-950">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Time Saved
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{displayMetrics.time_saved}h</div>
+              <p className="text-xs text-gray-500 mt-1">This month through automation</p>
+            </CardContent>
+          </Card>
+
+            <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-tl from-white via-sky-50/70 to-pink-50/10 dark:from-[#3a4666] dark:via-[#6e7bbf] dark:to-[#f7c4e6]/10 dark:text-blue-950">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Brain className="w-4 h-4" />
+                AI Interactions
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{displayMetrics.ai_interactions}</div>
+              <p className="text-xs text-gray-500 mt-1">AI features used this month</p>
+            </CardContent>
+          </Card>
+
+            <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-tr from-white via-pink-50/10 to-sky-50/60 dark:from-[#3a4666] dark:via-[#6e7bbf] dark:to-[#f7c4e6]/10 dark:text-blue-950">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Networking Score
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{displayMetrics.networking_score}%</div>
+              <p className="text-xs text-gray-500 mt-1">Professional connections</p>
+            </CardContent>
+          </Card>
+
+            <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-bl from-white via-sky-50/70 to-pink-50/10 dark:from-[#3a4666] dark:via-[#6e7bbf] dark:to-[#f7c4e6]/10 dark:text-blue-950">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Shield className="w-4 h-4" />
+                Compliance Score
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{displayMetrics.compliance_score}%</div>
+              <p className="text-xs text-gray-500 mt-1">Data security & compliance</p>
+            </CardContent>
+          </Card>
+
+            <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-90 bg-gradient-to-br from-white via-pink-50/10 to-sky-50/60 dark:from-[#3a4666] dark:via-[#6e7bbf] dark:to-[#f7c4e6]/10 dark:text-blue-950">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Target className="w-4 h-4" />
+                Billing Efficiency
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{displayMetrics.billing_efficiency}%</div>
+              <p className="text-xs text-gray-500 mt-1">Invoice processing speed</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Professional Information Card */}
+          <Card className="shadow-lg border border-indigo-50 transition-all duration-300 hover:shadow-xl hover:bg-opacity-95 bg-gradient-to-b from-white via-sky-50/60 to-pink-50/10 dark:from-[#3a4666] dark:via-[#6e7bbf] dark:to-[#f7c4e6]/10 dark:text-blue-950">
+          <CardHeader>
+            <CardTitle>Professional Information</CardTitle>
+            <CardDescription>Update your professional details</CardDescription>
+          </CardHeader>
+          <CardContent>
               <Tabs defaultValue="personal" onValueChange={setActiveTab}>
-                <TabsList>
-                  <TabsTrigger value="personal">Personal</TabsTrigger>
-                  <TabsTrigger value="professional">Professional</TabsTrigger>
-                  <TabsTrigger value="jurisdiction">Jurisdiction Details</TabsTrigger>
-                </TabsList>
-                <TabsContent value="personal" className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label>Full Name</Label>
-                      <Input
-                        name="first_name"
-                        value={formData.first_name || ''}
-                        onChange={handleInputChange}
-                        placeholder="First Name"
-                        className="mb-2"
-                        disabled={!isEditing || uploading}
-                      />
-                      <Input
-                        name="last_name"
-                        value={formData.last_name || ''}
-                        onChange={handleInputChange}
-                        placeholder="Last Name"
-                        disabled={!isEditing || uploading}
-                      />
-                    </div>
-                    <div>
-                      <Label>Email</Label>
-                      <Input
-                        name="email"
-                        value={formData.email || ''}
-                        onChange={handleInputChange}
-                        placeholder="Email"
-                        disabled={!isEditing || uploading}
-                      />
-                    </div>
-                    <div>
-                      <Label>Phone</Label>
-                      <Input
-                        name="phone_number"
-                        value={formData.phone_number || ''}
-                        onChange={handleInputChange}
-                        placeholder="Phone Number"
-                        disabled={!isEditing || uploading}
-                      />
-                    </div>
-                    <div>
-                      <Label>Address</Label>
-                      <Input
-                        name="address"
-                        value={formData.address || ''}
-                        onChange={handleInputChange}
-                        placeholder="Address"
-                        disabled={!isEditing || uploading}
-                      />
-                    </div>
-                    <div>
-                      <Label>Home Address</Label>
-                      <Input
-                        name="home_address"
-                        value={formData.home_address || ''}
-                        onChange={handleInputChange}
-                        placeholder="Home Address"
-                        disabled={!isEditing || uploading}
-                      />
-                    </div>
-                    <div>
-                      <Label>Gender</Label>
+              <TabsList>
+                <TabsTrigger value="personal">Personal</TabsTrigger>
+                <TabsTrigger value="professional">Professional</TabsTrigger>
+                <TabsTrigger value="jurisdiction">Jurisdiction Details</TabsTrigger>
+              </TabsList>
+              <TabsContent value="personal" className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Full Name</Label>
+                    <Input
+                      name="first_name"
+                      value={formData.first_name || ''}
+                      onChange={handleInputChange}
+                      placeholder="First Name"
+                      className="mb-2"
+                      disabled={!isEditing || uploading}
+                    />
+                    <Input
+                      name="last_name"
+                      value={formData.last_name || ''}
+                      onChange={handleInputChange}
+                      placeholder="Last Name"
+                      disabled={!isEditing || uploading}
+                    />
+                  </div>
+                  <div>
+                    <Label>Email</Label>
+                    <Input
+                      name="email"
+                      value={formData.email || ''}
+                      onChange={handleInputChange}
+                      placeholder="Email"
+                      disabled={!isEditing || uploading}
+                    />
+                  </div>
+                  <div>
+                    <Label>Phone</Label>
+                    <Input
+                      name="phone_number"
+                      value={formData.phone_number || ''}
+                      onChange={handleInputChange}
+                      placeholder="Phone Number"
+                      disabled={!isEditing || uploading}
+                    />
+                  </div>
+                  <div>
+                    <Label>Address</Label>
+                    <Input
+                      name="address"
+                      value={formData.address || ''}
+                      onChange={handleInputChange}
+                      placeholder="Address"
+                      disabled={!isEditing || uploading}
+                    />
+                  </div>
+                  <div>
+                    <Label>Home Address</Label>
+                    <Input
+                      name="home_address"
+                      value={formData.home_address || ''}
+                      onChange={handleInputChange}
+                      placeholder="Home Address"
+                      disabled={!isEditing || uploading}
+                    />
+                  </div>
+                  <div>
+                    <Label>Gender</Label>
                       <SearchableSelect
                         options={[
                           { value: 'Male', label: 'Male' },
@@ -2102,20 +2102,20 @@ export default function UserProfile() {
                         placeholder="Select gender"
                         isDisabled={!isEditing || uploading}
                       />
-                    </div>
                   </div>
-                </TabsContent>
-                <TabsContent value="professional" className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label>Law Firm</Label>
+                </div>
+              </TabsContent>
+              <TabsContent value="professional" className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Law Firm</Label>
                       <div className="relative">
-                      <Input
-                        name="firm_name"
-                        value={formData.firm_name || ''}
-                        onChange={handleInputChange}
+                    <Input
+                      name="firm_name"
+                      value={formData.firm_name || ''}
+                      onChange={handleInputChange}
                           placeholder="Enter your law firm name"
-                        disabled={!isEditing || uploading}
+                      disabled={!isEditing || uploading}
                           ref={firmInputRef}
                         />
                         {firmSuggestions.length > 0 && isEditing && !uploading && (
@@ -2133,21 +2133,21 @@ export default function UserProfile() {
                         )}
                       </div>
                       <div className="text-xs text-gray-500 mt-1">Start typing for suggestions</div>
-                    </div>
-                    <div className="mb-4">
-                      <label className="block font-medium">Practice Area</label>
-                      {optionsLoading ? (
-                        <div>Loading practice areas...</div>
-                      ) : optionsError ? (
-                        <div className="text-red-500">{optionsError}</div>
-                      ) : (
+                  </div>
+                  <div className="mb-4">
+                    <label className="block font-medium">Practice Area</label>
+                    {optionsLoading ? (
+                      <div>Loading practice areas...</div>
+                    ) : optionsError ? (
+                      <div className="text-red-500">{optionsError}</div>
+                    ) : (
                         <div className="relative" ref={specializationDropdownRef}>
                           <Input
                             name="specialization"
                             value={formData.specialization || ''}
                             onChange={handleInputChange}
                             placeholder="Enter your practice area"
-                          disabled={!isEditing || uploading}
+                        disabled={!isEditing || uploading}
                             onFocus={() => isEditing && !uploading && setSpecializationFocused(true)}
                           />
                           {specializationFocused && !uploading && (
@@ -2177,19 +2177,19 @@ export default function UserProfile() {
                         </div>
                       )}
                       <div className="text-xs text-gray-500 mt-1">Your primary area of legal practice</div>
-                    </div>
-                    <div>
-                      <Label>Years of Practice</Label>
-                      <Input
-                        name="years_of_practice"
-                        value={formData.years_of_practice || ''}
-                        onChange={handleInputChange}
-                        placeholder="Years of Practice"
-                        disabled={!isEditing || uploading}
-                      />
-                    </div>
-                    <div>
-                      <Label>Role</Label>
+                  </div>
+                  <div>
+                    <Label>Years of Practice</Label>
+                    <Input
+                      name="years_of_practice"
+                      value={formData.years_of_practice || ''}
+                      onChange={handleInputChange}
+                      placeholder="Years of Practice"
+                      disabled={!isEditing || uploading}
+                    />
+                  </div>
+                  <div>
+                    <Label>Role</Label>
                       <SearchableSelect
                         options={roles.map(r => ({ 
                           value: r.id, 
@@ -2203,33 +2203,33 @@ export default function UserProfile() {
                         onChange={(selected) => {
                           const selectedId = selected ? selected.value : '';
                           setRoleId(selectedId || null);
-                          setFormData(prev => ({ ...prev, role: selectedId }));
-                        }}
+                        setFormData(prev => ({ ...prev, role: selectedId }));
+                      }}
                         placeholder="Select a role"
                         isDisabled={!isEditing || uploading}
                       />
-                    </div>
                   </div>
-                </TabsContent>
-                <TabsContent value="jurisdiction" className="space-y-4">
-                  {professionalIds.length === 0 ? (
-                    <div className="text-center p-8">
-                      <div className="text-gray-500 mb-4">No jurisdiction records found.</div>
-                      <Button onClick={handleAddProfessionalId} disabled={uploading}>
-                        {uploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-                        Add Jurisdiction Record
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      {professionalIds.map((profId) => {
-                        const editing = editingProfessionalIds[profId.id] || profId;
+                </div>
+              </TabsContent>
+              <TabsContent value="jurisdiction" className="space-y-4">
+                {professionalIds.length === 0 ? (
+                  <div className="text-center p-8">
+                    <div className="text-gray-500 mb-4">No jurisdiction records found.</div>
+                    <Button onClick={handleAddProfessionalId} disabled={uploading}>
+                      {uploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                      Add Jurisdiction Record
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {professionalIds.map((profId) => {
+                      const editing = editingProfessionalIds[profId.id] || profId;
                         
                         // If this form is marked as completed and not open, don't show the edit form
                         const isCompleted = completedForms.has(profId.id) && !openForms.has(profId.id);
                         
                         return isCompleted ? (
-                          <div key={profId.id} className="border rounded-lg p-4 bg-gradient-to-r from-white to-green-50 shadow-sm transition-all duration-300">
+                          <div key={profId.id} className="border rounded-lg p-4 bg-gradient-to-r from-white to-green-50 dark:from-[#26304a] dark:to-green-200/20 shadow-sm transition-all duration-300 dark:text-blue-100">
                             <div className="flex justify-between items-center mb-1">
                               <h3 className="text-md font-medium flex items-center">
                                 <Check className="w-5 h-5 mr-2 text-green-500" />
@@ -2257,23 +2257,23 @@ export default function UserProfile() {
                           </div>
                         ) : (
                           <div key={profId.id} className="border rounded-lg p-4 bg-gray-50 shadow-sm">
-                            <div className="flex justify-between items-center mb-4">
-                              <h3 className="text-md font-medium">
-                                {editing.country || 'New'} {editing.state ? `- ${editing.state}` : ''} Record
-                              </h3>
+                          <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-md font-medium">
+                              {editing.country || 'New'} {editing.state ? `- ${editing.state}` : ''} Record
+                            </h3>
                               <div className="flex gap-2">
-                              <Button 
-                                variant="destructive" 
-                                size="sm" 
-                                onClick={() => handleDeleteProfessionalId(profId.id)}
-                                disabled={uploading}
-                              >
-                                <Trash className="w-4 h-4 mr-1" />
-                                Delete
-                              </Button>
+                            <Button 
+                              variant="destructive" 
+                              size="sm" 
+                              onClick={() => handleDeleteProfessionalId(profId.id)}
+                              disabled={uploading}
+                            >
+                              <Trash className="w-4 h-4 mr-1" />
+                              Delete
+                            </Button>
                               </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div className="md:col-span-2">
                                 <Label>Certification Name/Type</Label>
                                 <Input
@@ -2285,8 +2285,8 @@ export default function UserProfile() {
                                 <div className="text-xs text-gray-500 mt-1">Enter the name of your certification or license</div>
                               </div>
                               
-                              <div>
-                                <Label>Country</Label>
+                            <div>
+                              <Label>Country</Label>
                                 <SearchableSelect
                                   options={popularCountries}
                                   value={editing.country ? { label: getCountryNameByCode(editing.country), value: editing.country } : null}
@@ -2310,10 +2310,10 @@ export default function UserProfile() {
                                   placeholder="Select a country"
                                   isDisabled={uploading}
                                 />
-                              </div>
+                            </div>
                               
-                              <div>
-                                <Label>State/Province</Label>
+                            <div>
+                              <Label>State/Province</Label>
                                 <SearchableSelect
                                   options={editing.country ? getStatesByCountry(editing.country) : []}
                                   value={editing.state && editing.country ? 
@@ -2332,36 +2332,36 @@ export default function UserProfile() {
                                   placeholder={editing.country ? "Select a state/province" : "Select a country first"}
                                   isDisabled={uploading || !editing.country}
                                   noOptionsMessage={() => "No states/provinces found for this country"}
-                                />
-                              </div>
+                              />
+                            </div>
                               
-                              <div>
+                            <div>
                                 <Label>Issuing Authority</Label>
-                                <Input
+                              <Input
                                   value={editing.issuing_authority || ''}
                                   onChange={e => handleProfessionalIdChange(profId.id, 'issuing_authority', e.target.value)}
                                   placeholder="State Bar, Law Society, etc."
-                                  disabled={uploading}
-                                />
-                              </div>
+                                disabled={uploading}
+                              />
+                            </div>
                               
-                              <div>
+                            <div>
                                 <Label>Issue Date</Label>
                                 <div className="relative">
-                                <Input
+                              <Input
                                     type="date"
                                     value={editing.issue_date || ''}
                                     onChange={e => handleProfessionalIdChange(profId.id, 'issue_date', e.target.value)}
-                                  disabled={uploading}
+                                disabled={uploading}
                                     max={new Date().toISOString().split('T')[0]} // Restrict to today and earlier
                                     className="pr-10" // Make room for the icon
                                     onClick={(e) => e.currentTarget.showPicker()} // Only open picker on click
                                     onFocus={(e) => e.target.blur()} // Prevent auto-focus from opening the picker
-                                />
+                              />
                                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
                                     <Clock className="h-4 w-4 text-gray-400" />
-                              </div>
-                              </div>
+                            </div>
+                            </div>
                                 <p className="text-xs text-gray-500 mt-1">Click to select a date</p>
                               </div>
                               
@@ -2374,7 +2374,7 @@ export default function UserProfile() {
                                         type="file"
                                         accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                                         onChange={(e) => handleDocumentUpload(profId.id, e)}
-                              disabled={uploading}
+                                disabled={uploading}
                                         className="hidden"
                                         id={`file-upload-${profId.id}`}
                                       />
@@ -2414,12 +2414,12 @@ export default function UserProfile() {
                                     )}
                                   </div>
                                 </div>
-                              </div>
                             </div>
-                            <div className="flex justify-end mt-4">
-                              <Button
-                                onClick={() => handleUpdateProfessionalId(profId.id)}
-                                disabled={uploading}
+                          </div>
+                          <div className="flex justify-end mt-4">
+                            <Button
+                              onClick={() => handleUpdateProfessionalId(profId.id)}
+                              disabled={uploading}
                                 className="bg-indigo-600 hover:bg-indigo-700"
                               >
                                 {uploading ? (
@@ -2433,166 +2433,166 @@ export default function UserProfile() {
                                     Save & Submit
                                   </>
                                 )}
-                              </Button>
-                            </div>
+                            </Button>
                           </div>
-                        );
-                      })}
-                      <div className="flex justify-center mt-4">
+                        </div>
+                      );
+                    })}
+                    <div className="flex justify-center mt-4">
                         <Button 
                           onClick={handleAddProfessionalId} 
                           disabled={uploading || openForms.size >= 2}
                         >
-                          {uploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-                          Add Another Jurisdiction
-                        </Button>
-                      </div>
+                        {uploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                        Add Another Jurisdiction
+                      </Button>
                     </div>
-                  )}
-                </TabsContent>
-              </Tabs>
-              {/* Only show the Edit Profile button for Personal and Professional tabs */}
-              {activeTab !== "jurisdiction" && (
-              <div className="flex justify-end gap-2 pt-4">
-                {isEditing ? (
-                  <>
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsEditing(false)}
-                      disabled={uploading}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={handleSubmit}
-                      disabled={uploading}
-                    >
-                      {uploading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        'Save Changes'
-                      )}
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    onClick={() => setIsEditing(true)}
-                    disabled={uploading}
-                  >
-                    Edit Profile
-                  </Button>
-                )}
-              </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Image Crop Modal */}
-        {showCrop && previewUrl && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Crop Image</h3>
-                <button
-                  onClick={() => {
-                    setShowCrop(false);
-                    setPreviewUrl(null);
-                  }}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-              <div className="relative aspect-square overflow-hidden rounded-lg">
-                <ReactCrop
-                  crop={crop}
-                  onChange={(_, percentCrop) => setCrop(percentCrop)}
-                  onComplete={(c) => setCompletedCrop(c)}
-                  aspect={aspect}
-                >
-                  <Image
-                    ref={imgRef}
-                    alt="Crop me"
-                    src={previewUrl}
-                    width={400}
-                    height={400}
-                    style={{ height: "auto" }}
-                    onLoad={(e) => {
-                      const { width, height } = e.currentTarget;
-                      setCrop(centerAspectCrop(width, height, aspect));
-                    }}
-                  />
-                </ReactCrop>
-              </div>
-              <div className="mt-3 flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowCrop(false);
-                    setPreviewUrl(null);
-                  }}
-                  disabled={uploading}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleCropComplete}
-                  disabled={uploading || !completedCrop}
-                >
-                  {uploading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Uploading...
-                    </>
-                  ) : (
-                    'Save'
-                  )}
-                </Button>
-              </div>
-              <canvas
-                ref={previewCanvasRef}
-                className="hidden"
-              />
-            </div>
-          </div>
-        )}
-        {/* Profile Picture Preview Modal */}
-        {showPreview && (
-          <Dialog open={showPreview} onOpenChange={setShowPreview}>
-            <DialogOverlay className="fixed inset-0 bg-black bg-opacity-50 z-50" />
-            <DialogContent className="fixed inset-0 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 max-w-lg w-full flex flex-col items-center">
-                <button
-                  onClick={() => setShowPreview(false)}
-                  className="self-end text-gray-500 hover:text-gray-700 mb-2"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-                {displayProfile.avatar_url ? (
-                  <Image
-                    src={`${displayProfile.avatar_url}?t=${new Date().getTime()}`}
-                    alt="Profile picture preview"
-                    width={256}
-                    height={256}
-                    style={{ height: "auto" }}
-                    className="rounded-full object-cover mb-4"
-                  />
-                ) : (
-                  <div className="w-32 h-32 flex items-center justify-center bg-gray-200 rounded-full mb-4">
-                    <span className="text-6xl font-bold text-gray-500">{clerkUser?.firstName?.[0]}{clerkUser?.lastName?.[0]}</span>
                   </div>
                 )}
-                <div className="text-lg font-semibold mt-2">{clerkUser?.fullName || 'User'}</div>
-                <div className="text-gray-500">{clerkUser?.emailAddresses[0]?.emailAddress}</div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
-      </LayoutWithSidebar>
+              </TabsContent>
+            </Tabs>
+              {/* Only show the Edit Profile button for Personal and Professional tabs */}
+              {activeTab !== "jurisdiction" && (
+            <div className="flex justify-end gap-2 pt-4">
+              {isEditing ? (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsEditing(false)}
+                    disabled={uploading}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={uploading}
+                  >
+                    {uploading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      'Save Changes'
+                    )}
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  onClick={() => setIsEditing(true)}
+                  disabled={uploading}
+                >
+                  Edit Profile
+                </Button>
+              )}
+            </div>
+              )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Image Crop Modal */}
+      {showCrop && previewUrl && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Crop Image</h3>
+              <button
+                onClick={() => {
+                  setShowCrop(false);
+                  setPreviewUrl(null);
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="relative aspect-square overflow-hidden rounded-lg">
+              <ReactCrop
+                crop={crop}
+                onChange={(_, percentCrop) => setCrop(percentCrop)}
+                onComplete={(c) => setCompletedCrop(c)}
+                aspect={aspect}
+              >
+                <Image
+                  ref={imgRef}
+                  alt="Crop me"
+                  src={previewUrl}
+                  width={400}
+                  height={400}
+                    style={{ height: "auto" }}
+                  onLoad={(e) => {
+                    const { width, height } = e.currentTarget;
+                    setCrop(centerAspectCrop(width, height, aspect));
+                  }}
+                />
+              </ReactCrop>
+            </div>
+            <div className="mt-3 flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowCrop(false);
+                  setPreviewUrl(null);
+                }}
+                disabled={uploading}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCropComplete}
+                disabled={uploading || !completedCrop}
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  'Save'
+                )}
+              </Button>
+            </div>
+            <canvas
+              ref={previewCanvasRef}
+              className="hidden"
+            />
+          </div>
+        </div>
+      )}
+      {/* Profile Picture Preview Modal */}
+      {showPreview && (
+        <Dialog open={showPreview} onOpenChange={setShowPreview}>
+          <DialogOverlay className="fixed inset-0 bg-black bg-opacity-50 z-50" />
+          <DialogContent className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-lg w-full flex flex-col items-center">
+              <button
+                onClick={() => setShowPreview(false)}
+                className="self-end text-gray-500 hover:text-gray-700 mb-2"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              {displayProfile.avatar_url ? (
+                <Image
+                  src={`${displayProfile.avatar_url}?t=${new Date().getTime()}`}
+                  alt="Profile picture preview"
+                  width={256}
+                  height={256}
+                    style={{ height: "auto" }}
+                  className="rounded-full object-cover mb-4"
+                />
+              ) : (
+                <div className="w-32 h-32 flex items-center justify-center bg-gray-200 rounded-full mb-4">
+                  <span className="text-6xl font-bold text-gray-500">{clerkUser?.firstName?.[0]}{clerkUser?.lastName?.[0]}</span>
+                </div>
+              )}
+              <div className="text-lg font-semibold mt-2">{clerkUser?.fullName || 'User'}</div>
+              <div className="text-gray-500">{clerkUser?.emailAddresses[0]?.emailAddress}</div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </LayoutWithSidebar>
     </ProfileContext.Provider>
   );
 } 

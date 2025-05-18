@@ -39,6 +39,9 @@ import dynamic from 'next/dynamic';
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
+import MuiButton from '@mui/material/Button';
+import MuiCard from '@mui/material/Card';
+import MuiCardContent from '@mui/material/CardContent';
 
 const TopBar = dynamic(() => import('@/components/TopBar'), {
   ssr: false,
@@ -319,7 +322,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen">
       {/* Main Content */}
       <main className="flex-1 p-8">
         <HeaderBar />
@@ -335,7 +338,7 @@ export default function Dashboard() {
             </>
           ) : (
             <>
-              <Card className="shadow-md bg-gradient-to-br from-sky-50 to-white">
+              <Card className="shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100">
                 <CardContent className="p-4 flex items-center gap-4">
                   <FolderOpen className="text-blue-500 w-6 h-6" />
                   <div>
@@ -344,7 +347,7 @@ export default function Dashboard() {
                   </div>
                 </CardContent>
               </Card>
-              <Card className="shadow-md bg-gradient-to-br from-sky-50 to-white">
+              <Card className="shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100">
                 <CardContent className="p-4 flex items-center gap-4">
                   <CalendarCheck className="text-green-500 w-6 h-6" />
                   <div>
@@ -353,7 +356,7 @@ export default function Dashboard() {
                   </div>
                 </CardContent>
               </Card>
-              <Card className="shadow-md bg-gradient-to-br from-sky-50 to-white">
+              <Card className="shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100">
                 <CardContent className="p-4 flex items-center gap-4">
                   <MessageSquare className="text-yellow-500 w-6 h-6" />
                   <div>
@@ -362,7 +365,7 @@ export default function Dashboard() {
                   </div>
                 </CardContent>
               </Card>
-              <Card className="shadow-md bg-gradient-to-br from-sky-50 to-white">
+              <Card className="shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100">
                 <CardContent className="p-4 flex items-center gap-4">
                   <CreditCard className="text-red-500 w-6 h-6" />
                   <div>
@@ -378,7 +381,7 @@ export default function Dashboard() {
         {/* Bottom Sections */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Recent Activity */}
-          <Card className="lg:col-span-1 shadow-md bg-gradient-to-br from-sky-50 to-white">
+          <Card className="lg:col-span-1 shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100">
             <CardContent className="p-4">
               <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
               {loading ? (
@@ -404,7 +407,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Upcoming Tasks */}
-          <Card className="lg:col-span-1 shadow-md bg-gradient-to-br from-sky-50 to-white">
+          <Card className="lg:col-span-1 shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100">
             <CardContent className="p-4">
               <h2 className="text-xl font-semibold mb-4">Upcoming Tasks</h2>
               {loading ? (
@@ -427,7 +430,7 @@ export default function Dashboard() {
           </Card>
 
           {/* AI Assistant Panel */}
-          <Card className="lg:col-span-1 shadow-md bg-gradient-to-br from-sky-50 to-white">
+          <Card className="lg:col-span-1 shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-3">
                 <Bot className="text-blue-500" />
