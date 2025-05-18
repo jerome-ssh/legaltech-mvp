@@ -1,11 +1,10 @@
 "use client";
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClientsTab } from "@/components/crm/ClientsTab";
 import { LeadsTab } from "@/components/crm/LeadsTab";
 import { MessagesTab } from "@/components/crm/MessagesTab";
+import { SchedulesTab } from "@/components/crm/SchedulesTab";
 import { useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSearchParams } from "next/navigation";
@@ -14,7 +13,7 @@ export default function CRMPage() {
   const { isLoaded, isSignedIn } = useUser();
   const searchParams = useSearchParams();
   const tabParam = searchParams?.get('tab');
-  const defaultTab = tabParam === 'messages' ? 'messages' : 'clients';
+  const [activeTab, setActiveTab] = useState(typeof tabParam === 'string' ? tabParam : 'clients');
 
   if (!isLoaded) {
     return (
@@ -31,24 +30,45 @@ export default function CRMPage() {
   if (!isSignedIn) {
     return (
       <div className="container mx-auto py-6">
-        <Card className="p-6">
+        <div className="p-6 bg-white dark:bg-[#1a2540]/50 rounded-lg shadow">
           <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
           <p className="text-muted-foreground">
             Please sign in to access the CRM dashboard.
           </p>
-        </Card>
+        </div>
       </div>
     );
   }
 
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    window.history.replaceState(null, '', `/crm?tab=${value}`);
+  };
+
   return (
-    <div className="container mx-auto py-6">
-      <h1 className="text-3xl font-bold mb-6">CRM Dashboard</h1>
-      <Tabs defaultValue={defaultTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="clients">Clients</TabsTrigger>
-          <TabsTrigger value="leads">Leads</TabsTrigger>
-          <TabsTrigger value="messages">Messages</TabsTrigger>
+    <div className="container mx-auto py-6 space-y-6">
+      <div className="flex flex-col space-y-2">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent dark:text-white">
+          CRM Dashboard
+        </h1>
+        <p className="text-gray-600 dark:text-gray-300">
+          Manage your clients, leads, messages, and schedules in one place.
+        </p>
+      </div>
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+        <TabsList className="bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 overflow-x-auto flex-nowrap whitespace-nowrap scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-transparent">
+          <TabsTrigger value="clients" className="min-w-[120px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
+            Clients
+          </TabsTrigger>
+          <TabsTrigger value="leads" className="min-w-[120px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
+            Leads
+          </TabsTrigger>
+          <TabsTrigger value="messages" className="min-w-[120px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
+            Messages
+          </TabsTrigger>
+          <TabsTrigger value="schedules" className="min-w-[120px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
+            Schedules
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="clients">
           <ClientsTab />
@@ -58,6 +78,9 @@ export default function CRMPage() {
         </TabsContent>
         <TabsContent value="messages">
           <MessagesTab />
+        </TabsContent>
+        <TabsContent value="schedules">
+          <SchedulesTab />
         </TabsContent>
       </Tabs>
     </div>

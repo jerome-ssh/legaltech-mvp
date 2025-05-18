@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Search, Send, Clock, User, Mail, Paperclip } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { AppError } from '@/lib/errors';
 import { CRMErrorBoundary } from './ErrorBoundary';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Message {
   id: string;
@@ -70,6 +72,7 @@ function MessagesTabContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     let mounted = true;
@@ -190,11 +193,17 @@ function MessagesTabContent() {
     }
   };
 
+  const filteredThreads = threads.filter(thread =>
+    thread.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    thread.sender.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    thread.recipient.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   if (loading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {[...Array(6)].map((_, i) => (
-          <Card key={i} className="bg-[#f0f6ff] dark:bg-[#1a2540] dark:text-white border-none shadow-none">
+          <Card key={i} className="bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg">
             <CardContent className="p-6">
               <Skeleton className="h-6 w-3/4 mb-4" />
               <Skeleton className="h-4 w-1/2 mb-2" />
@@ -209,125 +218,190 @@ function MessagesTabContent() {
   if (error) {
     return (
       <Card className="p-4">
-        <p className="text-destructive">Error loading messages: {error}</p>
+        <p className="text-red-500 dark:text-red-400">Error loading messages: {error}</p>
       </Card>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold">Messages</h2>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
-          New Message
-        </Button>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Messages</h2>
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          <div className="relative flex-1 md:flex-none">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Search messages..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border-gray-200/20 dark:border-gray-800/20"
+            />
+          </div>
+          <Button className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white">
+            <Plus className="w-4 h-4 mr-2" />
+            New Message
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-4">
-          {Array.isArray(threads) && threads.length === 0 && (
-            <Card>
-              <CardContent className="p-4 text-center text-muted-foreground">
-                No messages yet.
-              </CardContent>
-            </Card>
-          )}
-          {Array.isArray(threads) && threads.map((thread) => (
-            <Card
-              key={thread.id}
-              className={`bg-[#f0f6ff] dark:bg-[#1a2540] dark:text-white border-none shadow-none cursor-pointer hover:bg-[#e6f0ff] dark:hover:bg-[#1e2d4d] transition-colors ${
-                selectedThread?.id === thread.id ? 'ring-2 ring-primary' : ''
-              }`}
-              onClick={() => setSelectedThread(thread)}
-            >
-              <CardContent className="p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-medium">{thread.subject}</h3>
-                  {thread.status === 'unread' && (
-                    <span className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full">
-                      New
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground mb-2">
-                  {thread.last_message}
-                </p>
-                <div className="flex justify-between items-center text-xs text-muted-foreground">
-                  <span>{thread.sender}</span>
-                  <span>{new Date(thread.created_at).toLocaleDateString()}</span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          <AnimatePresence>
+            {Array.isArray(filteredThreads) && filteredThreads.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <Card className="bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20">
+                  <CardContent className="p-4 text-center text-gray-600 dark:text-gray-300">
+                    No messages yet.
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+            {Array.isArray(filteredThreads) && filteredThreads.map((thread) => (
+              <motion.div
+                key={thread.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Card
+                  className={`bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer ${
+                    selectedThread?.id === thread.id ? 'ring-2 ring-primary' : ''
+                  }`}
+                  onClick={() => setSelectedThread(thread)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-medium text-gray-900 dark:text-gray-100">{thread.subject}</h3>
+                      {thread.status === 'unread' && (
+                        <span className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs px-2 py-1 rounded-full">
+                          New
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 line-clamp-2">
+                      {thread.last_message}
+                    </p>
+                    <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+                      <div className="flex items-center">
+                        <User className="w-3 h-3 mr-1" />
+                        <span>{thread.sender}</span>
+                      </div>
+                      <div className="flex items-center">
+                        <Clock className="w-3 h-3 mr-1" />
+                        <span>{new Date(thread.created_at).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
 
         <div className="lg:col-span-2">
-          {selectedThread ? (
-            <Card className="bg-[#f0f6ff] dark:bg-[#1a2540] dark:text-white border-none shadow-none">
-              <CardContent className="p-6">
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">
-                      {selectedThread.subject}
-                    </h3>
-                    <div className="flex justify-between items-center text-sm text-muted-foreground">
-                      <span>
-                        From: {selectedThread.sender} | To: {selectedThread.recipient}
-                      </span>
-                      <span>
-                        {new Date(selectedThread.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    {selectedThread.messages.length === 0 && (
-                      <p className="text-center text-muted-foreground">No messages in this thread.</p>
-                    )}
-                    {selectedThread.messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`p-4 rounded-lg ${
-                          message.sender === 'current_user'
-                            ? 'bg-primary/10 ml-8'
-                            : 'bg-muted mr-8'
-                        }`}
-                      >
-                        <div className="flex justify-between items-start mb-2">
-                          <span className="font-medium">{message.sender}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {new Date(message.created_at).toLocaleString()}
-                          </span>
+          <AnimatePresence mode="wait">
+            {selectedThread ? (
+              <motion.div
+                key={selectedThread.id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Card className="bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg">
+                  <CardContent className="p-6">
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">
+                          {selectedThread.subject}
+                        </h3>
+                        <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-300">
+                          <div className="flex items-center space-x-4">
+                            <div className="flex items-center">
+                              <Mail className="w-4 h-4 mr-2" />
+                              <span>From: {selectedThread.sender}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <User className="w-4 h-4 mr-2" />
+                              <span>To: {selectedThread.recipient}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center">
+                            <Clock className="w-4 h-4 mr-2" />
+                            <span>{new Date(selectedThread.created_at).toLocaleDateString()}</span>
+                          </div>
                         </div>
-                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                       </div>
-                    ))}
-                  </div>
 
-                  <div className="space-y-4">
-                    <Textarea
-                      placeholder="Type your reply..."
-                      value={replyContent}
-                      onChange={(e) => setReplyContent(e.target.value)}
-                      className="min-h-[100px]"
-                    />
-                    <Button onClick={handleReply} disabled={!replyContent.trim()}>
-                      Send Reply
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="bg-[#f0f6ff] dark:bg-[#1a2540] dark:text-white border-none shadow-none">
-              <CardContent className="p-6">
-                <p className="text-center text-muted-foreground">
-                  Select a conversation to view messages
-                </p>
-              </CardContent>
-            </Card>
-          )}
+                      <div className="space-y-4">
+                        {selectedThread.messages.length === 0 && (
+                          <p className="text-center text-gray-600 dark:text-gray-300">No messages in this thread.</p>
+                        )}
+                        {selectedThread.messages.map((message) => (
+                          <motion.div
+                            key={message.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={`p-4 rounded-lg ${
+                              message.sender === 'current_user'
+                                ? 'bg-gradient-to-r from-blue-500/10 to-cyan-500/10 ml-8'
+                                : 'bg-gray-100/50 dark:bg-gray-800/50 mr-8'
+                            }`}
+                          >
+                            <div className="flex justify-between items-start mb-2">
+                              <span className="font-medium text-gray-900 dark:text-gray-100">{message.sender}</span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {new Date(message.created_at).toLocaleString()}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{message.content}</p>
+                          </motion.div>
+                        ))}
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="relative">
+                          <Textarea
+                            placeholder="Type your reply..."
+                            value={replyContent}
+                            onChange={(e) => setReplyContent(e.target.value)}
+                            className="min-h-[100px] bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border-gray-200/20 dark:border-gray-800/20"
+                          />
+                          <Button
+                            className="absolute bottom-2 right-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white"
+                            onClick={handleReply}
+                            disabled={!replyContent.trim()}
+                          >
+                            <Send className="w-4 h-4 mr-2" />
+                            Send
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <Card className="bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg">
+                  <CardContent className="p-6">
+                    <p className="text-center text-gray-600 dark:text-gray-300">
+                      Select a conversation to view messages
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </div>
