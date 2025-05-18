@@ -74,7 +74,7 @@ const leadsData: Record<string, Lead[]> = {
 const leadColumns = ["Inquiry", "Consultation", "Proposal", "Retained"];
 
 const communications = [
-  {
+          {
     id: 1,
     type: "Email",
     subject: "Welcome to LawMate!",

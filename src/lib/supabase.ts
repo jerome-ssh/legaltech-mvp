@@ -19,18 +19,18 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, bas
 // Function to create an authenticated client
 export const createAuthenticatedClient = async (getToken: () => Promise<string | null>) => {
   const token = await getToken();
-  if (!token) {
+    if (!token) {
     throw new AppError('No authentication token available', 'AUTH_TOKEN_MISSING', 401);
   }
   
-  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
+    return createClient<Database>(supabaseUrl, supabaseAnonKey, {
     ...baseConfig,
-    global: {
-      headers: {
-        Authorization: `Bearer ${token}`,
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       },
-    },
-  });
+}); 
 };
 
 // Admin client for server-side operations

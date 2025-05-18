@@ -34,7 +34,7 @@ const envSchema = z.object({
 const env = envSchema.parse(process.env);
 
 // Export validated environment variables
-export default env;
+export default env; 
 
 // Type for environment variables
 export type Env = z.infer<typeof envSchema>;

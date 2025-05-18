@@ -223,6 +223,21 @@ export async function POST(request: Request) {
       }
 
       console.log('API route: Profile created successfully:', newProfile);
+
+      // After updating/creating the profile, if onboarding_completed is true, update Clerk metadata
+      if (onboarding_completed) {
+        try {
+          await clerkClient.users.updateUser(userId, {
+            publicMetadata: { onboardingCompleted: true },
+            unsafeMetadata: { onboardingCompleted: true }
+          });
+          console.log('API route: Clerk metadata updated: onboardingCompleted = true');
+        } catch (clerkMetaError) {
+          console.error('API route: Error updating Clerk metadata:', clerkMetaError);
+          // Not fatal, continue
+        }
+      }
+
       return NextResponse.json(
         { 
           success: true,
@@ -445,6 +460,21 @@ export async function POST(request: Request) {
     }
 
     console.log('API route: Profile updated successfully:', updatedProfile);
+
+    // After updating/creating the profile, if onboarding_completed is true, update Clerk metadata
+    if (onboarding_completed) {
+      try {
+        await clerkClient.users.updateUser(userId, {
+          publicMetadata: { onboardingCompleted: true },
+          unsafeMetadata: { onboardingCompleted: true }
+        });
+        console.log('API route: Clerk metadata updated: onboardingCompleted = true');
+      } catch (clerkMetaError) {
+        console.error('API route: Error updating Clerk metadata:', clerkMetaError);
+        // Not fatal, continue
+      }
+    }
+
     return NextResponse.json(
       { 
         success: true,
