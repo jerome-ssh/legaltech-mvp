@@ -11,8 +11,9 @@ const supabase = createClient(
 // Valid matter statuses
 const VALID_STATUSES = ['active', 'pending', 'closed', 'archived'];
 
-export async function PUT(
-  req: Request,
+// GET /api/matters/[id]/status - Get matter status history
+export async function GET(
+  request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -21,65 +22,133 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { status } = await req.json();
-    if (!status) {
-      return NextResponse.json({ error: 'Status is required' }, { status: 400 });
+    // Get the user's profile_id
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('clerk_id', userId)
+      .single();
+
+    if (profileError) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    if (!VALID_STATUSES.includes(status)) {
+    // Verify matter exists and user has access
+    const { data: matter, error: matterError } = await supabase
+      .from('cases')
+      .select('id')
+      .eq('id', params.id)
+      .eq('profile_id', profile.id)
+      .single();
+
+    if (matterError || !matter) {
+      return NextResponse.json({ error: 'Matter not found' }, { status: 404 });
+    }
+
+    // Fetch status history
+    const { data: statusHistory, error } = await supabase
+      .from('matter_status')
+      .select(`
+        *,
+        changed_by:users (
+          email,
+          full_name
+        )
+      `)
+      .eq('matter_id', params.id)
+      .order('changed_at', { ascending: false });
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ statusHistory });
+  } catch (error) {
+    console.error('Error fetching matter status history:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT /api/matters/[id]/status - Update matter status
+export async function PUT(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { userId } = auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { status, notes } = body;
+
+    if (!status) {
       return NextResponse.json(
-        { error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}` },
+        { error: 'Status is required' },
         { status: 400 }
       );
     }
 
-    // Update matter status
-    const { data, error } = await supabase
-      .from('cases')
-      .update({
-        status,
-        updated_at: new Date().toISOString(),
-        ...(status === 'closed' && { end_date: new Date().toISOString() })
-      })
-      .eq('id', params.id)
-      .eq('user_id', userId)
-      .select()
+    // Get the user's profile_id
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('clerk_id', userId)
       .single();
 
-    if (error) {
-      console.error('Error updating matter status:', error);
-      return NextResponse.json(
-        { error: 'Failed to update matter status' },
-        { status: 500 }
-      );
+    if (profileError) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    if (!data) {
+    // Verify matter exists and user has access
+    const { data: matter, error: matterError } = await supabase
+      .from('cases')
+      .select('id, status')
+      .eq('id', params.id)
+      .eq('profile_id', profile.id)
+      .single();
+
+    if (matterError || !matter) {
       return NextResponse.json({ error: 'Matter not found' }, { status: 404 });
     }
 
-    // If status is being changed to closed, generate a final AI summary
-    if (status === 'closed') {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai-summary`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ matterId: params.id }),
-        });
-
-        if (!response.ok) {
-          console.error('Failed to generate final AI summary');
+    // Create new status entry
+    const { data: statusEntry, error: statusError } = await supabase
+      .from('matter_status')
+      .insert([
+        {
+          matter_id: params.id,
+          status,
+          previous_status: matter.status,
+          changed_by: userId,
+          notes: notes || 'Status updated',
+          changed_at: new Date().toISOString()
         }
-      } catch (error) {
-        console.error('Error generating final AI summary:', error);
-      }
+      ])
+      .select()
+      .single();
+
+    if (statusError) {
+      return NextResponse.json({ error: statusError.message }, { status: 500 });
     }
 
-    return NextResponse.json(data);
+    // Update matter status
+    const { error: updateError } = await supabase
+      .from('cases')
+      .update({ status })
+      .eq('id', params.id);
+
+    if (updateError) {
+      return NextResponse.json({ error: updateError.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ status: statusEntry });
   } catch (error) {
-    console.error('Error in matter status update:', error);
+    console.error('Error updating matter status:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
