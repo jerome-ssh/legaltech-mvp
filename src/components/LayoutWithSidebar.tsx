@@ -2,7 +2,7 @@
 import React, { useState, useEffect, createContext, useContext, useCallback } from "react";
 import {
   LayoutDashboard, FileText, Users, CreditCard, BarChart2, HelpCircle, Settings,
-  ChevronLeft, ChevronRight, Sun, Moon
+  ChevronLeft, ChevronRight, Sun, Moon, Briefcase
 } from "lucide-react";
 import { useUser } from '@clerk/nextjs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -77,6 +77,12 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
               <LayoutDashboard className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Dashboard</span>
             </button>
             <button 
+              onClick={() => handleNavigation('/matters')}
+              className={`w-full flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white transition-colors ${pathname === '/matters' ? 'text-blue-600' : ''}`}
+            >
+              <Briefcase className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Matters</span>
+            </button>
+            <button 
               onClick={() => handleNavigation('/documents')}
               className={`w-full flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white transition-colors ${pathname === '/documents' ? 'text-blue-600' : ''}`}
             >
@@ -114,7 +120,7 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
             </button>
           </nav>
           {/* Avatar right after nav, with small margin */}
-          <div className="flex flex-col items-center mt-80">
+          <div className="flex flex-col items-center mt-72">
             <button
               onClick={() => handleNavigation('/user-profile')}
               className="focus:outline-none"
