@@ -6,6 +6,7 @@ import { ColorModeContext } from '@/components/providers/MuiThemeProvider';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import { Brightness4, Brightness7 } from '@mui/icons-material';
+import { useRouter } from 'next/navigation';
 
 const caseOptions = [
   "All Cases",
@@ -17,11 +18,15 @@ const caseOptions = [
 export default function TopBar() {
   const [selectedCase, setSelectedCase] = useState(caseOptions[0]);
   const colorMode = useContext(ColorModeContext);
+  const router = useRouter();
 
   return (
     <div className="flex items-center gap-4 relative">
       {/* Schedule Button */}
-      <button className="bg-pink-400 hover:bg-pink-500 text-white font-extrabold px-5 py-2 rounded-md flex items-center gap-2">
+      <button
+        className="bg-pink-400 hover:bg-pink-500 text-white font-extrabold px-5 py-2 rounded-md flex items-center gap-2"
+        onClick={() => router.push('/crm?tab=schedules')}
+      >
         <Calendar className="w-4 h-4" /> Schedule
       </button>
 
