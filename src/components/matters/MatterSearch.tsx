@@ -30,16 +30,16 @@ export function MatterSearch({ totalPages, currentPage, onSearch }: MatterSearch
   
   // Initialize state with default values if searchParams is null
   const [searchQuery, setSearchQuery] = useState(searchParams?.get('q') ?? '');
-  const [status, setStatus] = useState(searchParams?.get('status') ?? '');
-  const [priority, setPriority] = useState(searchParams?.get('priority') ?? '');
+  const [status, setStatus] = useState(searchParams?.get('status') ?? 'all');
+  const [priority, setPriority] = useState(searchParams?.get('priority') ?? 'all');
   const [sortBy, setSortBy] = useState(searchParams?.get('sortBy') ?? 'created_at');
   const [sortDirection, setSortDirection] = useState(searchParams?.get('sortDirection') ?? 'desc');
 
   const handleSearch = () => {
     const params = {
       q: searchQuery,
-      status,
-      priority,
+      status: status === 'all' ? '' : status,
+      priority: priority === 'all' ? '' : priority,
       sortBy,
       sortDirection,
       page: 1
@@ -52,8 +52,8 @@ export function MatterSearch({ totalPages, currentPage, onSearch }: MatterSearch
     
     const params = {
       q: searchQuery,
-      status,
-      priority,
+      status: status === 'all' ? '' : status,
+      priority: priority === 'all' ? '' : priority,
       sortBy,
       sortDirection,
       page: newPage
@@ -80,7 +80,7 @@ export function MatterSearch({ totalPages, currentPage, onSearch }: MatterSearch
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Statuses</SelectItem>
+              <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
               <SelectItem value="completed">Completed</SelectItem>
@@ -92,7 +92,7 @@ export function MatterSearch({ totalPages, currentPage, onSearch }: MatterSearch
               <SelectValue placeholder="Priority" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Priorities</SelectItem>
+              <SelectItem value="all">All Priorities</SelectItem>
               <SelectItem value="high">High</SelectItem>
               <SelectItem value="medium">Medium</SelectItem>
               <SelectItem value="low">Low</SelectItem>

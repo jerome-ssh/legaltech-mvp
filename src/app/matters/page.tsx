@@ -26,6 +26,7 @@ interface Matter {
   status: string;
   priority: string;
   description?: string;
+  client_name: string;
   created_at: string;
   updated_at: string;
   matter_status: {
@@ -151,8 +152,8 @@ export default function Matters() {
     // Initialize with URL params or defaults
     const params = {
       q: searchParams?.get('q') ?? '',
-      status: searchParams?.get('status') ?? '',
-      priority: searchParams?.get('priority') ?? '',
+      status: searchParams?.get('status') ?? 'all',
+      priority: searchParams?.get('priority') ?? 'all',
       sortBy: searchParams?.get('sortBy') ?? 'created_at',
       sortDirection: searchParams?.get('sortDirection') ?? 'desc',
       page: parseInt(searchParams?.get('page') ?? '1')

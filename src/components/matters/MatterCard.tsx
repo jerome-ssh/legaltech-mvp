@@ -5,7 +5,7 @@ import { User, Calendar, Tag } from 'lucide-react';
 interface Matter {
   id: string;
   title: string;
-  description: string;
+  description?: string;
   status: string;
   priority: string;
   client_name: string;
