@@ -9,7 +9,7 @@ export async function GET() {
   try {
     const { getToken } = auth();
     const token = await getToken();
-    
+
     if (!token) {
       return NextResponse.json(
         { error: 'No authentication token available' },

@@ -17,6 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import type { ScheduleEvent } from './ScheduleEventModal';
 
 interface Schedule {
   id: string;
@@ -25,7 +26,7 @@ interface Schedule {
   start_time: string;
   end_time: string;
   type: 'meeting' | 'call' | 'email' | 'other';
-  status: 'scheduled' | 'completed' | 'cancelled';
+  status: 'scheduled' | 'completed' | 'cancelled' | 'postponed' | 'moved_forward' | 'moved_backward';
   participants: string[];
   location?: string;
   created_at: string;
@@ -83,6 +84,7 @@ function SchedulesTabContent({ shouldFetch }: SchedulesTabContentProps) {
   const [selectedEvent, setSelectedEvent] = useState<Schedule | null>(null);
 
   const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
+  const [deleteMode, setDeleteMode] = useState(false);
 
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -137,6 +139,12 @@ function SchedulesTabContent({ shouldFetch }: SchedulesTabContentProps) {
         return 'from-green-500 to-emerald-500';
       case 'cancelled':
         return 'from-red-500 to-pink-500';
+      case 'postponed':
+        return 'from-yellow-400 to-yellow-600';
+      case 'moved_forward':
+        return 'from-purple-400 to-purple-600';
+      case 'moved_backward':
+        return 'from-orange-400 to-orange-600';
       default:
         return 'from-gray-500 to-slate-500';
     }
@@ -183,7 +191,6 @@ function SchedulesTabContent({ shouldFetch }: SchedulesTabContentProps) {
   };
   const handleModalSave = async (eventData: any) => {
     try {
-      setIsLoading(true);
       let response;
       if (modalMode === 'create') {
         response = await fetch('/api/schedules', {
@@ -199,18 +206,15 @@ function SchedulesTabContent({ shouldFetch }: SchedulesTabContentProps) {
         });
       }
       if (response && response.ok) {
-        const updated = await response.json();
         setModalOpen(false);
-        toast.success(modalMode === 'create' ? 'Event created successfully' : 'Event updated successfully');
         // Refresh schedules
         const refetch = await fetch('/api/schedules');
         const data = await refetch.json();
         setSchedules(Array.isArray(data) ? data : []);
       }
     } catch (err) {
-      toast.error('Failed to save event');
-    } finally {
-      setIsLoading(false);
+      // Optionally show error toast
+      setModalOpen(false);
     }
   };
   const handleModalDelete = async (id: string) => {
@@ -374,6 +378,18 @@ function SchedulesTabContent({ shouldFetch }: SchedulesTabContentProps) {
     reader.readAsText(file);
   };
 
+  // Add custom eventContent renderer
+  const renderEventContent = (eventInfo: any) => {
+    const start = eventInfo.event.start;
+    const time = start ? format(start, 'h:mm a') : '';
+    return (
+      <div className="custom-fc-event-block">
+        <span className="custom-fc-event-time">{time}</span>
+        <span className="custom-fc-event-title">{eventInfo.event.title}</span>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <ScheduleEventModal
@@ -381,7 +397,11 @@ function SchedulesTabContent({ shouldFetch }: SchedulesTabContentProps) {
         onClose={handleModalClose}
         onSave={handleModalSave}
         onDelete={handleModalDelete}
-        event={selectedEvent}
+        event={selectedEvent ? ({
+          ...selectedEvent,
+          recurrence: selectedEvent.recurrence ?? '',
+          reminder: (selectedEvent as any).reminder ?? '',
+        } as ScheduleEvent) : undefined}
         mode={modalMode}
         isLoading={isLoading}
       />
@@ -421,25 +441,50 @@ function SchedulesTabContent({ shouldFetch }: SchedulesTabContentProps) {
             <Plus className="w-4 h-4 mr-2" />
             New Schedule
           </Button>
-          <div className="relative">
-            <Button variant="ghost" className="flex items-center gap-2 text-black dark:text-white" onClick={() => setShowExportMenu(v => !v)}>
+          <div className="relative group">
+            <Button variant="ghost" className="flex items-center gap-2 text-black dark:text-white">
               <Download className="w-4 h-4" /> Export
             </Button>
-            {showExportMenu && (
-              <div className="absolute z-10 mt-2 right-0 bg-white dark:bg-[#1a2540] border border-gray-200 dark:border-gray-800 rounded shadow-lg">
-                <button className="block w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-[#223366] text-black dark:text-white" onClick={() => handleExport('csv')}>Export as CSV</button>
-                <button className="block w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-[#223366] text-black dark:text-white" onClick={() => handleExport('pdf')}>Export as PDF</button>
-              </div>
-            )}
+            <div className="absolute z-10 mt-2 right-0 bg-white dark:bg-[#1a2540] border border-gray-200 dark:border-gray-800 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+              <button className="block w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-[#223366] text-black dark:text-white" onClick={() => handleExport('csv')}>Export as CSV</button>
+              <button className="block w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-[#223366] text-black dark:text-white" onClick={() => handleExport('pdf')}>Export as PDF</button>
+            </div>
           </div>
           <Button variant="ghost" className="flex items-center gap-2 text-black dark:text-white">
             <Upload className="w-4 h-4" />
             <input type="file" accept=".json" onChange={handleImport} style={{ display: 'none' }} id="import-file" />
             <label htmlFor="import-file" className="cursor-pointer text-black dark:text-white">Import</label>
           </Button>
-          <Button variant="ghost" className="flex items-center gap-2 text-red-500 text-black dark:text-red-400">
-            <Trash2 className="w-4 h-4" /> Bulk Delete
-          </Button>
+          <div className="flex items-center gap-3" style={{ marginRight: '12rem' }}>
+            <label className="flex items-center gap-2 cursor-pointer select-none text-black dark:text-white">
+              <input
+                type="checkbox"
+                checked={deleteMode}
+                onChange={e => {
+                  setDeleteMode(e.target.checked);
+                  if (!e.target.checked) setSelectedEvents([]);
+                }}
+                className="accent-red-500 w-4 h-4"
+              />
+              <Trash2 className="w-4 h-4 text-red-500 dark:text-red-400" />
+            </label>
+            {deleteMode && selectedEvents.length > 0 && (
+              <span className="text-sm font-semibold text-red-600 dark:text-red-400">{selectedEvents.length} selected</span>
+            )}
+            {deleteMode && (
+              <Button
+                variant="destructive"
+                className="bg-gradient-to-r from-red-500 to-pink-500 text-white"
+                disabled={selectedEvents.length === 0}
+                onClick={async () => {
+                  await handleBulkAction('delete');
+                  setDeleteMode(false);
+                }}
+              >
+                Delete
+              </Button>
+            )}
+          </div>
         </div>
         {/* Right: Filters */}
         <div className="flex flex-wrap items-center gap-2 justify-end">
@@ -472,7 +517,7 @@ function SchedulesTabContent({ shouldFetch }: SchedulesTabContentProps) {
               type="date"
               value={dateRange.start}
               onChange={e => setDateRange({ ...dateRange, start: e.target.value })}
-              className="w-[140px] bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border-gray-200/20 dark:border-gray-800/20 dark:placeholder:text-gray-300 text-black dark:text-white cursor-pointer"
+              className="w-[140px] bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border-gray-200/20 dark:border-gray-800/20 dark:placeholder:text-gray-300 text-black dark:text-white cursor-pointer focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
               placeholder="Start date"
               autoComplete="off"
             />
@@ -481,7 +526,7 @@ function SchedulesTabContent({ shouldFetch }: SchedulesTabContentProps) {
               type="date"
               value={dateRange.end}
               onChange={e => setDateRange({ ...dateRange, end: e.target.value })}
-              className="w-[140px] bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border-gray-200/20 dark:border-gray-800/20 dark:placeholder:text-gray-300 text-black dark:text-white cursor-pointer"
+              className="w-[140px] bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border-gray-200/20 dark:border-gray-800/20 dark:placeholder:text-gray-300 text-black dark:text-white cursor-pointer focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
               placeholder="End date"
               autoComplete="off"
             />
@@ -558,22 +603,21 @@ function SchedulesTabContent({ shouldFetch }: SchedulesTabContentProps) {
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            checked={selectedEvents.includes(schedule.id)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedEvents([...selectedEvents, schedule.id]);
-                              } else {
-                                setSelectedEvents(selectedEvents.filter(id => id !== schedule.id));
-                              }
-                            }}
-                          />
-                          <div className="flex-1">
-                            <h3 className="font-medium">{schedule.title}</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-200">{schedule.description}</p>
+                        {deleteMode && (
+                          <div className="flex items-center gap-2 mt-2">
+                            <Checkbox
+                              checked={selectedEvents.includes(schedule.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedEvents([...selectedEvents, schedule.id]);
+                                } else {
+                                  setSelectedEvents(selectedEvents.filter(id => id !== schedule.id));
+                                }
+                              }}
+                            />
+                            <span className="text-sm text-gray-500 dark:text-gray-200">Select</span>
                           </div>
-                        </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -625,6 +669,7 @@ function SchedulesTabContent({ shouldFetch }: SchedulesTabContentProps) {
             eventResize={handleCalendarEventDrop}
             dayMaxEvents={3}
             eventClassNames={() => 'rounded-lg shadow-md border-none text-black dark:text-white'}
+            eventContent={renderEventContent}
           />
         </motion.div>
       )}
@@ -661,6 +706,40 @@ function SchedulesTabContent({ shouldFetch }: SchedulesTabContentProps) {
         }
         html.dark .fc .fc-col-header-cell-cushion {
           color: #000 !important;
+        }
+        .custom-fc-event-block {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.25rem 0.75rem;
+          border-radius: 0.5rem;
+          font-size: 1rem;
+          font-weight: 500;
+          background: #e0f2fe;
+          color: #2563eb;
+          box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
+          margin-bottom: 2px;
+        }
+        .custom-fc-event-time {
+          font-size: 1.1em;
+          font-weight: 700;
+          margin-right: 0.5em;
+          letter-spacing: 0.01em;
+        }
+        .custom-fc-event-title {
+          font-size: 1em;
+          font-weight: 500;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        html.dark .custom-fc-event-block {
+          background: #fff;
+          color: #232f4b;
+          border: 1.5px solid #fff;
+        }
+        html.dark .custom-fc-event-time {
+          color: #232f4b;
         }
       `}</style>
     </div>

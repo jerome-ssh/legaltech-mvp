@@ -35,7 +35,7 @@ export default async function handler(
 
     // POST /api/schedules
     if (req.method === 'POST') {
-      const { title, description, start_time, end_time, type, status, participants, location } = req.body;
+      const { title, description, start_time, end_time, type, status, participants, location, recurrence, reminder } = req.body;
 
       const { data, error } = await supabase
         .from('schedules')
@@ -50,6 +50,8 @@ export default async function handler(
             status,
             participants,
             location,
+            recurrence,
+            reminder,
           },
         ])
         .select()
@@ -65,11 +67,11 @@ export default async function handler(
 
     // PUT /api/schedules
     if (req.method === 'PUT') {
-      const { id, ...updates } = req.body;
+      const { id, recurrence, reminder, ...updates } = req.body;
 
       const { data, error } = await supabase
         .from('schedules')
-        .update(updates)
+        .update({ ...updates, recurrence, reminder })
         .eq('id', id)
         .eq('user_id', userId)
         .select()

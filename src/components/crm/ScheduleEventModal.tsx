@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,13 +9,28 @@ import { motion } from 'framer-motion';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { setHours, setMinutes } from 'date-fns';
+import { toast } from 'sonner';
+
+export interface ScheduleEvent {
+  id?: string;
+  title: string;
+  description: string;
+  type: 'meeting' | 'call' | 'email' | 'other';
+  status: 'scheduled' | 'completed' | 'cancelled' | 'postponed' | 'moved_forward' | 'moved_backward';
+  participants: string[];
+  location: string;
+  start_time: string;
+  end_time: string;
+  recurrence: string;
+  reminder: string;
+}
 
 interface ScheduleEventModalProps {
   open: boolean;
   onClose: () => void;
-  onSave: (event: any) => void;
-  onDelete?: (id: string) => void;
-  event?: any;
+  onSave: (event: ScheduleEvent) => Promise<void>;
+  onDelete?: (id: string) => Promise<void>;
+  event?: ScheduleEvent;
   mode?: 'view' | 'edit' | 'create';
   isLoading?: boolean;
 }
@@ -31,6 +46,9 @@ const statusOptions = [
   { value: 'scheduled', label: 'Scheduled' },
   { value: 'completed', label: 'Completed' },
   { value: 'cancelled', label: 'Cancelled' },
+  { value: 'postponed', label: 'Postponed' },
+  { value: 'moved_forward', label: 'Moved Forward' },
+  { value: 'moved_backward', label: 'Moved Backward' },
 ];
 
 const recurrenceOptions = [
@@ -52,8 +70,16 @@ const reminderOptions = [
   { value: 'custom', label: 'Custom...' },
 ];
 
-export function ScheduleEventModal({ open, onClose, onSave, onDelete, event, mode = 'view', isLoading = false }: ScheduleEventModalProps) {
-  const [form, setForm] = useState({
+export function ScheduleEventModal({ 
+  open, 
+  onClose, 
+  onSave, 
+  onDelete, 
+  event, 
+  mode = 'view', 
+  isLoading = false 
+}: ScheduleEventModalProps) {
+  const [form, setForm] = useState<Omit<ScheduleEvent, 'participants'> & { participants: string }>({
     title: '',
     description: '',
     type: 'meeting',
@@ -70,6 +96,7 @@ export function ScheduleEventModal({ open, onClose, onSave, onDelete, event, mod
   const [reminderType, setReminderType] = useState('');
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (event) {
@@ -141,18 +168,82 @@ export function ScheduleEventModal({ open, onClose, onSave, onDelete, event, mod
     setForm(f => ({ ...f, end_time: date ? date.toISOString() : '' }));
   };
 
-  const handleSave = () => {
-    onSave({
-      ...form,
-      recurrence: recurrenceType === 'custom' ? form.recurrence : (recurrenceType === 'none' ? '' : recurrenceType),
-      reminder: reminderType === 'custom' ? form.reminder : (reminderType === 'none' ? '' : reminderType),
-      participants: form.participants.split(',').map((p) => p.trim()).filter(Boolean),
-    });
+  const validateForm = (): boolean => {
+    const now = new Date();
+    if (!form.title.trim()) {
+      toast.error('Title is required');
+      return false;
+    }
+    if (!startDate) {
+      toast.error('Start time is required');
+      return false;
+    }
+    if (!endDate) {
+      toast.error('End time is required');
+      return false;
+    }
+    if (startDate < now) {
+      toast.error('Start time cannot be in the past');
+      return false;
+    }
+    if (endDate < startDate) {
+      toast.error('End time must be after start time');
+      return false;
+    }
+    return true;
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const eventData: ScheduleEvent = {
+        ...form,
+        recurrence: recurrenceType === 'custom' ? form.recurrence : (recurrenceType === 'none' ? '' : recurrenceType),
+        reminder: reminderType === 'custom' ? form.reminder : (reminderType === 'none' ? '' : reminderType),
+        participants: form.participants.split(',').map((p) => p.trim()).filter(Boolean),
+      };
+      
+      if ((eventData.status === 'cancelled' || eventData.status === 'completed') && event?.id && onDelete) {
+        await onDelete(event.id);
+        toast.success(`Schedule ${eventData.status} and deleted successfully`);
+      } else {
+        await onSave(eventData);
+        toast.success(mode === 'create' ? 'Schedule created successfully' : 'Schedule updated successfully');
+      }
+      onClose();
+    } catch (error) {
+      console.error('Error saving schedule:', error);
+      toast.error('Failed to save schedule. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!event?.id || !onDelete) return;
+    
+    try {
+      setIsSubmitting(true);
+      await onDelete(event.id);
+      toast.success('Schedule deleted successfully');
+      onClose();
+    } catch (error) {
+      console.error('Error deleting schedule:', error);
+      toast.error('Failed to delete schedule. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg w-full bg-gradient-to-br from-blue-100 via-blue-50 to-pink-100/80 rounded-xl shadow-xl p-0 overflow-hidden">
+      <DialogContent className="max-w-3xl w-full bg-gradient-to-br from-blue-100 via-blue-50 to-pink-100/80 rounded-xl shadow-xl p-0 overflow-hidden">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -164,9 +255,14 @@ export function ScheduleEventModal({ open, onClose, onSave, onDelete, event, mod
               <CalendarIcon className="w-6 h-6 text-blue-500" />
               {mode === 'create' ? 'New Schedule' : mode === 'edit' ? 'Edit Schedule' : 'Schedule Details'}
             </DialogTitle>
+            <DialogDescription className="text-sm text-gray-500 dark:text-gray-400">
+              {mode === 'create' ? 'Create a new schedule event' : 
+               mode === 'edit' ? 'Edit the schedule event details' : 
+               'View schedule event details'}
+            </DialogDescription>
           </DialogHeader>
           <form
-            onSubmit={e => { e.preventDefault(); handleSave(); }}
+            onSubmit={handleSave}
             className="p-6 space-y-4"
           >
             <label className="block text-sm font-medium text-black mb-1" htmlFor="title">Title</label>
@@ -205,8 +301,8 @@ export function ScheduleEventModal({ open, onClose, onSave, onDelete, event, mod
             <Input id="participants" name="participants" value={form.participants} onChange={handleChange} placeholder="Participants (comma separated)" className="bg-white/80 text-black placeholder:text-gray-500 border border-gray-300" />
             <label className="block text-sm font-medium text-black mb-1" htmlFor="location">Location</label>
             <Input id="location" name="location" value={form.location} onChange={handleChange} placeholder="Location" className="bg-white/80 text-black placeholder:text-gray-500 border border-gray-300" />
-            <div className="flex gap-4">
-              <div className="flex-1">
+            <div className="flex gap-8 justify-center">
+              <div className="flex-1 max-w-xs">
                 <label className="block text-sm font-medium text-black mb-1" htmlFor="start_time">Start Time</label>
                 <DatePicker
                   id="start_time"
@@ -220,9 +316,12 @@ export function ScheduleEventModal({ open, onClose, onSave, onDelete, event, mod
                   className="w-full bg-white/80 text-black placeholder:text-gray-500 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   popperClassName="react-datepicker-popper"
                   calendarClassName="bg-white dark:bg-[#232f4b] text-black dark:text-white"
+                  minDate={new Date()}
+                  minTime={startDate && startDate.toDateString() === new Date().toDateString() ? new Date() : setHours(setMinutes(new Date(), 0), 0)}
+                  maxTime={setHours(setMinutes(new Date(), 59), 23)}
                 />
               </div>
-              <div className="flex-1">
+              <div className="flex-1 max-w-xs">
                 <label className="block text-sm font-medium text-black mb-1" htmlFor="end_time">End Time</label>
                 <DatePicker
                   id="end_time"
@@ -236,6 +335,9 @@ export function ScheduleEventModal({ open, onClose, onSave, onDelete, event, mod
                   className="w-full bg-white/80 text-black placeholder:text-gray-500 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   popperClassName="react-datepicker-popper"
                   calendarClassName="bg-white dark:bg-[#232f4b] text-black dark:text-white"
+                  minDate={startDate || new Date()}
+                  minTime={endDate && startDate && endDate.toDateString() === startDate.toDateString() ? startDate : setHours(setMinutes(new Date(), 0), 0)}
+                  maxTime={setHours(setMinutes(new Date(), 59), 23)}
                 />
               </div>
             </div>
@@ -275,19 +377,88 @@ export function ScheduleEventModal({ open, onClose, onSave, onDelete, event, mod
             </div>
             <div className="flex justify-between items-center pt-4 border-t border-gray-200/20 dark:border-gray-800/20">
               {mode !== 'create' && onDelete && (
-                <Button type="button" variant="destructive" onClick={() => onDelete(event.id)} className="flex items-center gap-2">
+                <Button 
+                  type="button" 
+                  variant="destructive" 
+                  onClick={handleDelete} 
+                  className="flex items-center gap-2"
+                  disabled={isSubmitting || isLoading}
+                >
                   <Trash2 className="w-4 h-4" /> Delete
                 </Button>
               )}
               <div className="flex gap-2 ml-auto">
-                <Button type="button" variant="ghost" onClick={onClose} disabled={isLoading}>Cancel</Button>
-                <Button type="submit" className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white" disabled={isLoading}>
-                  {isLoading ? 'Saving...' : mode === 'create' ? 'Create' : 'Save'}
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  onClick={onClose} 
+                  disabled={isSubmitting || isLoading}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white"
+                  disabled={isSubmitting || isLoading}
+                >
+                  {isSubmitting || isLoading ? 'Saving...' : mode === 'create' ? 'Create' : 'Save'}
                 </Button>
               </div>
             </div>
           </form>
         </motion.div>
+        <style jsx global>{`
+          .react-datepicker-popper[data-placement^='bottom'] {
+            left: auto !important;
+            right: 0 !important;
+            transform: translateX(-50%) !important;
+          }
+          .react-datepicker__triangle {
+            left: 80% !important;
+            right: auto !important;
+          }
+          html.dark .react-datepicker__month-container,
+          html.dark .react-datepicker__header,
+          html.dark .react-datepicker__day,
+          html.dark .react-datepicker__current-month,
+          html.dark .react-datepicker__day-name {
+            color: #fff !important;
+            background: #232f4b !important;
+          }
+          html.dark .react-datepicker__time-container,
+          html.dark .react-datepicker__time-box,
+          html.dark .react-datepicker__time-list,
+          html.dark .react-datepicker__time-list-item {
+            color: #000 !important;
+            background: #fff !important;
+          }
+          html.dark .react-datepicker__time-container .react-datepicker-time__header {
+            color: #fff !important;
+            background: #232f4b !important;
+          }
+          /* Date hover and selected styles - stronger specificity */
+          .react-datepicker__day:hover, .react-datepicker__time-list-item:hover {
+            background: #93c5fd !important;
+            color: #1e3a8a !important;
+            border-radius: 0.375rem !important;
+            border: 2px solid #60a5fa !important;
+            z-index: 2;
+          }
+          .react-datepicker__day--selected, .react-datepicker__day--keyboard-selected {
+            background: #2563eb !important;
+            color: #fff !important;
+            border-radius: 0.375rem !important;
+            border: 2px solid #60a5fa !important;
+            z-index: 3;
+          }
+          .react-datepicker__time-list-item--selected {
+            background: #2563eb !important;
+            color: #fff !important;
+            border-radius: 0.375rem !important;
+            border: 2px solid #60a5fa !important;
+            z-index: 3;
+          }
+        `}</style>
       </DialogContent>
     </Dialog>
   );

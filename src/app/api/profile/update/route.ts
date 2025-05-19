@@ -382,24 +382,48 @@ export async function POST(request: Request) {
     }
     // --- END FIRM/SOLO LOGIC ---
 
-    // Enforce that only admins can assign privileged roles
-    const privilegedRoles = ['admin', 'partner', 'managing partner', 'Managing Partner', 'Partner / Equity Partner'];
-    if (privilegedRoles.includes(role)) {
-      // Fetch current user's role
-      const { data: currentProfile, error: currentProfileError } = await supabase
-        .from('profiles')
-        .select('role_id, roles:role_id(name)')
-        .eq('clerk_id', userId)
-        .single();
-      if (currentProfileError || !currentProfile || !currentProfile.roles || currentProfile.roles[0]?.name !== 'admin') {
-        return NextResponse.json({ success: false, error: 'Only admins can assign privileged roles' }, { status: 403 });
-      }
-    }
+    // --- ADMIN/SUB-ACCOUNT ENFORCEMENT LOGIC ---
+    let enforcedRole = role;
+    let enforcedRoleId = null;
+    let adminCount = 0;
+    let isFirstUser = false;
+    let firmProfiles = [];
 
-    // Fetch the role_id for the provided role name (default to 'attorney')
-    let role_id = null;
+    // Check if user is solo or part of a firm
+    if (firmId) {
+      // Fetch all profiles for this firm
+      const { data: profilesInFirm, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, clerk_id, role_id, created_at')
+        .eq('firm_id', firmId)
+        .order('created_at', { ascending: true });
+      if (!profilesError && profilesInFirm && profilesInFirm.length > 0) {
+        firmProfiles = profilesInFirm;
+        adminCount = profilesInFirm.filter((p: any) => p.role_id === 'admin').length;
+        isFirstUser = profilesInFirm[0].clerk_id === userId;
+        // If first user, always admin
+        if (isFirstUser) {
+          enforcedRole = 'admin';
+        } else if (adminCount < 3 && role !== 'admin') {
+          // Allow up to 2 more admins, but not set by frontend
+          enforcedRole = role;
+        } else if (adminCount >= 3 && role === 'admin') {
+          // Prevent more than 3 admins
+          enforcedRole = 'attorney';
+        } else if (role === 'admin') {
+          // Prevent frontend from setting admin
+          enforcedRole = 'attorney';
+        }
+      }
+    } else {
+      // No firmId (solo or no sub-account): always admin
+      enforcedRole = 'admin';
+    }
+    // --- END ADMIN/SUB-ACCOUNT ENFORCEMENT LOGIC ---
+
+    // Fetch the role_id for the enforced role name (default to 'attorney')
     try {
-      const roleName = body.role || 'attorney';
+      const roleName = enforcedRole || 'attorney';
       const { data: roleData, error: roleError } = await supabase
         .from('roles')
         .select('id')
@@ -408,7 +432,7 @@ export async function POST(request: Request) {
       if (roleError || !roleData) {
         throw new Error(roleError?.message || 'Role not found');
       }
-      role_id = roleData.id;
+      enforcedRoleId = roleData.id;
     } catch (err) {
       console.error('API route: Error fetching role_id:', err);
       return NextResponse.json(
@@ -437,7 +461,7 @@ export async function POST(request: Request) {
         address: address || null,
         home_address: homeAddress || null,
         gender: gender || null,
-        role_id: role_id,
+        role_id: enforcedRoleId,
         onboarding_completed: onboarding_completed,
         updated_at: new Date().toISOString(),
         firm_id: firmId,
