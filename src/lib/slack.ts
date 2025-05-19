@@ -25,13 +25,13 @@ export async function sendSlackMessage({ channel, text, blocks }: SlackMessageOp
 
 // Slack message templates
 export const slackTemplates = {
-  caseUpdate: (caseTitle: string, message: string) => ({
+  matterUpdate: (caseTitle: string, message: string, label: string) => ({
     blocks: [
       {
         type: 'header',
         text: {
           type: 'plain_text',
-          text: `Case Update: ${caseTitle}`,
+          text: `${label} Update: ${caseTitle}`,
           emoji: true
         }
       },
@@ -45,7 +45,7 @@ export const slackTemplates = {
     ]
   }),
   
-  meetingInvite: (caseTitle: string, meetingDetails: any) => ({
+  meetingInvite: (caseTitle: string, meetingDetails: any, label: string) => ({
     blocks: [
       {
         type: 'header',
@@ -82,7 +82,7 @@ export const slackTemplates = {
     ]
   }),
   
-  documentNotification: (caseTitle: string, documentName: string) => ({
+  documentNotification: (caseTitle: string, documentName: string, label: string) => ({
     blocks: [
       {
         type: 'header',
@@ -96,7 +96,7 @@ export const slackTemplates = {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `A new document has been uploaded to your case:\n*${documentName}*`
+          text: `A new document has been uploaded to your ${label.toLowerCase()}:\n*${documentName}*`
         }
       }
     ]

@@ -34,19 +34,19 @@ export async function sendEmail({
 
 // Email templates
 export const emailTemplates = {
-  caseUpdate: (caseTitle: string, message: string) => `
+  matterUpdate: (caseTitle: string, message: string, label: string) => `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #2c3e50;">Case Update: ${caseTitle}</h2>
+      <h2 style="color: #2c3e50;">${label} Update: ${caseTitle}</h2>
       <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
         ${message}
       </div>
       <p style="color: #7f8c8d; font-size: 12px;">
-        This is an automated message from your legal case management system.
+        This is an automated message from your legal ${label.toLowerCase()} management system.
       </p>
     </div>
   `,
   
-  meetingInvite: (caseTitle: string, meetingDetails: any) => `
+  meetingInvite: (caseTitle: string, meetingDetails: any, label: string) => `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2 style="color: #2c3e50;">Meeting Invitation: ${caseTitle}</h2>
       <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
@@ -61,11 +61,11 @@ export const emailTemplates = {
     </div>
   `,
   
-  documentNotification: (caseTitle: string, documentName: string) => `
+  documentNotification: (caseTitle: string, documentName: string, label: string) => `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2 style="color: #2c3e50;">New Document: ${caseTitle}</h2>
       <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
-        <p>A new document has been uploaded to your case:</p>
+        <p>A new document has been uploaded to your ${label.toLowerCase()}:</p>
         <p><strong>Document Name:</strong> ${documentName}</p>
       </div>
       <p style="color: #7f8c8d; font-size: 12px;">

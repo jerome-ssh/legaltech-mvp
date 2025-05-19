@@ -1,0 +1,70 @@
+-- Create matter_billing table for per-matter billing setup
+CREATE TABLE IF NOT EXISTS matter_billing (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    matter_id UUID REFERENCES cases(id) ON DELETE CASCADE,
+    billing_type TEXT NOT NULL CHECK (billing_type IN (
+        'hourly',
+        'fixed',
+        'contingency',
+        'hybrid',
+        'block_fee',
+        'subscription'
+    )),
+    rate DECIMAL(10,2),
+    currency TEXT NOT NULL DEFAULT 'USD',
+    payment_terms TEXT,
+    retainer_amount DECIMAL(10,2),
+    retainer_balance DECIMAL(10,2),
+    billing_frequency TEXT CHECK (billing_frequency IN (
+        'monthly',
+        'quarterly',
+        'upon_completion',
+        'milestone',
+        'custom'
+    )),
+    custom_frequency JSONB,
+    billing_notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Add indexes for better query performance
+CREATE INDEX IF NOT EXISTS idx_matter_billing_matter_id ON matter_billing(matter_id);
+CREATE INDEX IF NOT EXISTS idx_matter_billing_billing_type ON matter_billing(billing_type);
+
+-- Enable Row Level Security
+ALTER TABLE matter_billing ENABLE ROW LEVEL SECURITY;
+
+-- Create policies
+CREATE POLICY "Users can view matter billing"
+    ON matter_billing
+    FOR SELECT
+    USING (
+        auth.uid() IN (
+            SELECT user_id FROM case_participants WHERE case_id = matter_id
+        )
+    );
+
+CREATE POLICY "Users can create matter billing"
+    ON matter_billing
+    FOR INSERT
+    WITH CHECK (
+        auth.uid() IN (
+            SELECT user_id FROM case_participants WHERE case_id = matter_id
+        )
+    );
+
+CREATE POLICY "Users can update matter billing"
+    ON matter_billing
+    FOR UPDATE
+    USING (
+        auth.uid() IN (
+            SELECT user_id FROM case_participants WHERE case_id = matter_id
+        )
+    );
+
+-- Add trigger for updated_at
+CREATE TRIGGER set_matter_billing_updated_at
+    BEFORE UPDATE ON matter_billing
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column(); 

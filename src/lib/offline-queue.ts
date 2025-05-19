@@ -1,7 +1,7 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export type OfflineAction = 'create' | 'update' | 'delete';
-export type ResourceType = 'case' | 'document' | 'message';
+export type ResourceType = 'matter' | 'document' | 'message';
 
 interface OfflineQueueItem {
   id: string;

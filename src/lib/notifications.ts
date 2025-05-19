@@ -1,6 +1,7 @@
 import { sendEmail, emailTemplates } from './email';
 import { sendSMS, smsTemplates } from './sms';
 import { sendSlackMessage, slackTemplates } from './slack';
+import { getPreferredTerminology } from './utils';
 
 interface User {
   email?: string;
@@ -10,6 +11,7 @@ interface User {
 
 interface NotificationOptions {
   user: User;
+  userId: string;
   caseTitle: string;
   message: string;
   type: 'caseUpdate' | 'meetingInvite' | 'documentNotification';
@@ -30,6 +32,7 @@ interface NotificationResults {
 
 export async function sendNotification({
   user,
+  userId,
   caseTitle,
   message,
   type,
@@ -42,23 +45,31 @@ export async function sendNotification({
     slack: { success: false, error: null }
   };
 
+  // Fetch user's preferred terminology
+  const terminology = await getPreferredTerminology(userId);
+  const label = terminology === 'case' ? 'Case' : 'Matter';
+
   // Send email if user has email
   if (user.email) {
     let html;
+    let subject;
     switch (type) {
       case 'caseUpdate':
-        html = emailTemplates.caseUpdate(caseTitle, message);
+        html = emailTemplates.matterUpdate(caseTitle, message, label);
+        subject = `${label} Update: ${caseTitle}`;
         break;
       case 'meetingInvite':
-        html = emailTemplates.meetingInvite(caseTitle, meetingDetails!);
+        html = emailTemplates.meetingInvite(caseTitle, meetingDetails!, label);
+        subject = `Meeting Invitation: ${caseTitle}`;
         break;
       case 'documentNotification':
-        html = emailTemplates.documentNotification(caseTitle, documentName!);
+        html = emailTemplates.documentNotification(caseTitle, documentName!, label);
+        subject = `New Document: ${caseTitle}`;
         break;
     }
     const emailResult = await sendEmail({
       to: user.email,
-      subject: `${caseTitle} - ${type}`,
+      subject,
       html
     });
     results.email = {
@@ -72,13 +83,13 @@ export async function sendNotification({
     let smsBody;
     switch (type) {
       case 'caseUpdate':
-        smsBody = smsTemplates.caseUpdate(caseTitle, message);
+        smsBody = smsTemplates.matterUpdate(caseTitle, message, label);
         break;
       case 'meetingInvite':
-        smsBody = smsTemplates.meetingReminder(caseTitle, meetingDetails!.time);
+        smsBody = smsTemplates.meetingReminder(caseTitle, meetingDetails!.time, label);
         break;
       case 'documentNotification':
-        smsBody = smsTemplates.documentNotification(caseTitle, documentName!);
+        smsBody = smsTemplates.documentNotification(caseTitle, documentName!, label);
         break;
     }
     const smsResult = await sendSMS({
@@ -94,20 +105,24 @@ export async function sendNotification({
   // Send Slack message if user has Slack ID
   if (user.slackId) {
     let blocks;
+    let text;
     switch (type) {
       case 'caseUpdate':
-        blocks = slackTemplates.caseUpdate(caseTitle, message).blocks;
+        blocks = slackTemplates.matterUpdate(caseTitle, message, label).blocks;
+        text = `${label} Update: ${caseTitle}`;
         break;
       case 'meetingInvite':
-        blocks = slackTemplates.meetingInvite(caseTitle, meetingDetails!).blocks;
+        blocks = slackTemplates.meetingInvite(caseTitle, meetingDetails!, label).blocks;
+        text = `Meeting Invitation: ${caseTitle}`;
         break;
       case 'documentNotification':
-        blocks = slackTemplates.documentNotification(caseTitle, documentName!).blocks;
+        blocks = slackTemplates.documentNotification(caseTitle, documentName!, label).blocks;
+        text = `New Document: ${caseTitle}`;
         break;
     }
     const slackResult = await sendSlackMessage({
       channel: user.slackId,
-      text: `${caseTitle} - ${type}`,
+      text,
       blocks
     });
     results.slack = {

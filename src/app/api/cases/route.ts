@@ -8,7 +8,7 @@ console.log('Supabase SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY 
 export async function GET(req: NextRequest) {
   try {
     const { userId } = auth();
-    console.log('GET /api/cases - User ID:', userId);
+    console.log('GET /api/matters - User ID:', userId);
     
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -23,15 +23,15 @@ export async function GET(req: NextRequest) {
     if (error) {
       console.error('Supabase query error:', error);
       return NextResponse.json(
-        { error: 'Failed to fetch cases' },
+        { error: 'Failed to fetch matters' },
         { status: 500 }
       );
     }
 
-    console.log('Successfully fetched cases:', data?.length || 0);
+    console.log('Successfully fetched matters:', data?.length || 0);
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Unexpected error in GET /api/cases:', error);
+    console.error('Unexpected error in GET /api/matters:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const { userId } = auth();
-    console.log('POST /api/cases - User ID:', userId);
+    console.log('POST /api/matters - User ID:', userId);
     
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -67,15 +67,15 @@ export async function POST(req: NextRequest) {
     if (error) {
       console.error('Supabase insert error:', error);
       return NextResponse.json(
-        { error: 'Failed to create case' },
+        { error: 'Failed to create matter' },
         { status: 500 }
       );
     }
 
-    console.log('Successfully created case:', data);
+    console.log('Successfully created matter:', data);
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Unexpected error in POST /api/cases:', error);
+    console.error('Unexpected error in POST /api/matters:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -86,13 +86,13 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const { userId } = auth();
-    console.log('PUT /api/cases userId:', userId);
+    console.log('PUT /api/matters userId:', userId);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await req.json();
-    console.log('PUT /api/cases body:', body);
+    console.log('PUT /api/matters body:', body);
     const { id, ...updates } = body;
 
     const { data, error } = await supabase
@@ -103,17 +103,17 @@ export async function PUT(req: NextRequest) {
       .select()
       .single();
 
-    console.log('Supabase update case data:', data);
-    console.log('Supabase update case error:', error);
+    console.log('Supabase update matter data:', data);
+    console.log('Supabase update matter error:', error);
 
     if (error) {
-      console.error('Error updating case:', error);
+      console.error('Error updating matter:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ data });
   } catch (error) {
-    console.error('Error in cases API:', error);
+    console.error('Error in matters API:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -124,18 +124,18 @@ export async function PUT(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     const { userId } = auth();
-    console.log('DELETE /api/cases userId:', userId);
+    console.log('DELETE /api/matters userId:', userId);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
-    console.log('DELETE /api/cases id:', id);
+    console.log('DELETE /api/matters id:', id);
 
     if (!id) {
       return NextResponse.json(
-        { error: 'Case ID is required' },
+        { error: 'Matter ID is required' },
         { status: 400 }
       );
     }
@@ -146,16 +146,16 @@ export async function DELETE(req: NextRequest) {
       .eq('id', id)
       .eq('user_id', userId);
 
-    console.log('Supabase delete case error:', error);
+    console.log('Supabase delete matter error:', error);
 
     if (error) {
-      console.error('Error deleting case:', error);
+      console.error('Error deleting matter:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error in cases API:', error);
+    console.error('Error in matters API:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

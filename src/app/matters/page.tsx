@@ -14,14 +14,16 @@ const LayoutWithSidebar = dynamic(() => import('@/components/LayoutWithSidebar')
   loading: () => <div className="h-screen bg-gray-100 dark:bg-gray-800 animate-pulse" />
 });
 
+// NOTE: 'case' = 'matter' in UI/UX/backend
+// This file handles the main matters listing page
+
 interface Matter {
   id: string;
   title: string;
   status: string;
+  priority: string;
+  description?: string;
   created_at: string;
-  client_name: string;
-  description: string;
-  priority: "High" | "Medium" | "Low";
 }
 
 export default function Matters() {

@@ -25,10 +25,10 @@ export async function GET() {
       statusResult,
       feedbackResult
     ] = await Promise.all([
-      // Cases by month
+      // Matters by month
       supabase
         .from('cases')
-        .select('created_at')
+        .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: true }),
 

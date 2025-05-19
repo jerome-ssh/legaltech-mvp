@@ -60,7 +60,8 @@ interface Activity {
 
 interface Task {
   title: string;
-  completed: boolean;
+  status: string;
+  completed_at: string | null;
 }
 
 interface DashboardData {
@@ -96,7 +97,7 @@ const useCases = [
 ];
 
 export default function Dashboard() {
-  const { isLoaded, isSignedIn } = useUser();
+  const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [dashboardData, setDashboardData] = useState<DashboardData>({
@@ -128,13 +129,24 @@ export default function Dashboard() {
   useEffect(() => {
     async function fetchData() {
       try {
+        // Get the current user's profile_id
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('clerk_id', user?.id)
+          .single();
+
+        if (profileError) throw profileError;
+        if (!profile) throw new Error('Profile not found');
+        const profileId = profile.id;
+
         const [{ count: openCases }, { count: deadlines }, { count: unreadMessages }, { data: billingData }, { data: activityData }, { data: tasksData }] = await Promise.all([
-          supabase.from("cases").select("id", { count: "exact", head: true }).eq("status", "open"),
-          supabase.from("deadlines").select("id", { count: "exact", head: true }).gt("due_date", new Date().toISOString()),
-          supabase.from("messages").select("id", { count: "exact", head: true }).eq("read", false),
-          supabase.from("billing").select("amount").order("created_at", { ascending: false }).limit(1),
-          supabase.from("activity").select("description,created_at").order("created_at", { ascending: false }).limit(3),
-          supabase.from("tasks").select("title,completed").order("created_at", { ascending: false }).limit(3),
+          supabase.from("cases").select("id", { count: "exact", head: true }).eq("status", "open").eq("profile_id", profileId),
+          supabase.from("deadlines").select("id", { count: "exact", head: true }).gt("due_date", new Date().toISOString()).eq("profile_id", profileId),
+          supabase.from("messages").select("id", { count: "exact", head: true }).eq("read", false).eq("profile_id", profileId),
+          supabase.from("billing").select("amount").eq("profile_id", profileId).order("created_at", { ascending: false }).limit(1),
+          supabase.from("activity").select("description,created_at").eq("profile_id", profileId).order("created_at", { ascending: false }).limit(3),
+          supabase.from("tasks").select("title,status,completed_at").eq("profile_id", profileId).order("created_at", { ascending: false }).limit(3),
         ]);
 
         setDashboardData({
@@ -147,11 +159,21 @@ export default function Dashboard() {
         });
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
+        setDashboardData({
+          openCases: 0,
+          deadlines: 0,
+          unreadMessages: 0,
+          billingAmount: 0,
+          activity: [],
+          tasks: []
+        });
       }
     }
 
-    fetchData();
-  }, []);
+    if (user?.id) {
+      fetchData();
+    }
+  }, [user?.id, supabase]);
 
   useEffect(() => {
     async function fetchCaseStages() {
@@ -424,7 +446,13 @@ export default function Dashboard() {
                   {dashboardData.tasks.length === 0 && <li>No tasks yet.</li>}
                   {dashboardData.tasks.map((t: Task, i: number) => (
                     <li key={i} className="flex items-center gap-2">
-                      <input type="checkbox" className="accent-blue-600" checked={t.completed} readOnly /> {t.title}
+                      <input 
+                        type="checkbox" 
+                        className="accent-blue-600" 
+                        checked={t.status === 'completed'} 
+                        readOnly 
+                      /> 
+                      {t.title}
                     </li>
                   ))}
                 </ul>
@@ -504,7 +532,7 @@ export default function Dashboard() {
 
         {/* Case Tracker Timeline */}
         <div className="bg-white p-6 rounded-lg shadow-md border border-blue-100 mt-4 animate-fade-in">
-          <h2 className="text-xl font-semibold text-blue-700 mb-4">Case Status Tracker</h2>
+          <h2 className="text-xl font-semibold text-blue-700 mb-4">Matter Status Tracker</h2>
           <div className="space-y-6 max-h-[33vh] overflow-y-auto pr-2">
             {loading ? (
               <div className="flex justify-center items-center h-32">

@@ -9,8 +9,8 @@ export interface Message {
   created_at: string;
   read: boolean;
   sender_name: string;
-  case_title: string;
-  case_id: string;
+  matter_title: string;
+  matter_id: string;
   sender_id: string;
   attachments?: string | null;
 }
@@ -65,8 +65,8 @@ export function useMessages() {
         created_at: msg.created_at,
         read: msg.read,
         sender_name: msg.users?.full_name || msg.sender_id,
-        case_title: msg.cases?.title || msg.case_id,
-        case_id: msg.case_id,
+        matter_title: msg.cases?.title || msg.case_id,
+        matter_id: msg.case_id,
         sender_id: msg.sender_id,
         attachments: msg.attachments
       }));

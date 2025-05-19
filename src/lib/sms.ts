@@ -27,12 +27,12 @@ export async function sendSMS({ to, body }: SMSOptions) {
 
 // SMS templates
 export const smsTemplates = {
-  caseUpdate: (caseTitle: string, message: string) => 
-    `Case Update: ${caseTitle}\n${message}\n\nReply STOP to unsubscribe.`,
+  matterUpdate: (caseTitle: string, message: string, label: string) =>
+    `${label} Update: ${caseTitle}\n${message}\n\nReply STOP to unsubscribe.`,
   
-  meetingReminder: (caseTitle: string, meetingTime: string) =>
+  meetingReminder: (caseTitle: string, meetingTime: string, label: string) =>
     `Reminder: Meeting for ${caseTitle} at ${meetingTime}\n\nReply STOP to unsubscribe.`,
   
-  documentNotification: (caseTitle: string, documentName: string) =>
-    `New document uploaded for ${caseTitle}: ${documentName}\n\nReply STOP to unsubscribe.`
+  documentNotification: (caseTitle: string, documentName: string, label: string) =>
+    `New document uploaded for your ${label.toLowerCase()}: ${documentName}\n\nReply STOP to unsubscribe.`
 }; 

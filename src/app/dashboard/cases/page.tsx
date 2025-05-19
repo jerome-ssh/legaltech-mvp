@@ -6,6 +6,8 @@ import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 
+// NOTE: 'case' = 'matter' in UI/UX/backend
+
 interface Case {
   id: string;
   title: string;
@@ -37,16 +39,16 @@ export default function CaseListPage() {
     fetchCases();
   }, [isLoaded, isSignedIn]);
 
-  if (!isLoaded || loading) return <div>Loading cases...</div>;
+  if (!isLoaded || loading) return <div>Loading matters...</div>;
   if (error) return <div className="text-red-500">Error: {error}</div>;
 
   return (
     <Card>
       <CardContent>
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Cases</h2>
+          <h2 className="text-xl font-bold">Matters</h2>
           <Button asChild>
-            <Link href="/dashboard/cases/create">New Case</Link>
+            <Link href="/dashboard/cases/create">New Matter</Link>
           </Button>
         </div>
         <table className="min-w-full text-sm">
@@ -70,16 +72,16 @@ export default function CaseListPage() {
                 <td>{c.priority}</td>
                 <td className="space-x-2">
                   <Button asChild size="sm" variant="outline">
-                    <Link href={`/dashboard/cases/${c.id}`}>View</Link>
+                    <Link href={`/dashboard/cases/${c.id}`}>View Matter</Link>
                   </Button>
                   <Button asChild size="sm" variant="outline">
-                    <Link href={`/dashboard/cases/${c.id}/edit`}>Edit</Link>
+                    <Link href={`/dashboard/cases/${c.id}/edit`}>Edit Matter</Link>
                   </Button>
                   <Button asChild size="sm" variant="outline">
-                    <Link href={`/dashboard/cases/${c.id}/team`}>Team</Link>
+                    <Link href={`/dashboard/cases/${c.id}/team`}>Matter Team</Link>
                   </Button>
                   <Button asChild size="sm" variant="outline">
-                    <Link href={`/dashboard/cases/${c.id}/stages`}>Stages</Link>
+                    <Link href={`/dashboard/cases/${c.id}/stages`}>Matter Stages</Link>
                   </Button>
                 </td>
               </tr>

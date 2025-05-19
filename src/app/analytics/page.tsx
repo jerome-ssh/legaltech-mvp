@@ -475,7 +475,7 @@ export default function Analytics() {
             <CardContent className="p-6">
               <h3 className="text-sm font-medium text-black dark:text-black">Total Cases</h3>
               <p className="text-3xl font-bold text-black mt-2 dark:text-black">{summaryStats.totalCases}</p>
-              <p className="text-sm text-gray-700 mt-1 dark:text-black">{summaryStats.activeCases} Active</p>
+              <p className="text-sm text-gray-700 mt-1 dark:text-black">{summaryStats.activeCases} Active Matters</p>
             </CardContent>
           </Card>
           <Card className="shadow-sm transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100/50 hover:shadow-[0_4px_32px_0_rgba(59,130,246,0.12)] dark:hover:shadow-[0_4px_32px_0_rgba(255,255,255,0.27)]">
@@ -489,7 +489,7 @@ export default function Analytics() {
             <CardContent className="p-6">
               <h3 className="text-sm font-medium text-black dark:text-black">Success Rate</h3>
               <p className="text-3xl font-bold text-black mt-2 dark:text-black">{summaryStats.successRate.toFixed(1)}%</p>
-              <p className="text-sm text-gray-700 mt-1 dark:text-black">Based on closed cases</p>
+              <p className="text-sm text-gray-700 mt-1 dark:text-black">Based on closed matters</p>
             </CardContent>
           </Card>
           <Card className="shadow-sm transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100/50 hover:shadow-[0_4px_32px_0_rgba(59,130,246,0.12)] dark:hover:shadow-[0_4px_32px_0_rgba(255,255,255,0.27)]">

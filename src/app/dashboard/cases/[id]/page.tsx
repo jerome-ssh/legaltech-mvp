@@ -39,19 +39,19 @@ export default function CaseDetailPage() {
     if (caseId) fetchCase();
   }, [caseId]);
 
-  if (loading) return <div>Loading case...</div>;
+  if (loading) return <div>Loading matter...</div>;
   if (error) return <div className="text-red-500">Error: {error}</div>;
-  if (!caseData) return <div>Case not found.</div>;
+  if (!caseData) return <div>Matter not found.</div>;
 
   return (
     <Card>
       <CardContent>
-        <h2 className="text-xl font-bold mb-2">{caseData.title}</h2>
+        <h2 className="text-xl font-bold mb-2">{caseData.title} (Matter)</h2>
         <Tabs value={tab} onValueChange={setTab} className="mb-4">
           <TabsList>
-            <TabsTrigger value="details">Details</TabsTrigger>
-            <TabsTrigger value="team">Team</TabsTrigger>
-            <TabsTrigger value="stages">Stages</TabsTrigger>
+            <TabsTrigger value="details">Matter Details</TabsTrigger>
+            <TabsTrigger value="team">Matter Team</TabsTrigger>
+            <TabsTrigger value="stages">Matter Stages</TabsTrigger>
             <TabsTrigger value="activity">Activity Log</TabsTrigger>
           </TabsList>
           <TabsContent value="details">
@@ -60,7 +60,7 @@ export default function CaseDetailPage() {
               <p><b>Assigned To:</b> {caseData.assigned_to}</p>
               <p><b>Client:</b> {caseData.client_id}</p>
               <p><b>Priority:</b> {caseData.priority}</p>
-              <p><b>Description:</b> {caseData.description}</p>
+              <p><b>Matter Description:</b> {caseData.description}</p>
             </div>
           </TabsContent>
           <TabsContent value="team">
