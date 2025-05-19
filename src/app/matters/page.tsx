@@ -3,11 +3,14 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, FileText, Calendar, User, Tag } from "lucide-react";
 import dynamic from 'next/dynamic';
+import { MatterSearch } from '@/components/matters/MatterSearch';
+import { MatterCard } from '@/components/matters/MatterCard';
+import { useToast } from '@/components/ui/use-toast';
 
 const LayoutWithSidebar = dynamic(() => import('@/components/LayoutWithSidebar'), {
   ssr: false,
@@ -24,13 +27,27 @@ interface Matter {
   priority: string;
   description?: string;
   created_at: string;
+  updated_at: string;
+  matter_status: {
+    status: string;
+    changed_at: string;
+  }[];
+  matter_billing: {
+    billing_type: string;
+    rate: number;
+    currency: string;
+  } | null;
 }
 
 export default function Matters() {
   const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { toast } = useToast();
   const [matters, setMatters] = useState<Matter[]>([]);
   const [loading, setLoading] = useState(true);
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Clerk authentication check
   useEffect(() => {
@@ -88,6 +105,72 @@ export default function Matters() {
     }
   };
 
+  const fetchMatters = async (params: {
+    q: string;
+    status: string;
+    priority: string;
+    sortBy: string;
+    sortDirection: string;
+    page: number;
+  }) => {
+    try {
+      setLoading(true);
+      const queryParams = new URLSearchParams();
+      
+      if (params.q) queryParams.set('q', params.q);
+      if (params.status) queryParams.set('status', params.status);
+      if (params.priority) queryParams.set('priority', params.priority);
+      queryParams.set('sortBy', params.sortBy);
+      queryParams.set('sortDirection', params.sortDirection);
+      queryParams.set('page', params.page.toString());
+      queryParams.set('pageSize', '10');
+
+      const response = await fetch(`/api/matters/search?${queryParams.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch matters');
+
+      const data = await response.json();
+      setMatters(data.matters);
+      setTotalPages(data.pagination.totalPages);
+      setCurrentPage(data.pagination.page);
+
+      // Update URL with search params
+      router.push(`/matters?${queryParams.toString()}`, { scroll: false });
+    } catch (error) {
+      console.error('Error fetching matters:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch matters. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Initialize with URL params or defaults
+    const params = {
+      q: searchParams?.get('q') ?? '',
+      status: searchParams?.get('status') ?? '',
+      priority: searchParams?.get('priority') ?? '',
+      sortBy: searchParams?.get('sortBy') ?? 'created_at',
+      sortDirection: searchParams?.get('sortDirection') ?? 'desc',
+      page: parseInt(searchParams?.get('page') ?? '1')
+    };
+    fetchMatters(params);
+  }, []);
+
+  const handleSearch = (params: {
+    q: string;
+    status: string;
+    priority: string;
+    sortBy: string;
+    sortDirection: string;
+    page: number;
+  }) => {
+    fetchMatters(params);
+  };
+
   if (!isLoaded || !isSignedIn) {
     return null;
   }
@@ -106,6 +189,12 @@ export default function Matters() {
             New Matter
           </Button>
         </div>
+
+        <MatterSearch
+          totalPages={totalPages}
+          currentPage={currentPage}
+          onSearch={handleSearch}
+        />
 
         {/* Matters Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -138,31 +227,7 @@ export default function Matters() {
           ) : (
             // Matter cards
             matters.map((matter) => (
-              <Card 
-                key={matter.id} 
-                className="shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-                onClick={() => router.push(`/matters/${matter.id}`)}
-              >
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">{matter.title}</h3>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(matter.priority)}`}>
-                      {matter.priority}
-                    </span>
-                  </div>
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">{matter.description}</p>
-                  <div className="flex items-center gap-4 text-sm text-gray-500">
-                    <div className="flex items-center gap-1">
-                      <User className="w-4 h-4" />
-                      <span>{matter.client_name}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      <span>{new Date(matter.created_at).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <MatterCard key={matter.id} matter={matter} />
             ))
           )}
         </div>
