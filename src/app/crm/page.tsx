@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClientsTab } from "@/components/crm/ClientsTab";
 import { LeadsTab } from "@/components/crm/LeadsTab";
@@ -7,13 +7,24 @@ import { MessagesTab } from "@/components/crm/MessagesTab";
 import { SchedulesTab } from "@/components/crm/SchedulesTab";
 import { useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams } from 'next/navigation';
 
 export default function CRMPage() {
   const { isLoaded, isSignedIn } = useUser();
   const searchParams = useSearchParams();
-  const tabParam = searchParams?.get('tab');
-  const [activeTab, setActiveTab] = useState(typeof tabParam === 'string' ? tabParam : 'clients');
+  const [activeTab, setActiveTab] = useState(() => {
+    if (!searchParams) return 'clients';
+    const tab = searchParams.get('tab');
+    return tab && ['clients', 'leads', 'messages', 'schedules'].includes(tab) ? tab : 'clients';
+  });
+
+  useEffect(() => {
+    if (!searchParams) return;
+    const tab = searchParams.get('tab');
+    if (tab && ['clients', 'leads', 'messages', 'schedules'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   if (!isLoaded) {
     return (
@@ -56,7 +67,7 @@ export default function CRMPage() {
         </p>
       </div>
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-        <TabsList className="bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 overflow-x-auto flex-nowrap whitespace-nowrap scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-transparent">
+        <TabsList className="bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 overflow-x-auto flex-nowrap whitespace-nowrap scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-transparent">
           <TabsTrigger value="clients" className="min-w-[120px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
             Clients
           </TabsTrigger>
@@ -71,16 +82,16 @@ export default function CRMPage() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="clients">
-          <ClientsTab />
+          <ClientsTab shouldFetch={activeTab === 'clients'} />
         </TabsContent>
         <TabsContent value="leads">
-          <LeadsTab />
+          <LeadsTab shouldFetch={activeTab === 'leads'} />
         </TabsContent>
         <TabsContent value="messages">
-          <MessagesTab />
+          <MessagesTab shouldFetch={activeTab === 'messages'} />
         </TabsContent>
         <TabsContent value="schedules">
-          <SchedulesTab />
+          <SchedulesTab shouldFetch={activeTab === 'schedules'} />
         </TabsContent>
       </Tabs>
     </div>

@@ -356,14 +356,16 @@ export default function Dashboard() {
                   </div>
                 </CardContent>
               </Card>
-              <Card className="shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100/50">
+              <Card 
+                className="shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100/50 cursor-pointer hover:shadow-lg transition-shadow duration-200"
+                onClick={() => router.push('/crm?tab=messages')}
+              >
                 <CardContent className="p-4 flex items-center gap-4">
                   <MessageSquare className="text-yellow-500 w-6 h-6" />
                   <div>
                     <p className="text-sm text-gray-500">Unread Messages</p>
                     <p className="text-xl font-bold">{dashboardData.unreadMessages}</p>
                   </div>
-                  <Link href="/crm?tab=messages" className="absolute inset-0" aria-label="Go to Messages" />
                 </CardContent>
               </Card>
               <Card className="shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100/50">

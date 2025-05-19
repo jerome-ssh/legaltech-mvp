@@ -12,6 +12,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
+import { ScheduleEventModal } from './ScheduleEventModal';
 
 interface Schedule {
   id: string;
@@ -24,57 +25,82 @@ interface Schedule {
   participants: string[];
   location?: string;
   created_at: string;
+  recurrence?: string;
 }
 
 type ViewMode = 'list' | 'calendar';
 
-function SchedulesTabContent() {
+function expandRecurringEvents(events: Schedule[]): Schedule[] {
+  const expanded: Schedule[] = [];
+  const now = new Date();
+  events.forEach(event => {
+    expanded.push(event);
+    if (event.recurrence) {
+      let count = 0;
+      let max = 0;
+      let interval = 0;
+      if (/week/i.test(event.recurrence)) {
+        max = 8; interval = 7;
+      } else if (/month/i.test(event.recurrence)) {
+        max = 6; interval = 30;
+      } else if (/2 week/i.test(event.recurrence)) {
+        max = 4; interval = 14;
+      } else {
+        return; // skip unknown
+      }
+      let start = new Date(event.start_time);
+      let end = new Date(event.end_time);
+      for (let i = 1; i <= max; i++) {
+        const nextStart = new Date(start.getTime() + i * interval * 24 * 60 * 60 * 1000);
+        const nextEnd = new Date(end.getTime() + i * interval * 24 * 60 * 60 * 1000);
+        if (nextStart > now) {
+          expanded.push({ ...event, id: `${event.id}-rec${i}`, start_time: nextStart.toISOString(), end_time: nextEnd.toISOString() });
+        }
+      }
+    }
+  });
+  return expanded;
+}
+
+interface SchedulesTabContentProps {
+  shouldFetch: boolean;
+}
+
+function SchedulesTabContent({ shouldFetch }: SchedulesTabContentProps) {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
-  // For future: const [selected, setSelected] = useState<string[]>([]);
+
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view'>('create');
+  const [selectedEvent, setSelectedEvent] = useState<Schedule | null>(null);
 
   useEffect(() => {
+    if (!shouldFetch) return;
     let mounted = true;
-
     const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
-
         const response = await fetch('/api/schedules');
-        if (!response.ok) {
-          throw new Error('Failed to fetch schedules');
-        }
-
+        if (!response.ok) throw new Error('Failed to fetch schedules');
         const data = await response.json();
-        if (mounted) {
-          setSchedules(Array.isArray(data) ? data : []);
-        }
+        if (mounted) setSchedules(Array.isArray(data) ? data : []);
       } catch (err) {
         if (mounted) {
-          if (err instanceof AppError) {
-            setError(err.message);
-          } else {
-            setError('An unexpected error occurred while loading schedules');
-            console.error('Error loading schedules:', err);
-          }
+          if (err instanceof AppError) setError(err.message);
+          else setError('An unexpected error occurred while loading schedules');
         }
       } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+        if (mounted) setLoading(false);
       }
     };
-
     fetchData();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    return () => { mounted = false; };
+  }, [shouldFetch]);
 
   const getTypeIcon = (type: Schedule['type']) => {
     switch (type) {
@@ -108,8 +134,9 @@ function SchedulesTabContent() {
     schedule.participants.some(p => p.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  // Convert schedules to FullCalendar events
-  const calendarEvents = filteredSchedules.map((s) => ({
+  // Use expanded recurring events for display
+  const expandedSchedules = expandRecurringEvents(filteredSchedules);
+  const calendarEvents = expandedSchedules.map((s) => ({
     id: s.id,
     title: s.title,
     start: s.start_time,
@@ -117,8 +144,108 @@ function SchedulesTabContent() {
     extendedProps: s,
   }));
 
+  // Modal handlers
+  const handleNewSchedule = () => {
+    setSelectedEvent(null);
+    setModalMode('create');
+    setModalOpen(true);
+  };
+  const handleEventClick = (event: Schedule) => {
+    setSelectedEvent(event);
+    setModalMode('edit');
+    setModalOpen(true);
+  };
+  const handleCalendarEventClick = (info: any) => {
+    const event = schedules.find(s => s.id === info.event.id);
+    if (event) handleEventClick(event);
+  };
+  const handleModalClose = () => {
+    setModalOpen(false);
+  };
+  const handleModalSave = async (eventData: any) => {
+    try {
+      let response;
+      if (modalMode === 'create') {
+        response = await fetch('/api/schedules', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(eventData),
+        });
+      } else if (modalMode === 'edit' && selectedEvent) {
+        response = await fetch('/api/schedules', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...eventData, id: selectedEvent.id }),
+        });
+      }
+      if (response && response.ok) {
+        const updated = await response.json();
+        setModalOpen(false);
+        // Refresh schedules
+        const refetch = await fetch('/api/schedules');
+        const data = await refetch.json();
+        setSchedules(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      // Optionally show error toast
+    }
+  };
+  const handleModalDelete = async (id: string) => {
+    try {
+      const response = await fetch('/api/schedules', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      if (response.ok) {
+        setModalOpen(false);
+        // Refresh schedules
+        const refetch = await fetch('/api/schedules');
+        const data = await refetch.json();
+        setSchedules(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      // Optionally show error toast
+    }
+  };
+
+  // Drag-and-drop handlers
+  const handleCalendarEventDrop = async (info: any) => {
+    const event = schedules.find(s => s.id === info.event.id);
+    if (!event) return;
+    try {
+      const response = await fetch('/api/schedules', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...event,
+          start_time: info.event.startStr,
+          end_time: info.event.endStr || info.event.startStr,
+        }),
+      });
+      if (response.ok) {
+        // Refresh schedules
+        const refetch = await fetch('/api/schedules');
+        const data = await refetch.json();
+        setSchedules(Array.isArray(data) ? data : []);
+      } else {
+        info.revert(); // revert drag if update fails
+      }
+    } catch (err) {
+      info.revert();
+    }
+  };
+
   return (
     <div className="space-y-6">
+      <ScheduleEventModal
+        open={modalOpen}
+        onClose={handleModalClose}
+        onSave={handleModalSave}
+        onDelete={handleModalDelete}
+        event={selectedEvent}
+        mode={modalMode}
+      />
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Schedules</h2>
         <div className="flex items-center gap-2 w-full md:w-auto">
@@ -138,7 +265,6 @@ function SchedulesTabContent() {
           </Button>
         </div>
       </div>
-
       {/* Toolbar */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-2">
         <div className="flex items-center gap-2 w-full md:w-auto">
@@ -148,10 +274,10 @@ function SchedulesTabContent() {
               placeholder="Search schedules..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border-gray-200/20 dark:border-gray-800/20"
+              className="pl-10 bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border-gray-200/20 dark:border-gray-800/20"
             />
           </div>
-          <Button className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white">
+          <Button className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white" onClick={handleNewSchedule}>
             <Plus className="w-4 h-4 mr-2" />
             New Schedule
           </Button>
@@ -171,13 +297,12 @@ function SchedulesTabContent() {
           </Button>
         </div>
       </div>
-
       {/* Main Content */}
       {viewMode === 'list' ? (
         loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
-              <Card key={i} className="bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg">
+              <Card key={i} className="bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg">
                 <CardContent className="p-6">
                   <Skeleton className="h-6 w-3/4 mb-4" />
                   <Skeleton className="h-4 w-1/2 mb-2" />
@@ -193,15 +318,17 @@ function SchedulesTabContent() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 custom-scrollbar">
             <AnimatePresence>
-              {filteredSchedules.map((schedule) => (
+              {expandedSchedules.map((schedule) => (
                 <motion.div
                   key={schedule.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
+                  onClick={() => handleEventClick(schedule)}
+                  className="cursor-pointer"
                 >
-                  <Card className="bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <Card className="bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg hover:shadow-xl transition-all duration-300">
                     <CardContent className="p-6">
                       <div className="flex flex-col h-full">
                         <div className="flex-1">
@@ -249,7 +376,7 @@ function SchedulesTabContent() {
           </div>
         )
       ) : (
-        <div className="bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 rounded-lg shadow-lg p-4">
+        <div className="bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 rounded-lg shadow-lg p-4">
           <FullCalendar
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
             initialView="dayGridMonth"
@@ -262,15 +389,9 @@ function SchedulesTabContent() {
             editable={true}
             selectable={true}
             height="auto"
-            eventClick={(info) => {
-              // TODO: Open event details modal
-            }}
-            eventDrop={(info) => {
-              // TODO: Handle drag-and-drop rescheduling
-            }}
-            eventResize={(info) => {
-              // TODO: Handle resizing events
-            }}
+            eventClick={handleCalendarEventClick}
+            eventDrop={handleCalendarEventDrop}
+            eventResize={handleCalendarEventDrop}
             dayMaxEvents={3}
             eventClassNames={() => 'rounded-lg shadow-md border-none'}
           />
@@ -280,10 +401,10 @@ function SchedulesTabContent() {
   );
 }
 
-export function SchedulesTab() {
+export function SchedulesTab({ shouldFetch }: { shouldFetch: boolean }) {
   return (
     <CRMErrorBoundary>
-      <SchedulesTabContent />
+      <SchedulesTabContent shouldFetch={shouldFetch} />
     </CRMErrorBoundary>
   );
 }

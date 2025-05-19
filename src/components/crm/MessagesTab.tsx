@@ -66,7 +66,11 @@ function groupMessagesByThread(messages: Message[]): MessageThread[] {
   );
 }
 
-function MessagesTabContent() {
+interface MessagesTabContentProps {
+  shouldFetch: boolean;
+}
+
+function MessagesTabContent({ shouldFetch }: MessagesTabContentProps) {
   const [threads, setThreads] = useState<MessageThread[]>([]);
   const [selectedThread, setSelectedThread] = useState<MessageThread | null>(null);
   const [loading, setLoading] = useState(true);
@@ -75,6 +79,7 @@ function MessagesTabContent() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
+    if (!shouldFetch) return;
     let mounted = true;
 
     const fetchData = async () => {
@@ -109,7 +114,7 @@ function MessagesTabContent() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [shouldFetch]);
 
   const handleThreadSelect = async (thread: MessageThread) => {
     try {
@@ -234,7 +239,7 @@ function MessagesTabContent() {
               placeholder="Search messages..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border-gray-200/20 dark:border-gray-800/20"
+              className="pl-10 bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border-gray-200/20 dark:border-gray-800/20"
             />
           </div>
           <Button className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white">
@@ -253,7 +258,7 @@ function MessagesTabContent() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
               >
-                <Card className="bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20">
+                <Card className="bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20">
                   <CardContent className="p-4 text-center text-gray-600 dark:text-gray-300">
                     No messages yet.
                   </CardContent>
@@ -269,7 +274,7 @@ function MessagesTabContent() {
                 transition={{ duration: 0.2 }}
               >
                 <Card
-                  className={`bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer ${
+                  className={`bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer ${
                     selectedThread?.id === thread.id ? 'ring-2 ring-primary' : ''
                   }`}
                   onClick={() => setSelectedThread(thread)}
@@ -313,7 +318,7 @@ function MessagesTabContent() {
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.2 }}
               >
-                <Card className="bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg">
+                <Card className="bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg">
                   <CardContent className="p-6">
                     <div className="space-y-6">
                       <div>
@@ -370,7 +375,7 @@ function MessagesTabContent() {
                             placeholder="Type your reply..."
                             value={replyContent}
                             onChange={(e) => setReplyContent(e.target.value)}
-                            className="min-h-[100px] bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border-gray-200/20 dark:border-gray-800/20"
+                            className="min-h-[100px] bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border-gray-200/20 dark:border-gray-800/20"
                           />
                           <Button
                             className="absolute bottom-2 right-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white"
@@ -392,7 +397,7 @@ function MessagesTabContent() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
               >
-                <Card className="bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg">
+                <Card className="bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg">
                   <CardContent className="p-6">
                     <p className="text-center text-gray-600 dark:text-gray-300">
                       Select a conversation to view messages
@@ -408,10 +413,10 @@ function MessagesTabContent() {
   );
 }
 
-export function MessagesTab() {
+export function MessagesTab({ shouldFetch }: { shouldFetch: boolean }) {
   return (
     <CRMErrorBoundary>
-      <MessagesTabContent />
+      <MessagesTabContent shouldFetch={shouldFetch} />
     </CRMErrorBoundary>
   );
 } 

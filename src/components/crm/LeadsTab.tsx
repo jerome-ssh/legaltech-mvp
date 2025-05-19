@@ -29,13 +29,18 @@ const statusColumns = {
   closed: { title: 'Closed', color: 'from-gray-500 to-slate-500' }
 };
 
-function LeadsTabContent() {
+interface LeadsTabContentProps {
+  shouldFetch: boolean;
+}
+
+function LeadsTabContent({ shouldFetch }: LeadsTabContentProps) {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
+    if (!shouldFetch) return;
     let mounted = true;
 
     const fetchData = async () => {
@@ -74,7 +79,7 @@ function LeadsTabContent() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [shouldFetch]);
 
   const onDragEnd = async (result: any) => {
     if (!result.destination) return;
@@ -252,10 +257,10 @@ function LeadsTabContent() {
   );
 }
 
-export function LeadsTab() {
+export function LeadsTab({ shouldFetch }: { shouldFetch: boolean }) {
   return (
     <CRMErrorBoundary>
-      <LeadsTabContent />
+      <LeadsTabContent shouldFetch={shouldFetch} />
     </CRMErrorBoundary>
   );
 } 

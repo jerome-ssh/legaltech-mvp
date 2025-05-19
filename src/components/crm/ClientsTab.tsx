@@ -27,7 +27,11 @@ interface Case {
   status: string;
 }
 
-function ClientsTabContent() {
+interface ClientsTabContentProps {
+  shouldFetch: boolean;
+}
+
+function ClientsTabContent({ shouldFetch }: ClientsTabContentProps) {
   const [clients, setClients] = useState<Client[]>([]);
   const [cases, setCases] = useState<Case[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +39,7 @@ function ClientsTabContent() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
+    if (!shouldFetch) return;
     let mounted = true;
 
     const fetchData = async () => {
@@ -88,7 +93,7 @@ function ClientsTabContent() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [shouldFetch]);
 
   const filteredClients = clients.filter(client => 
     `${client.first_name} ${client.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -99,7 +104,7 @@ function ClientsTabContent() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {[...Array(6)].map((_, i) => (
-          <Card key={i} className="bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg">
+          <Card key={i} className="bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg">
             <CardContent className="p-6">
               <Skeleton className="h-6 w-3/4 mb-4" />
               <Skeleton className="h-4 w-1/2 mb-2" />
@@ -130,7 +135,7 @@ function ClientsTabContent() {
               placeholder="Search clients..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border-gray-200/20 dark:border-gray-800/20"
+              className="pl-10 bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border-gray-200/20 dark:border-gray-800/20"
             />
           </div>
           <Button className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white">
@@ -152,7 +157,7 @@ function ClientsTabContent() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <Card className="bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg hover:shadow-xl transition-all duration-300">
+              <Card className="bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg hover:shadow-xl transition-all duration-300">
                 <CardContent className="p-6">
                   <div className="flex flex-col h-full">
                     <div className="flex-1">
@@ -208,10 +213,10 @@ function ClientsTabContent() {
   );
 }
 
-export function ClientsTab() {
+export function ClientsTab({ shouldFetch }: { shouldFetch: boolean }) {
   return (
     <CRMErrorBoundary>
-      <ClientsTabContent />
+      <ClientsTabContent shouldFetch={shouldFetch} />
     </CRMErrorBoundary>
   );
 } 
