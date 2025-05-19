@@ -7,6 +7,7 @@ import ClientLayout from './ClientLayout';
 import InstallPrompt from '@/components/pwa/InstallPrompt';
 import ProfileContextProvider from '@/components/ProfileContextProvider';
 import ThemeProvider from '@/components/providers/MuiThemeProvider';
+import { Toaster as SonnerToaster } from 'sonner';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -73,6 +74,7 @@ export default function RootLayout({
                 {children}
               </ClientLayout>
               <Toaster />
+              <SonnerToaster />
               <InstallPrompt />
             </ProfileContextProvider>
           </ClerkProvider>

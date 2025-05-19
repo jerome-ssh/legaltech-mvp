@@ -59,25 +59,25 @@ export default function CRMPage() {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex flex-col space-y-2">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent dark:text-white">
+        <h1 className="text-3xl font-bold text-black dark:text-white">
           CRM Dashboard
         </h1>
-        <p className="text-gray-600 dark:text-gray-300">
+        <p className="text-black dark:text-white">
           Manage your clients, leads, messages, and schedules in one place.
         </p>
       </div>
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-        <TabsList className="bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 overflow-x-auto flex-nowrap whitespace-nowrap scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-transparent">
-          <TabsTrigger value="clients" className="min-w-[120px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
+        <TabsList className="bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 overflow-x-auto flex-nowrap whitespace-nowrap scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-transparent">
+          <TabsTrigger value="clients" className="min-w-[120px] text-black dark:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
             Clients
           </TabsTrigger>
-          <TabsTrigger value="leads" className="min-w-[120px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
+          <TabsTrigger value="leads" className="min-w-[120px] text-black dark:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
             Leads
           </TabsTrigger>
-          <TabsTrigger value="messages" className="min-w-[120px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
+          <TabsTrigger value="messages" className="min-w-[120px] text-black dark:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
             Messages
           </TabsTrigger>
-          <TabsTrigger value="schedules" className="min-w-[120px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
+          <TabsTrigger value="schedules" className="min-w-[120px] text-black dark:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
             Schedules
           </TabsTrigger>
         </TabsList>
