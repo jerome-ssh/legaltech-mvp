@@ -11,6 +11,8 @@ import dynamic from 'next/dynamic';
 import { MatterSearch } from '@/components/matters/MatterSearch';
 import { MatterCard } from '@/components/matters/MatterCard';
 import { useToast } from '@/components/ui/use-toast';
+import { MatterIntakeWizard } from '@/components/matters/MatterIntakeWizard';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 const LayoutWithSidebar = dynamic(() => import('@/components/LayoutWithSidebar'), {
   ssr: false,
@@ -49,6 +51,7 @@ export default function Matters() {
   const [loading, setLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showWizard, setShowWizard] = useState(false);
 
   // Clerk authentication check
   useEffect(() => {
@@ -184,7 +187,7 @@ export default function Matters() {
           <h1 className="text-2xl font-bold text-gray-900">Matters</h1>
           <Button 
             className="bg-blue-600 text-white hover:bg-blue-700"
-            onClick={() => router.push('/matters/new')}
+            onClick={() => setShowWizard(true)}
           >
             <Plus className="w-4 h-4 mr-2" />
             New Matter
@@ -219,7 +222,7 @@ export default function Matters() {
               <p className="text-gray-500 mb-4">Create your first matter to get started</p>
               <Button 
                 className="bg-blue-600 text-white hover:bg-blue-700"
-                onClick={() => router.push('/matters/new')}
+                onClick={() => setShowWizard(true)}
               >
                 <Plus className="w-4 h-4 mr-2" />
                 New Matter
@@ -232,6 +235,12 @@ export default function Matters() {
             ))
           )}
         </div>
+
+        <Dialog open={showWizard} onOpenChange={setShowWizard}>
+          <DialogContent className="max-w-4xl">
+            <MatterIntakeWizard onComplete={() => setShowWizard(false)} />
+          </DialogContent>
+        </Dialog>
       </div>
     </LayoutWithSidebar>
   );
