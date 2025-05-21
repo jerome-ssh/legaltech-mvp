@@ -6,8 +6,8 @@ const envSchema = z.object({
   CLERK_SECRET_KEY: z.string().min(1),
 
   // Supabase Configuration
-  NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url().default('https://ueqzjuclosoedybixqgs.supabase.co'),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).default('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlcXpqdWNsb3NvZWR5Yml4cWdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc1OTY2MTQsImV4cCI6MjA2MzE3MjYxNH0.7a-bk5vsjxGbNYykbNo-qqh0eWZBkR0OCCNl0yAHkpk'),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
 
   // Authentication
@@ -34,7 +34,7 @@ const envSchema = z.object({
 const env = envSchema.parse(process.env);
 
 // Export validated environment variables
-export default env; 
+export default env;
 
 // Type for environment variables
 export type Env = z.infer<typeof envSchema>;

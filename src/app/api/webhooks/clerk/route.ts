@@ -1,17 +1,14 @@
+import { createClient } from '@supabase/supabase-js';
+import { NextResponse } from 'next/server';
 import { Webhook } from 'svix';
 import { headers } from 'next/headers';
 import { WebhookEvent } from '@clerk/nextjs/server';
-import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabaseClient';
 
-// Get environment variables
-const webhookSecret = process.env.CLERK_WEBHOOK_SECRET;
-
-// Validate environment variables
-if (!webhookSecret) {
-  console.error('Missing required environment variables');
-  throw new Error('Missing required environment variables');
-}
+// Create a Supabase client using the service role key
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(req: Request) {
   console.log('Webhook: Received request');
@@ -35,6 +32,13 @@ export async function POST(req: Request) {
   const body = JSON.stringify(payload);
 
   // Create a new Svix instance with your webhook secret
+  const webhookSecret = process.env.CLERK_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    return new Response('Error: CLERK_WEBHOOK_SECRET is not set', {
+      status: 500
+    });
+  }
+
   const wh = new Webhook(webhookSecret);
 
   let evt: WebhookEvent;
@@ -59,105 +63,32 @@ export async function POST(req: Request) {
 
   // Handle both user creation and verification
   if (eventType === 'user.created' || eventType === 'user.updated') {
-    try {
-      const { id: userId, email_addresses, first_name, last_name, phone_numbers } = evt.data;
+    const { id, email_addresses, ...attributes } = evt.data;
+    const primaryEmail = email_addresses?.[0]?.email_address;
 
-      console.log('Webhook: Creating/updating profile for user:', userId);
-
-      // Check if profile already exists
-      const { data: existingProfile } = await supabaseAdmin
-        .from('profiles')
-        .select('id')
-        .eq('clerk_id', userId)
-        .single();
-
-      if (existingProfile) {
-        console.log('Webhook: Profile already exists, updating...');
-        // Update existing profile
-        const { data: profile, error: updateError } = await supabaseAdmin
-          .from('profiles')
-          .update({
-            email: email_addresses[0]?.email_address || null,
-            phone_number: phone_numbers[0]?.phone_number || null,
-            first_name: first_name || null,
-            last_name: last_name || null,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existingProfile.id)
-          .select()
-          .single();
-
-        if (updateError) {
-          console.error('Webhook: Error updating profile:', updateError);
-          return NextResponse.json(
-            { 
-              success: false,
-              error: "Failed to update profile",
-              details: updateError.message
-            },
-            { status: 500 }
-          );
-        }
-
-        console.log('Webhook: Profile updated successfully:', profile);
-        return NextResponse.json(
-          { 
-            success: true,
-            profile 
-          },
-          { status: 200 }
-        );
-      }
-
-      // Create new profile
-      console.log('Webhook: Creating new profile...');
-      const { data: profile, error: createError } = await supabaseAdmin
-        .from('profiles')
-        .insert({
-          clerk_id: userId,
-          user_id: userId,
-          email: email_addresses[0]?.email_address || null,
-          phone_number: phone_numbers[0]?.phone_number || null,
-          first_name: first_name || null,
-          last_name: last_name || null,
-          onboarding_completed: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-
-      if (createError) {
-        console.error('Webhook: Error creating profile:', createError);
-        return NextResponse.json(
-          { 
-            success: false,
-            error: "Failed to create profile",
-            details: createError.message
-          },
-          { status: 500 }
-        );
-      }
-
-      console.log('Webhook: Profile created successfully:', profile);
-      return NextResponse.json(
-        { 
-          success: true,
-          profile 
-        },
-        { status: 200 }
-      );
-    } catch (error) {
-      console.error('Webhook: Unexpected error:', error);
-      return NextResponse.json(
-        { 
-          success: false,
-          error: "Internal server error",
-          details: error instanceof Error ? error.message : 'Unknown error'
-        },
-        { status: 500 }
-      );
+    if (!primaryEmail) {
+      return NextResponse.json({ error: 'No email found' }, { status: 400 });
     }
+
+    // Upsert the user profile in Supabase
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({
+        id: id,
+        email: primaryEmail,
+        clerk_id: id,
+        full_name: attributes.first_name + ' ' + attributes.last_name,
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'id'
+      });
+
+    if (error) {
+      console.error('Error upserting profile:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
   }
 
   // Return a response for other events

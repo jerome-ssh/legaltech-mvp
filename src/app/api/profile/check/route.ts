@@ -1,242 +1,170 @@
-import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs";
+import { NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs';
+import { clerkClient } from '@clerk/nextjs';
 import { createClient } from '@supabase/supabase-js';
+import { AppError, ErrorCodes, createResponse, createErrorResponse } from '@/lib/error-handling';
+import { MAX_RETRIES, RETRY_DELAY } from '@/lib/constants';
 
-// Get environment variables
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-// Validate environment variables
-if (!supabaseUrl || !supabaseServiceKey) {
-  console.error('Missing required Supabase environment variables');
-  throw new Error('Missing required Supabase environment variables');
-}
-
-// Initialize Supabase client
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    persistSession: false,
-    autoRefreshToken: false,
-  },
-});
-
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function GET() {
   console.log('API route: Starting profile check request');
   
   try {
     const { userId } = auth();
-    console.log('API route: Auth check - userId:', userId);
-
     if (!userId) {
-      console.log('API route: No userId found in auth');
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
+      return createErrorResponse('Unauthorized', 401, ErrorCodes.AUTH.UNAUTHORIZED);
     }
 
-    // Check if profile exists in Supabase
-    console.log('API route: Checking for existing profile with Clerk ID:', userId);
-    let { data: profile, error } = await supabase
-      .from('profiles')
-      .select('id, onboarding_completed, clerk_id')
-      .eq('clerk_id', userId)
-      .single();
+    // Fetch user data from Clerk with retry logic
+    let clerkUser;
+    let retryCount = 0;
 
-    // If there's an error and it's not the "no rows found" error, return error
-    if (error && error.code !== 'PGRST116') {
-      console.error('API route: Error checking profile:', error);
-      return NextResponse.json(
-        { 
-          success: false,
-          error: "Failed to check profile", 
-          details: error.message 
-        },
-        { status: 500 }
-      );
-    }
-
-    // If profile does not exist, create it with sensible defaults
-    if (!profile) {
-      console.log('API route: No profile found, creating new profile for Clerk ID:', userId);
-      // Fetch Clerk user data for required fields
-      let email = null;
-      let first_name = null;
-      let last_name = null;
-      let phone_number = null;
+    while (retryCount < MAX_RETRIES) {
       try {
-        if (process.env.CLERK_SECRET_KEY) {
-          const clerkRes = await fetch(`https://api.clerk.dev/v1/users/${userId}`, {
-            headers: {
-              Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
-              'Cache-Control': 'no-cache',
-              'Pragma': 'no-cache'
-            },
-          });
-          if (clerkRes.ok) {
-            const userData = await clerkRes.json();
-            email = userData.email_addresses?.[0]?.email_address || userData.primary_email_address?.email_address || userData.email_address || null;
-            first_name = userData.first_name || null;
-            last_name = userData.last_name || null;
-            phone_number = userData.phone_numbers?.[0]?.phone_number || null;
-          } else {
-            throw new Error(`Clerk API returned ${clerkRes.status}`);
-          }
-        } else {
-          throw new Error('CLERK_SECRET_KEY not set');
-        }
+        clerkUser = await clerkClient.users.getUser(userId);
+        break;
       } catch (err) {
-        console.error('API route: Error fetching Clerk user data:', err);
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'Failed to fetch Clerk user data',
-            details: err instanceof Error ? err.message : 'Unknown error',
-          },
-          { status: 500 }
-        );
+        console.error('API route: Error fetching Clerk user data, attempt', retryCount + 1, err);
+        if (retryCount < MAX_RETRIES - 1) {
+          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+          retryCount++;
+        } else {
+          throw new AppError(
+            'Failed to fetch Clerk user data',
+            ErrorCodes.AUTH.TOKEN_INVALID,
+            500
+          );
+        }
       }
+    }
 
-      // Fetch the role_id for 'attorney'
-      let role_id = null;
+    if (!clerkUser) {
+      throw new AppError(
+        "Failed to fetch Clerk user data",
+        ErrorCodes.AUTH.TOKEN_INVALID,
+        500
+      );
+    }
+
+    // Check if profile exists in Supabase with retry logic
+    retryCount = 0;
+    while (retryCount < MAX_RETRIES) {
       try {
-        const { data: roleData, error: roleError } = await supabase
-          .from('roles')
-          .select('id')
-          .eq('name', 'attorney')
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('id, onboarding_completed, clerk_id, email, first_name, last_name, phone_number, role_id')
+          .eq('clerk_id', userId)
           .single();
-        if (roleError || !roleData) {
-          throw new Error(roleError?.message || 'Role not found');
+
+        if (error && error.code !== 'PGRST116') {
+          throw new AppError(
+            "Failed to check profile",
+            ErrorCodes.DATABASE.CONNECTION_ERROR,
+            500
+          );
         }
-        role_id = roleData.id;
-      } catch (err) {
-        console.error('API route: Error fetching role_id:', err);
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'Failed to fetch role_id',
-            details: err instanceof Error ? err.message : 'Unknown error',
-          },
-          { status: 500 }
-        );
-      }
 
-      // Create the profile
-      const { data: newProfile, error: createError } = await supabase
-        .from('profiles')
-        .insert({
-          id: userId,
-          user_id: userId,
-          clerk_id: userId,
-          email,
-          first_name,
-          last_name,
-          phone_number,
-          role_id,
-          onboarding_completed: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .select('id, onboarding_completed, clerk_id')
-        .single();
+        if (profile) {
+          return createResponse({
+            exists: true,
+            onboarding_completed: profile.onboarding_completed || false,
+            profile
+          }, 200, {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          });
+        }
 
-      if (createError) {
-        console.error('API route: Error creating profile:', createError);
-        // If the error is due to a duplicate email, try to update the existing profile
-        if (createError.code === '23505' && createError.message.includes('email')) {
-          console.log('API route: Email already exists, updating existing profile');
-          const { data: updatedProfile, error: updateError } = await supabase
-            .from('profiles')
-            .update({
-              clerk_id: userId,
-              user_id: userId,
-              first_name,
-              last_name,
-              phone_number,
-              role_id,
-              updated_at: new Date().toISOString()
-            })
-            .eq('clerk_id', userId)
-            .select('id, onboarding_completed, clerk_id')
-            .single();
+        // Create new profile using stored procedure
+        const { data: newProfile, error: createError } = await supabase
+          .rpc('update_profile_with_related', {
+            p_user_id: userId,
+            p_email: clerkUser.emailAddresses[0]?.emailAddress || '',
+            p_phone_number: clerkUser.phoneNumbers[0]?.phoneNumber || '',
+            p_first_name: clerkUser.firstName || '',
+            p_last_name: clerkUser.lastName || '',
+            p_avatar_url: clerkUser.imageUrl || '',
+            p_onboarding_completed: false
+          });
 
-          if (updateError) {
-            console.error('API route: Error updating existing profile:', updateError);
-            return NextResponse.json(
-              { 
-                success: false,
-                error: "Failed to update profile", 
-                details: updateError.message 
-              },
-              { status: 500 }
-            );
-          }
-          profile = updatedProfile;
-        } else {
+        if (createError) {
+          console.error('Error creating profile:', createError);
           return NextResponse.json(
-            { 
-              success: false,
-              error: "Failed to create profile", 
-              details: createError.message 
-            },
+            { error: `Failed to create profile: ${createError.message}` },
             { status: 500 }
           );
         }
-      } else {
-        profile = newProfile;
+
+        // Handle empty or invalid response
+        if (!newProfile) {
+          console.error('No profile data returned from creation');
+          return NextResponse.json(
+            { error: 'Failed to create profile - no data returned' },
+            { status: 500 }
+          );
+        }
+
+        // Ensure we have a valid object before proceeding
+        const profileData = typeof newProfile === 'string' 
+          ? (() => {
+              try {
+                return JSON.parse(newProfile);
+              } catch (e) {
+                console.error('Error parsing profile data:', e);
+                return null;
+              }
+            })()
+          : newProfile;
+
+        if (!profileData || typeof profileData !== 'object') {
+          console.error('Invalid profile data structure:', profileData);
+          return NextResponse.json(
+            { error: 'Invalid profile data structure' },
+            { status: 500 }
+          );
+        }
+
+        return createResponse({
+          exists: true,
+          onboarding_completed: profileData.onboarding_completed || false,
+          profile: profileData
+        });
+      } catch (err) {
+        if (err instanceof AppError) throw err;
+        
+        console.error('API route: Error checking profile, attempt', retryCount + 1, err);
+        if (retryCount < MAX_RETRIES - 1) {
+          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+          retryCount++;
+        } else {
+          throw new AppError(
+            "Failed to check profile after retries",
+            ErrorCodes.DATABASE.CONNECTION_ERROR,
+            500
+          );
+        }
       }
     }
 
-    // Fetch the full profile data if it exists
-    if (profile) {
-      const { data: fullProfile, error: fullProfileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('clerk_id', userId)
-        .single();
-      
-      if (fullProfileError) {
-        console.error('API route: Error fetching full profile:', fullProfileError);
-        return NextResponse.json(
-          { 
-            success: false,
-            error: "Failed to fetch full profile", 
-            details: fullProfileError.message 
-          },
-          { status: 500 }
-        );
-      }
-      
-      profile = fullProfile;
-    }
-
-    // Return whether profile exists and onboarding status
-    console.log('API route: Profile check result:', { 
-      exists: !!profile,
-      onboarding_completed: profile?.onboarding_completed || false 
-    });
-    
-    return NextResponse.json(
-      { 
-        success: true,
-        exists: !!profile,
-        onboarding_completed: profile?.onboarding_completed || false,
-        profile: profile
-      },
-      { status: 200 }
+    throw new AppError(
+      "Unexpected error in profile check",
+      ErrorCodes.AUTH.TOKEN_INVALID,
+      500
     );
   } catch (error) {
     console.error('API route: Unexpected error:', error);
-    return NextResponse.json(
-      { 
-        success: false,
-        error: "Internal server error",
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
+    if (error instanceof AppError) {
+      return createErrorResponse(error.message, error.status, error.code);
+    }
+    return createErrorResponse(
+      "Internal server error",
+      500,
+      ErrorCodes.AUTH.TOKEN_INVALID
     );
   }
 } 

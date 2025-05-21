@@ -193,54 +193,56 @@ function LeadsTabContent({ shouldFetch }: LeadsTabContentProps) {
                           {(provided: DraggableProvided) => (
                             <motion.div
                               ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
+                              style={provided.draggableProps.style}
                               initial={{ opacity: 0, y: 20 }}
                               animate={{ opacity: 1, y: 0 }}
-                              transition={{ duration: 0.3 }}
+                              transition={{ duration: 0.2 }}
+                              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-2"
                             >
-                              <Card className="bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg hover:shadow-xl transition-all duration-300">
-                                <CardContent className="p-4">
-                                  <div className="space-y-3">
-                                    <div className="flex justify-between items-start">
-                                      <h4 className="font-medium text-gray-900 dark:text-gray-100">
-                                        {lead.name}
-                                      </h4>
-                                      <div className={`h-2 w-2 rounded-full bg-gradient-to-r ${color}`} />
-                                    </div>
-                                    <div className="space-y-2">
-                                      <div className="flex items-center text-gray-600 dark:text-gray-300">
-                                        <Mail className="w-4 h-4 mr-2" />
-                                        <p className="text-sm">{lead.email}</p>
+                              <div {...provided.dragHandleProps} style={{ cursor: 'grab' }}>
+                                <Card className="bg-white/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg hover:shadow-xl transition-all duration-300">
+                                  <CardContent className="p-4">
+                                    <div className="space-y-3">
+                                      <div className="flex justify-between items-start">
+                                        <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                                          {lead.name}
+                                        </h4>
+                                        <div className={`h-2 w-2 rounded-full bg-gradient-to-r ${color}`} />
                                       </div>
-                                      {lead.phone && (
+                                      <div className="space-y-2">
                                         <div className="flex items-center text-gray-600 dark:text-gray-300">
-                                          <Phone className="w-4 h-4 mr-2" />
-                                          <p className="text-sm">{lead.phone}</p>
+                                          <Mail className="w-4 h-4 mr-2" />
+                                          <p className="text-sm">{lead.email}</p>
                                         </div>
-                                      )}
-                                      {lead.company && (
-                                        <div className="flex items-center text-gray-600 dark:text-gray-300">
-                                          <Building className="w-4 h-4 mr-2" />
-                                          <p className="text-sm">{lead.company}</p>
-                                        </div>
-                                      )}
-                                    </div>
-                                    <div className="flex justify-between items-center pt-2 border-t border-gray-200/20 dark:border-gray-800/20">
-                                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                                        Source: {lead.source || 'N/A'}
+                                        {lead.phone && (
+                                          <div className="flex items-center text-gray-600 dark:text-gray-300">
+                                            <Phone className="w-4 h-4 mr-2" />
+                                            <p className="text-sm">{lead.phone}</p>
+                                          </div>
+                                        )}
+                                        {lead.company && (
+                                          <div className="flex items-center text-gray-600 dark:text-gray-300">
+                                            <Building className="w-4 h-4 mr-2" />
+                                            <p className="text-sm">{lead.company}</p>
+                                          </div>
+                                        )}
                                       </div>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
-                                      >
-                                        <ArrowRight className="w-4 h-4" />
-                                      </Button>
+                                      <div className="flex justify-between items-center pt-2 border-t border-gray-200/20 dark:border-gray-800/20">
+                                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                                          Source: {lead.source || 'N/A'}
+                                        </div>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
+                                        >
+                                          <ArrowRight className="w-4 h-4" />
+                                        </Button>
+                                      </div>
                                     </div>
-                                  </div>
-                                </CardContent>
-                              </Card>
+                                  </CardContent>
+                                </Card>
+                              </div>
                             </motion.div>
                           )}
                         </Draggable>

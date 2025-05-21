@@ -13,11 +13,12 @@ export default function Page() {
     const searchParams = useSearchParams();
 
     useEffect(() => {
+        if (!searchParams) return;
         const error = searchParams.get('error');
         if (error === 'PHONE_NUMBER_IN_USE') {
             toast.error('This phone number is already associated with another account. Please use a different phone number.');
         } else if (error === 'EMAIL_IN_USE') {
-            toast.error('This email is already associated with another account. Please use a different email or sign in with your existing account.');
+            toast.error('This email is already associated with another account. Please use a different email.');
         }
     }, [searchParams]);
 

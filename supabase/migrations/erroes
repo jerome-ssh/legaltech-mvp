@@ -1,0 +1,5504 @@
+ERROR:  54001: stack depth limit exceeded
+HINT:  Increase the configuration parameter "max_stack_depth" (currently 2048kB), after ensuring the platform's stack depth limit is adequate.
+CONTEXT:  SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement
+SQL statement "INSERT INTO audit_log (
+            table_name, 
+            record_id, 
+            action, 
+            changed_by, 
+            new_data
+        ) VALUES (
+            TG_TABLE_NAME, 
+            NEW.id, 
+            'insert', 
+            v_changed_by, 
+            row_to_json(NEW)
+        )"
+PL/pgSQL function log_audit_changes() line 21 at SQL statement

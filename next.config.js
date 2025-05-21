@@ -14,7 +14,16 @@ const nextConfig = {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   },
   images: {
-    domains: ['ueqzjuclosoedybixqgs.supabase.co', 'ui-avatars.com'],
+    domains: [
+      'img.clerk.com',
+      'images.clerk.dev',
+      'res.cloudinary.com',
+      'lh3.googleusercontent.com'
+    ],
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
   },
   webpack: (config, { isServer }) => {
     // Optimize chunk loading
@@ -40,6 +49,14 @@ const nextConfig = {
     };
     return config;
   },
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: ['@mui/material', '@mui/icons-material', 'lucide-react'],
+  },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  poweredByHeader: false,
 };
 
 module.exports = withPWA(nextConfig); 

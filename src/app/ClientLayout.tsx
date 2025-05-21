@@ -37,25 +37,22 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   // Show splash screen only on auth routes (login, signup, etc.)
   useEffect(() => {
-    if (!isLoaded) {
-      setShowSplash(true);
-      return;
+    if (pathname) {
+      if (pathname.startsWith('/auth')) {
+        setShowSplash(false);
+      } else {
+        setShowSplash(false);
+      }
     }
-    // Only show splash screen for auth routes
-    if (authRoutes.some(route => pathname.startsWith(route))) {
-      setShowSplash(false); // Optionally, you can keep a short delay if you want
-    } else {
-      setShowSplash(false);
-    }
-  }, [isLoaded, pathname]);
+  }, [pathname]);
 
   // Show splash screen only on auth routes
-  if (!isLoaded || (showSplash && authRoutes.some(route => pathname.startsWith(route)))) {
+  if (!isLoaded || (showSplash && pathname && authRoutes.some(route => pathname.startsWith(route)))) {
     return <SplashScreen />;
   }
 
   // For authenticated users on protected routes, render the dashboard layout
-  if (isSignedIn && protectedRoutes.some(route => pathname.startsWith(route))) {
+  if (isSignedIn && pathname && protectedRoutes.some(route => pathname.startsWith(route))) {
     return (
       <LayoutWithSidebar>{children}</LayoutWithSidebar>
     );

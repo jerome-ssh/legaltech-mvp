@@ -1,28 +1,64 @@
 import { toast } from '@/components/ui/use-toast';
 
-interface FileHandle {
+interface FileSystemFileHandle {
+  getFile(): Promise<File>;
   kind: 'file';
   name: string;
-  getFile(): Promise<File>;
+  createWritable(): Promise<FileSystemWritableFileStream>;
 }
 
-interface DirectoryHandle {
+interface FileSystemWritableFileStream extends WritableStream {
+  write(data: any): Promise<void>;
+  seek(position: number): Promise<void>;
+  truncate(size: number): Promise<void>;
+}
+
+interface FileSystemDirectoryHandle {
   kind: 'directory';
   name: string;
-  getFileHandle(name: string): Promise<FileHandle>;
-  getDirectoryHandle(name: string): Promise<DirectoryHandle>;
-  entries(): AsyncIterableIterator<[string, FileHandle | DirectoryHandle]>;
+  getFileHandle(name: string): Promise<FileSystemFileHandle>;
+  getDirectoryHandle(name: string): Promise<FileSystemDirectoryHandle>;
+  entries(): AsyncIterableIterator<[string, FileSystemHandle]>;
 }
 
-export async function requestFileAccess(): Promise<FileHandle | null> {
+interface FileSystemHandle {
+  kind: 'file' | 'directory';
+  name: string;
+}
+
+interface ShowOpenFilePickerOptions {
+  multiple?: boolean;
+  types?: Array<{
+    description: string;
+    accept: Record<string, string[]>;
+  }>;
+}
+
+interface ShowDirectoryPickerOptions {
+  mode?: 'read' | 'readwrite';
+  startIn?: FileSystemHandle;
+}
+
+interface ShowSaveFilePickerOptions {
+  suggestedName?: string;
+  types?: Array<{
+    description: string;
+    accept: Record<string, string[]>;
+  }>;
+}
+
+declare global {
+  interface Window {
+    showOpenFilePicker: (options?: ShowOpenFilePickerOptions) => Promise<FileSystemFileHandle[]>;
+    showDirectoryPicker: (options?: ShowDirectoryPickerOptions) => Promise<FileSystemDirectoryHandle>;
+    showSaveFilePicker: (options?: ShowSaveFilePickerOptions) => Promise<FileSystemFileHandle>;
+  }
+}
+
+export async function openFile(): Promise<File | null> {
   try {
     if (!('showOpenFilePicker' in window)) {
-      toast({
-        title: 'Not Supported',
-        description: 'File system access is not supported in your browser.',
-        variant: 'destructive',
-      });
-      return null;
+      throw new Error('File System Access API is not supported in this browser');
     }
 
     const [fileHandle] = await window.showOpenFilePicker({
@@ -34,59 +70,42 @@ export async function requestFileAccess(): Promise<FileHandle | null> {
             'application/pdf': ['.pdf'],
             'application/msword': ['.doc'],
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-          },
-        },
-      ],
+            'text/plain': ['.txt'],
+            'application/rtf': ['.rtf']
+          }
+        }
+      ]
     });
 
-    return fileHandle;
+    return await fileHandle.getFile();
   } catch (error) {
-    console.error('Failed to request file access:', error);
-    toast({
-      title: 'Error',
-      description: 'Failed to access file. Please try again.',
-      variant: 'destructive',
-    });
+    console.error('Error opening file:', error);
     return null;
   }
 }
 
-export async function requestDirectoryAccess(): Promise<DirectoryHandle | null> {
+export async function openDirectory(): Promise<FileSystemDirectoryHandle | null> {
   try {
     if (!('showDirectoryPicker' in window)) {
-      toast({
-        title: 'Not Supported',
-        description: 'Directory access is not supported in your browser.',
-        variant: 'destructive',
-      });
-      return null;
+      throw new Error('File System Access API is not supported in this browser');
     }
 
-    const directoryHandle = await window.showDirectoryPicker();
-    return directoryHandle;
-  } catch (error) {
-    console.error('Failed to request directory access:', error);
-    toast({
-      title: 'Error',
-      description: 'Failed to access directory. Please try again.',
-      variant: 'destructive',
+    return await window.showDirectoryPicker({
+      mode: 'readwrite'
     });
+  } catch (error) {
+    console.error('Error opening directory:', error);
     return null;
   }
 }
 
-export async function saveFile(file: File): Promise<void> {
+export async function saveFile(file: File): Promise<boolean> {
   try {
     if (!('showSaveFilePicker' in window)) {
-      toast({
-        title: 'Not Supported',
-        description: 'File saving is not supported in your browser.',
-        variant: 'destructive',
-      });
-      return;
+      throw new Error('File System Access API is not supported in this browser');
     }
 
-    const handle = await window.showSaveFilePicker({
+    const fileHandle = await window.showSaveFilePicker({
       suggestedName: file.name,
       types: [
         {
@@ -95,30 +114,24 @@ export async function saveFile(file: File): Promise<void> {
             'application/pdf': ['.pdf'],
             'application/msword': ['.doc'],
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-          },
-        },
-      ],
+            'text/plain': ['.txt'],
+            'application/rtf': ['.rtf']
+          }
+        }
+      ]
     });
 
-    const writable = await handle.createWritable();
+    const writable = await fileHandle.createWritable();
     await writable.write(file);
     await writable.close();
-
-    toast({
-      title: 'Success',
-      description: 'File saved successfully.',
-    });
+    return true;
   } catch (error) {
-    console.error('Failed to save file:', error);
-    toast({
-      title: 'Error',
-      description: 'Failed to save file. Please try again.',
-      variant: 'destructive',
-    });
+    console.error('Error saving file:', error);
+    return false;
   }
 }
 
-export async function listDirectoryContents(directoryHandle: DirectoryHandle): Promise<Array<{ name: string; type: string }>> {
+export async function listDirectoryContents(directoryHandle: FileSystemDirectoryHandle): Promise<Array<{ name: string; type: string }>> {
   const contents: Array<{ name: string; type: string }> = [];
   
   for await (const [name, handle] of directoryHandle.entries()) {
@@ -131,14 +144,16 @@ export async function listDirectoryContents(directoryHandle: DirectoryHandle): P
   return contents;
 }
 
-export async function verifyPermission(handle: FileHandle | DirectoryHandle, mode: 'read' | 'readwrite'): Promise<boolean> {
+export async function verifyPermission(handle: FileSystemFileHandle | FileSystemDirectoryHandle, mode: 'read' | 'readwrite'): Promise<boolean> {
   const options: { mode: 'read' | 'readwrite' } = { mode };
   
-  if ((await handle.queryPermission(options)) === 'granted') {
+  // @ts-ignore
+  if ((await handle.queryPermission?.(options)) === 'granted') {
     return true;
   }
 
-  if ((await handle.requestPermission(options)) === 'granted') {
+  // @ts-ignore
+  if ((await handle.requestPermission?.(options)) === 'granted') {
     return true;
   }
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
-import { getAuthenticatedSupabase } from '@/lib/supabaseClient';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 interface CaseMessagesProps {
   caseId: string;
@@ -16,7 +16,7 @@ export default function CaseMessages({ caseId }: CaseMessagesProps) {
   useEffect(() => {
     const initSupabase = async () => {
       try {
-        const client = await getAuthenticatedSupabase();
+        const client = await createClientComponentClient();
         setSupabaseClient(client);
       } catch (error) {
         console.error('Error initializing Supabase client:', error);

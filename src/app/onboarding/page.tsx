@@ -204,6 +204,52 @@ const yearOptions = [
 const practiceAreaOptions = practiceAreas.map(area => ({ value: area, label: area }));
 const firmNameOptions = commonFirmNames.map(name => ({ value: name, label: name }));
 
+const validateProfessionalIds = (ids: ProfessionalIdEntry[]): string[] => {
+    const errors: string[] = [];
+    
+    ids.forEach((entry, index) => {
+        // Country is required
+        if (!entry.country) {
+            errors.push(`Professional ID ${index + 1}: Country is required`);
+        }
+        
+        // State is required for US jurisdictions
+        if (entry.country === 'United States' && !entry.state) {
+            errors.push(`Professional ID ${index + 1}: State is required for US jurisdictions`);
+        }
+        
+        // Bar number is required for US jurisdictions (unless no_id is true)
+        if (entry.country === 'United States' && !entry.noId && !entry.id) {
+            errors.push(`Professional ID ${index + 1}: Bar number is required for US jurisdictions`);
+        }
+        
+        // Year issued validation
+        if (entry.yearIssued) {
+            const year = parseInt(entry.yearIssued);
+            const currentYear = new Date().getFullYear();
+            if (isNaN(year) || year < 1900 || year > currentYear) {
+                errors.push(`Professional ID ${index + 1}: Year issued must be between 1900 and ${currentYear}`);
+            }
+        }
+    });
+    
+    return errors;
+};
+
+interface Role {
+    name: string;
+}
+
+interface RoleOption {
+    value: string;
+    label: string;
+}
+
+// Utility to normalize role names for deduplication
+function normalizeRoleName(name: string): string {
+    return name.replace(/_/g, ' ').toLowerCase().trim();
+}
+
 export default function Onboarding() {
     const router = useRouter();
     const { user, isLoaded: isUserLoaded } = useUser();
@@ -237,7 +283,7 @@ export default function Onboarding() {
     const [practiceAreaSearch, setPracticeAreaSearch] = useState("");
     const [practiceAreaDropdownOpen, setPracticeAreaDropdownOpen] = useState(false);
     const practiceAreaRef = useRef<HTMLDivElement>(null);
-    const [roleOptions, setRoleOptions] = useState<{ value: string; label: string }[]>([]);
+    const [roleOptions, setRoleOptions] = useState<RoleOption[]>([]);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -270,14 +316,30 @@ export default function Onboarding() {
 
     useEffect(() => {
         async function fetchRoles() {
-            const response = await fetch('/api/roles');
-            const data = await response.json();
-            if (data) {
-                setRoleOptions(
-                    data
-                        .map((r: { name: string }) => ({ value: r.name, label: r.name.charAt(0).toUpperCase() + r.name.slice(1) }))
-                        .filter(r => r.value.toLowerCase() !== 'admin')
-                );
+            try {
+                const response = await fetch('/api/roles');
+                const data = await response.json();
+                
+                // Ensure data is an array and remove duplicates
+                const rolesArray = Array.isArray(data) ? data : data.roles || [];
+                
+                // Normalize and deduplicate
+                const seen = new Set<string>();
+                const uniqueRoles: RoleOption[] = [];
+                rolesArray.forEach((r: Role) => {
+                    const normalized: string = normalizeRoleName(r.name);
+                    if (normalized !== 'admin' && !seen.has(normalized)) {
+                        seen.add(normalized);
+                        uniqueRoles.push({
+                            value: r.name,
+                            label: normalized.replace(/\b\w/g, (c: string) => c.toUpperCase()), // Title Case
+                        });
+                    }
+                });
+                setRoleOptions(uniqueRoles);
+            } catch (error) {
+                console.error('Error fetching roles:', error);
+                setRoleOptions([]);
             }
         }
         fetchRoles();
@@ -327,6 +389,14 @@ export default function Onboarding() {
             setIsSubmitting(true);
             setError(null);
 
+            // Validate professional IDs
+            const validationErrors = validateProfessionalIds(professionalIds);
+            if (validationErrors.length > 0) {
+                setError(validationErrors.join('\n'));
+                toast.error('Please fix the validation errors before submitting');
+                return;
+            }
+
             // Prepare the payload
             const payload = {
                 firm_name: formData.firm_name,
@@ -341,7 +411,14 @@ export default function Onboarding() {
                 home_address: formData.home_address,
                 gender: formData.gender,
                 role: formData.role,
-                onboarding_completed: true
+                onboarding_completed: true,
+                professionalIds: professionalIds.map(id => ({
+                    country: id.country,
+                    state: id.state,
+                    professional_id: id.id,
+                    year_issued: id.yearIssued ? parseInt(id.yearIssued) : null,
+                    no_id: id.noId
+                }))
             };
 
             console.log('Submitting payload:', payload);
@@ -355,17 +432,31 @@ export default function Onboarding() {
             });
 
             const data = await response.json();
+            console.log('API Response:', data);
 
             if (!response.ok) {
+                throw new Error(data.error || 'Failed to update profile');
+            }
+
+            if (!data.success) {
                 throw new Error(data.error || 'Failed to update profile');
             }
 
             // Show success message
             toast.success('Profile updated successfully');
 
-            // Immediately redirect to dashboard
-            console.log('Redirecting to dashboard...');
-            router.push('/dashboard');
+            // Wait a moment to ensure the update is processed
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // Clear any cached data
+            if (typeof window !== 'undefined') {
+              // Clear any cached data
+              localStorage.removeItem('profile_cache');
+              sessionStorage.removeItem('profile_cache');
+              
+              // Force a hard reload to ensure middleware picks up the new state
+              window.location.replace('/dashboard');
+            }
         } catch (error) {
             console.error('Error updating profile:', error);
             setError(error instanceof Error ? error.message : 'An error occurred');
@@ -455,12 +546,25 @@ export default function Onboarding() {
                                     required
                                 />
                             </div>
+                            <div className="mb-2 flex items-center gap-2" style={{ marginTop: '-1rem', marginBottom: '0.5rem' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={consent}
+                                    onChange={e => setConsent(e.target.checked)}
+                                    id="consent"
+                                    className="mr-2 scale-75 opacity-60"
+                                    style={{ accentColor: '#bbb' }}
+                                />
+                                <label htmlFor="consent" className="text-xs text-gray-400 select-none">I consent to the collection and storage of my professional ID for verification purposes.</label>
+                            </div>
                             <div>
                                 <h3 className="text-lg font-semibold mb-2">Professional Identification</h3>
                                 {professionalIds.map((entry, idx) => (
                                     <div key={idx} className="mb-6 border p-4 rounded bg-gray-50">
                                         <div className="mb-2">
-                                            <label className="block text-sm font-medium mb-1">Country/Jurisdiction <span className="text-red-500">*</span></label>
+                                            <label className="block text-sm font-medium mb-1">
+                                                Country/Jurisdiction <span className="text-red-500">*</span>
+                                            </label>
                                             <SearchableSelect
                                                 options={countryOptions}
                                                 value={entry.country}
@@ -469,9 +573,12 @@ export default function Onboarding() {
                                                 required
                                             />
                                         </div>
+                                        
                                         {entry.country === 'United States' && (
                                             <div className="mb-2">
-                                                <label className="block text-sm font-medium mb-1">State <span className="text-red-500">*</span></label>
+                                                <label className="block text-sm font-medium mb-1">
+                                                    State <span className="text-red-500">*</span>
+                                                </label>
                                                 <SearchableSelect
                                                     options={stateOptions}
                                                     value={entry.state || ''}
@@ -481,20 +588,23 @@ export default function Onboarding() {
                                                 />
                                             </div>
                                         )}
-                                        <div className="mb-2 flex items-center gap-2">
-                                            <label className="block text-sm font-medium mb-1">Professional ID <span className="text-red-500">*</span></label>
-                                            <span className="text-xs text-gray-400" title="Enter your professional ID or leave blank if not applicable.">?</span>
+                                        
+                                        <div className="mb-2">
+                                            <label className="block text-sm font-medium mb-1">
+                                                Professional ID {entry.country === 'United States' && <span className="text-red-500">*</span>}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                className="w-full border rounded px-3 py-2 mb-1"
+                                                value={entry.id}
+                                                onChange={e => handleProfessionalIdChange(idx, 'id', e.target.value)}
+                                                maxLength={50}
+                                                disabled={entry.noId}
+                                                placeholder="Enter your professional ID"
+                                                required={entry.country === 'United States' && !entry.noId}
+                                            />
                                         </div>
-                                        <input
-                                            type="text"
-                                            className="w-full border rounded px-3 py-2 mb-1"
-                                            value={entry.id}
-                                            onChange={e => handleProfessionalIdChange(idx, 'id', e.target.value)}
-                                            maxLength={50}
-                                            disabled={entry.noId}
-                                            placeholder="Enter your professional ID or leave blank"
-                                            required={!entry.noId}
-                                        />
+                                        
                                         <div className="flex items-center mb-2">
                                             <input
                                                 type="checkbox"
@@ -503,38 +613,41 @@ export default function Onboarding() {
                                                 id={`noid-${idx}`}
                                                 className="mr-2"
                                             />
-                                            <label htmlFor={`noid-${idx}`} className="text-sm">My jurisdiction does not issue a professional ID</label>
+                                            <label htmlFor={`noid-${idx}`} className="text-sm">
+                                                My jurisdiction does not issue a professional ID
+                                            </label>
                                         </div>
+                                        
                                         <div className="mb-2">
-                                            <label className="block text-sm font-medium mb-1">Year Issued (optional)</label>
+                                            <label className="block text-sm font-medium mb-1">Year Issued</label>
                                             <SearchableSelect
                                                 options={yearOptions}
                                                 value={entry.yearIssued || ''}
                                                 onChange={val => handleProfessionalIdChange(idx, 'yearIssued', val)}
-                                                placeholder="Enter year"
+                                                placeholder="Select year"
                                             />
                                         </div>
-                                        {professionalIds.length > 1 && (
-                                            <button type="button" className="text-red-500 text-xs underline" onClick={() => removeProfessionalId(idx)}>Remove</button>
+                                        
+                                        {idx > 0 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => removeProfessionalId(idx)}
+                                                className="text-red-500 text-sm"
+                                            >
+                                                Remove this jurisdiction
+                                            </button>
                                         )}
                                     </div>
                                 ))}
-                                <button type="button" className="text-blue-600 text-sm underline mb-4" onClick={addProfessionalId}>Add Another ID</button>
-                                <div className="mb-2">
-                                    <a href="/help/professional-id" target="_blank" className="text-blue-500 text-xs underline">What is a Professional ID?</a>
-                                    <a href="/privacy" target="_blank" className="text-blue-500 text-xs underline ml-4">Privacy Policy</a>
-                                </div>
-                                <div className="flex items-center mb-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={consent}
-                                        onChange={e => setConsent(e.target.checked)}
-                                        id="consent"
-                                        className="mr-2"
-                                        required
-                                    />
-                                    <label htmlFor="consent" className="text-sm">I consent to the collection and storage of my professional ID for app functionality and verification.</label>
-                                </div>
+                                
+                                <button
+                                    type="button"
+                                    onClick={addProfessionalId}
+                                    className="text-blue-500 text-sm flex items-center"
+                                >
+                                    <Plus className="w-4 h-4 mr-1" />
+                                    Add another jurisdiction
+                                </button>
                             </div>
                         </div>
                     </CardContent>

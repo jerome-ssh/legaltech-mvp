@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useUser } from '@clerk/nextjs';
-import { getAuthenticatedSupabase } from '@/lib/supabaseClient';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export interface Message {
   id: string;
@@ -46,7 +46,7 @@ export function useMessages() {
 
     try {
       setLoading(true);
-      const supabase = await getAuthenticatedSupabase();
+      const supabase = await createClientComponentClient();
       
       const { data, error } = await supabase
         .from('messages')
@@ -88,7 +88,7 @@ export function useMessages() {
     if (!isLoaded || !user) return;
 
     try {
-      const supabase = await getAuthenticatedSupabase();
+      const supabase = await createClientComponentClient();
       const { error } = await supabase
         .from('messages')
         .update({ read: true })
@@ -125,7 +125,7 @@ export function useMessages() {
     }
 
     try {
-      const supabase = await getAuthenticatedSupabase();
+      const supabase = await createClientComponentClient();
       const { data, error } = await supabase
         .from('messages')
         .insert({

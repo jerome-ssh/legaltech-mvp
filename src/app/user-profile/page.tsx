@@ -44,12 +44,12 @@ import {
 } from '@/lib/geo-data';
 import { Select } from "@/components/ui/select";
 import { User } from '@clerk/nextjs/server';
-import { getAuthenticatedSupabase } from '@/lib/supabaseClient';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
 import { CountrySelect, StateSelect } from "@/components/ui/form-elements";
 import { getFirmSuggestions } from "@/lib/onboarding-utils";
 import { ProfileContext } from '@/components/LayoutWithSidebar';
+import { createClient } from '@supabase/supabase-js';
 
 interface UserProfile {
   id: string;

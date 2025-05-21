@@ -1,12 +1,11 @@
 {
   "name": "LawMate",
   "short_name": "LawMate",
-  "description": "Modern legal practice management platform",
+  "description": "Legal practice management platform",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#0ea5e9",
-  "orientation": "any",
+  "theme_color": "#2563eb",
   "icons": [
     {
       "src": "/icons/icon-192x192.png",

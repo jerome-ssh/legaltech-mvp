@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, createContext, useContext, useCallback } from "react";
+import React, { useState, useEffect, createContext, useContext, useCallback, useMemo } from "react";
 import {
   LayoutDashboard, FileText, Users, CreditCard, BarChart2, HelpCircle, Settings,
   ChevronLeft, ChevronRight, Sun, Moon, Briefcase
@@ -10,6 +10,8 @@ import { useRouter, usePathname } from 'next/navigation';
 import { ColorModeContext } from '@/components/providers/MuiThemeProvider';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
+import { LoadingState } from '@/components/ui/loading-state';
+import { cn } from '@/lib/utils';
 
 // ProfileContext for sharing profile data (including avatar_url)
 export const ProfileContext = createContext<{ 
@@ -23,101 +25,144 @@ export const ProfileContext = createContext<{
 });
 export const useProfile = () => useContext(ProfileContext);
 
+// Memoize the navigation items
+const NAV_ITEMS = [
+  { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { path: '/matters', icon: Briefcase, label: 'Matters' },
+  { path: '/documents', icon: FileText, label: 'Documents' },
+  { path: '/crm', icon: Users, label: 'CRM' },
+  { path: '/billing', icon: CreditCard, label: 'Billing' },
+  { path: '/analytics', icon: BarChart2, label: 'Analytics' },
+  { path: '/help', icon: HelpCircle, label: 'Help' },
+  { path: '/settings', icon: Settings, label: 'Settings' }
+];
+
+// Memoized NavItem component
+const NavItem = React.memo(({ 
+  item, 
+  pathname, 
+  collapsed, 
+  onNavigate 
+}: { 
+  item: typeof NAV_ITEMS[0], 
+  pathname: string, 
+  collapsed: boolean, 
+  onNavigate: (path: string) => void 
+}) => {
+  const Icon = item.icon;
+  const isActive = pathname === item.path;
+  
+  return (
+    <button 
+      onClick={() => onNavigate(item.path)}
+      className={`w-full flex items-center gap-2 text-black dark:text-white font-semibold hover:text-blue-600 transition-colors ${isActive ? 'text-blue-600' : ''}`}
+    >
+      <Icon className="w-5 h-5" /> 
+      <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>
+        {item.label}
+      </span>
+    </button>
+  );
+});
+
+NavItem.displayName = 'NavItem';
+
 export default function LayoutWithSidebar({ children }: { children: React.ReactNode }) {
-  const [collapsed, setCollapsed] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const { user } = useUser();
   const router = useRouter();
   const pathname = usePathname();
-  const { avatarUrl, clerkImageUrl, isLoading } = useProfile();
+  const { avatarUrl, clerkImageUrl, isLoading: profileIsLoading } = useProfile();
   const colorMode = useContext(ColorModeContext);
 
-  // Memoize the collapse handlers
-  const handleMouseEnter = useCallback(() => setCollapsed(false), []);
-  const handleMouseLeave = useCallback(() => setCollapsed(true), []);
-  const toggleCollapse = useCallback(() => setCollapsed(prev => !prev), []);
+  // Memoize handlers
+  const handleMouseEnter = useCallback(() => setIsCollapsed(false), []);
+  const handleMouseLeave = useCallback(() => setIsCollapsed(true), []);
+  const toggleCollapse = useCallback(() => setIsCollapsed(prev => !prev), []);
 
-  // Navigation handler
-  const handleNavigation = useCallback((path: string) => {
-    if (pathname !== path) {
-      router.push(path);
+  // Optimized navigation handler with debounce
+  const handleNavigation = useCallback(async (path: string) => {
+    setIsLoading(true);
+    try {
+      await router.prefetch(path);
+      await router.push(path);
+    } catch (error) {
+      console.error('Navigation error:', error);
+    } finally {
+      setIsLoading(false);
     }
-  }, [pathname, router]);
+  }, [router]);
 
-  // Helper to get initials
-  const getInitials = useCallback((user: any) => {
-    if (!user) return '';
-    const first = user.firstName || '';
-    const last = user.lastName || '';
-    return (first[0] || '') + (last[0] || '');
-  }, []);
+  // Memoize user initials
+  const userInitials = useMemo(() => {
+    if (!user?.fullName && !user?.firstName && !user?.lastName) return '';
+    const name = (user.fullName || `${user.firstName || ''} ${user.lastName || ''}`).trim();
+    if (!name) return '';
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase();
+  }, [user?.fullName, user?.firstName, user?.lastName]);
+
+  // Memoize avatar component
+  const AvatarComponent = useMemo(() => (
+    <Avatar
+      className={`border-2 border-blue-500 shadow hover:shadow-lg transition-all duration-200`}
+      style={{ width: isCollapsed ? 48 : 96, height: isCollapsed ? 48 : 96 }}
+    >
+      {profileIsLoading ? (
+        <span className="w-full h-full flex items-center justify-center font-bold text-lg text-gray-400 animate-pulse">--</span>
+      ) : (
+        <>
+          {avatarUrl ? (
+            <AvatarImage src={avatarUrl} alt={user?.fullName || userInitials} className="object-cover w-full h-full rounded-full" />
+          ) : clerkImageUrl ? (
+            <AvatarImage src={clerkImageUrl} alt={user?.fullName || userInitials} className="object-cover w-full h-full rounded-full" />
+          ) : null}
+          <AvatarFallback>
+            <span className="w-full h-full flex items-center justify-center font-bold text-lg text-blue-700">{userInitials}</span>
+          </AvatarFallback>
+        </>
+      )}
+    </Avatar>
+  ), [avatarUrl, clerkImageUrl, isCollapsed, profileIsLoading, user?.fullName, userInitials]);
 
   return (
-    <div className="flex min-h-screen">
-      {/* Sidebar */}
+    <div className="flex h-screen">
       <aside
-        className={`group ${collapsed ? "w-20" : "w-64"} shadow-md p-4 transition-all duration-200 ease-in-out hover:w-64 flex flex-col bg-white dark:bg-[#23315c]`}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        className={cn(
+          'relative flex flex-col border-r bg-background transition-all duration-300',
+          isCollapsed ? 'w-16' : 'w-64'
+        )}
       >
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-50">
+            <LoadingState size="sm" />
+          </div>
+        )}
         <div>
           <div className="flex items-center justify-between mb-10">
-            <div className={`text-2xl font-bold text-blue-600 dark:text-white ${collapsed ? "hidden group-hover:block" : "block"}`}>LawMate</div>
+            <div className={`text-2xl font-bold text-blue-600 dark:text-white ${isCollapsed ? "hidden group-hover:block" : "block"}`}>LawMate</div>
             <button 
               onClick={toggleCollapse} 
               className="p-1 hover:bg-gray-100 rounded-md transition-colors"
             >
-              {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+              {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
             </button>
           </div>
           <nav className="space-y-6 text-black dark:text-white">
-            <button 
-              onClick={() => handleNavigation('/dashboard')}
-              className={`w-full flex items-center gap-2 text-black dark:text-white font-semibold hover:text-blue-600 transition-colors ${pathname === '/dashboard' ? 'text-blue-600' : ''}`}
-            >
-              <LayoutDashboard className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Dashboard</span>
-            </button>
-            <button 
-              onClick={() => handleNavigation('/matters')}
-              className={`w-full flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white transition-colors ${pathname === '/matters' ? 'text-blue-600' : ''}`}
-            >
-              <Briefcase className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Matters</span>
-            </button>
-            <button 
-              onClick={() => handleNavigation('/documents')}
-              className={`w-full flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white transition-colors ${pathname === '/documents' ? 'text-blue-600' : ''}`}
-            >
-              <FileText className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Documents</span>
-            </button>
-            <button 
-              onClick={() => handleNavigation('/crm')}
-              className={`w-full flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white transition-colors ${pathname === '/crm' ? 'text-blue-600' : ''}`}
-            >
-              <Users className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>CRM</span>
-            </button>
-            <button 
-              onClick={() => handleNavigation('/billing')}
-              className={`w-full flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white transition-colors ${pathname === '/billing' ? 'text-blue-600' : ''}`}
-            >
-              <CreditCard className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Billing</span>
-            </button>
-            <button 
-              onClick={() => handleNavigation('/analytics')}
-              className={`w-full flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white transition-colors ${pathname === '/analytics' ? 'text-blue-600' : ''}`}
-            >
-              <BarChart2 className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Analytics</span>
-            </button>
-            <button 
-              onClick={() => handleNavigation('/help')}
-              className={`w-full flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white transition-colors ${pathname === '/help' ? 'text-blue-600' : ''}`}
-            >
-              <HelpCircle className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Help</span>
-            </button>
-            <button 
-              onClick={() => handleNavigation('/settings')}
-              className={`w-full flex items-center gap-2 hover:text-blue-600 cursor-pointer text-black dark:text-white transition-colors ${pathname === '/settings' ? 'text-blue-600' : ''}`}
-            >
-              <Settings className="w-5 h-5" /> <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>Settings</span>
-            </button>
+            {NAV_ITEMS.map((item) => (
+              <NavItem
+                key={item.path}
+                item={item}
+                pathname={pathname}
+                collapsed={isCollapsed}
+                onNavigate={handleNavigation}
+              />
+            ))}
           </nav>
           {/* Avatar right after nav, with small margin */}
           <div className="flex flex-col items-center mt-72">
@@ -126,27 +171,9 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
               className="focus:outline-none"
               title="View Profile"
             >
-              <Avatar
-                className={`border-2 border-blue-500 shadow hover:shadow-lg transition-all duration-200`}
-                style={{ width: collapsed ? 48 : 96, height: collapsed ? 48 : 96 }}
-              >
-                {isLoading ? (
-                  <span className="w-full h-full flex items-center justify-center font-bold text-lg text-gray-400 animate-pulse">--</span>
-                ) : (
-                  <>
-                    {avatarUrl ? (
-                      <AvatarImage src={avatarUrl} alt={user?.fullName || getInitials(user)} className="object-cover w-full h-full rounded-full" />
-                    ) : clerkImageUrl ? (
-                      <AvatarImage src={clerkImageUrl} alt={user?.fullName || getInitials(user)} className="object-cover w-full h-full rounded-full" />
-                    ) : null}
-                    <AvatarFallback>
-                      <span className="w-full h-full flex items-center justify-center font-bold text-lg text-blue-700">{getInitials(user)}</span>
-                    </AvatarFallback>
-                  </>
-                )}
-              </Avatar>
+              {AvatarComponent}
             </button>
-            {!collapsed && user && (
+            {!isCollapsed && user && (
               <span className="mt-2 text-xs text-gray-700 font-medium text-center max-w-[120px] truncate dark:text-white">{user.fullName || user.firstName || user.lastName}</span>
             )}
             {/* Theme Toggle Button under avatar */}
@@ -173,8 +200,9 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
           </div>
         </div>
       </aside>
-      {/* Main Content */}
-      <main className="flex-1 p-8">{children}</main>
+      <main className="flex-1 overflow-auto">
+        {children}
+      </main>
     </div>
   );
 } 

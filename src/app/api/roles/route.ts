@@ -1,18 +1,52 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import { auth } from '@clerk/nextjs';
 
-export async function POST(request: Request) {
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+export async function GET() {
   try {
-    const { profileId } = await request.json();
-    if (!profileId) {
-      return NextResponse.json({ success: false, error: 'Profile ID is required' }, { status: 400 });
+    // Check authentication
+    const { userId } = auth();
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
     }
-    // TODO: Implement real logic to fetch roles from Supabase
-    const roles = [
-      { id: '1', name: 'attorney' },
-      { id: '2', name: 'admin' }
-    ];
-    return NextResponse.json({ success: true, roles });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message || 'Internal server error' }, { status: 500 });
+
+    // Fetch roles from the database
+    const { data: roles, error } = await supabase
+      .from('roles')
+      .select('id, name, description')
+      .order('name');
+
+    if (error) {
+      console.error('Error fetching roles:', error);
+      return NextResponse.json(
+        { error: 'Failed to fetch roles' },
+        { status: 500 }
+      );
+    }
+
+    // Ensure we return a valid JSON array
+    if (!Array.isArray(roles)) {
+      console.error('Invalid roles data format:', roles);
+      return NextResponse.json(
+        { error: 'Invalid roles data format' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(roles);
+  } catch (error) {
+    console.error('Error in roles API:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 } 

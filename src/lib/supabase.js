@@ -39,8 +39,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.handleSupabaseResponse = exports.handleSupabaseError = exports.supabase = void 0;
 var auth_helpers_nextjs_1 = require("@supabase/auth-helpers-nextjs");
 // Validate environment variables
-var supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-var supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+var supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321';
+var supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
 if (!supabaseUrl) {
     throw new Error('Missing environment variable: NEXT_PUBLIC_SUPABASE_URL');
 }
