@@ -55,10 +55,10 @@ const NavItem = React.memo(({
   return (
     <button 
       onClick={() => onNavigate(item.path)}
-      className={`w-full flex items-center gap-3 p-2 text-black dark:text-white font-semibold hover:text-blue-600 transition-colors rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 ${isActive ? 'text-blue-600 bg-gray-50 dark:bg-gray-800' : ''}`}
+      className={`w-full flex items-center gap-2 p-2 text-black dark:text-white font-semibold hover:text-blue-600 transition-all duration-200 ease-in-out rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 ${isActive ? 'text-blue-600 bg-gray-50 dark:bg-gray-800' : ''}`}
     >
       <Icon className="w-5 h-5" /> 
-      <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>
+      <span className={`transition-all duration-200 ease-in-out ${collapsed ? "opacity-0 w-0" : "opacity-100 w-auto"}`}>
         {item.label}
       </span>
     </button>
@@ -148,8 +148,8 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between p-4">
             <div className={cn(
-              "text-2xl font-bold text-blue-600 dark:text-white transition-opacity duration-200",
-              isCollapsed ? "opacity-0" : "opacity-100"
+              "text-2xl font-bold text-blue-600 dark:text-white transition-all duration-200 ease-in-out",
+              isCollapsed ? "opacity-0 w-0" : "opacity-100 w-auto"
             )}>
               LawMate
             </div>
@@ -160,7 +160,7 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
               {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
             </button>
           </div>
-          <nav className="flex-1 space-y-5 px-4 py-3">
+          <nav className="flex-1 space-y-3 px-3 py-2">
             {NAV_ITEMS.map((item) => (
               <NavItem
                 key={item.path}
@@ -181,8 +181,8 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
               {AvatarComponent}
             </button>
             <div className={cn(
-              "mt-2 text-sm text-gray-700 dark:text-white font-medium text-center max-w-[160px] truncate transition-opacity duration-200",
-              isCollapsed ? "opacity-0" : "opacity-100"
+              "mt-2 text-sm text-gray-700 dark:text-white font-medium text-center max-w-[160px] truncate transition-all duration-200 ease-in-out",
+              isCollapsed ? "opacity-0 w-0" : "opacity-100 w-auto"
             )}>
               {user?.fullName || user?.firstName || user?.lastName}
             </div>
