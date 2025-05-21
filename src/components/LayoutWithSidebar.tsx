@@ -55,7 +55,7 @@ const NavItem = React.memo(({
   return (
     <button 
       onClick={() => onNavigate(item.path)}
-      className={`w-full flex items-center gap-2 text-black dark:text-white font-semibold hover:text-blue-600 transition-colors ${isActive ? 'text-blue-600' : ''}`}
+      className={`w-full flex items-center gap-3 p-2 text-black dark:text-white font-semibold hover:text-blue-600 transition-colors rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 ${isActive ? 'text-blue-600 bg-gray-50 dark:bg-gray-800' : ''}`}
     >
       <Icon className="w-5 h-5" /> 
       <span className={`${collapsed ? "hidden group-hover:block" : "block"}`}>
@@ -69,7 +69,7 @@ NavItem.displayName = 'NavItem';
 
 export default function LayoutWithSidebar({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const { user } = useUser();
   const router = useRouter();
@@ -133,9 +133,11 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
   return (
     <div className="flex h-screen">
       <aside
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         className={cn(
-          'relative flex flex-col border-r bg-background transition-all duration-300',
-          isCollapsed ? 'w-16' : 'w-64'
+          'relative flex flex-col border-r bg-background transition-all duration-200 ease-in-out',
+          isCollapsed ? 'w-20' : 'w-72'
         )}
       >
         {isLoading && (
@@ -143,29 +145,34 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
             <LoadingState size="sm" />
           </div>
         )}
-        <div>
-          <div className="flex items-center justify-between mb-10">
-            <div className={`text-2xl font-bold text-blue-600 dark:text-white ${isCollapsed ? "hidden group-hover:block" : "block"}`}>LawMate</div>
+        <div className="flex flex-col h-full">
+          <div className="flex items-center justify-between p-4">
+            <div className={cn(
+              "text-2xl font-bold text-blue-600 dark:text-white transition-opacity duration-200",
+              isCollapsed ? "opacity-0" : "opacity-100"
+            )}>
+              LawMate
+            </div>
             <button 
               onClick={toggleCollapse} 
-              className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+              className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
             >
               {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
             </button>
           </div>
-          <nav className="space-y-6 text-black dark:text-white">
+          <nav className="flex-1 space-y-5 px-4 py-3">
             {NAV_ITEMS.map((item) => (
               <NavItem
                 key={item.path}
                 item={item}
-                pathname={pathname}
+                pathname={pathname || ''}
                 collapsed={isCollapsed}
                 onNavigate={handleNavigation}
               />
             ))}
           </nav>
-          {/* Avatar right after nav, with small margin */}
-          <div className="flex flex-col items-center mt-72">
+          {/* Avatar section with improved positioning */}
+          <div className="flex flex-col items-center p-4 mt-auto">
             <button
               onClick={() => handleNavigation('/user-profile')}
               className="focus:outline-none"
@@ -173,11 +180,14 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
             >
               {AvatarComponent}
             </button>
-            {!isCollapsed && user && (
-              <span className="mt-2 text-xs text-gray-700 font-medium text-center max-w-[120px] truncate dark:text-white">{user.fullName || user.firstName || user.lastName}</span>
-            )}
-            {/* Theme Toggle Button under avatar */}
-            <div className="mt-6 flex justify-center w-full">
+            <div className={cn(
+              "mt-2 text-sm text-gray-700 dark:text-white font-medium text-center max-w-[160px] truncate transition-opacity duration-200",
+              isCollapsed ? "opacity-0" : "opacity-100"
+            )}>
+              {user?.fullName || user?.firstName || user?.lastName}
+            </div>
+            {/* Theme Toggle Button */}
+            <div className="mt-4 flex justify-center w-full">
               <Tooltip title={colorMode.mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
                 <IconButton
                   onClick={colorMode.toggleColorMode}
@@ -200,7 +210,7 @@ export default function LayoutWithSidebar({ children }: { children: React.ReactN
           </div>
         </div>
       </aside>
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto p-6">
         {children}
       </main>
     </div>
