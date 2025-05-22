@@ -54,13 +54,32 @@ export async function GET() {
     retryCount = 0;
     while (retryCount < MAX_RETRIES) {
       try {
-        const { data: profile, error } = await supabase
+        // First get the profile
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('id, onboarding_completed, clerk_id, email, first_name, last_name, phone_number, role_id')
+          .select(`
+            id,
+            onboarding_completed,
+            clerk_id,
+            email,
+            first_name,
+            last_name,
+            phone_number,
+            role_id,
+            firm_name,
+            specialization,
+            years_of_practice,
+            avatar_url,
+            address,
+            home_address,
+            gender,
+            created_at,
+            updated_at
+          `)
           .eq('clerk_id', userId)
           .single();
 
-        if (error && error.code !== 'PGRST116') {
+        if (profileError && profileError.code !== 'PGRST116') {
           throw new AppError(
             "Failed to check profile",
             ErrorCodes.DATABASE.CONNECTION_ERROR,
@@ -69,10 +88,36 @@ export async function GET() {
         }
 
         if (profile) {
+          // Get professional IDs for this profile
+          const { data: professionalIds, error: professionalIdsError } = await supabase
+            .from('professional_ids')
+            .select('*')
+            .eq('profile_id', profile.id);
+
+          if (professionalIdsError) {
+            console.error('Error fetching professional IDs:', professionalIdsError);
+            // Don't throw error, just return empty array
+            return createResponse({
+              exists: true,
+              onboarding_completed: profile.onboarding_completed || false,
+              profile: {
+                ...profile,
+                professional_ids: []
+              }
+            }, 200, {
+              'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            });
+          }
+
           return createResponse({
             exists: true,
             onboarding_completed: profile.onboarding_completed || false,
-            profile
+            profile: {
+              ...profile,
+              professional_ids: professionalIds || []
+            }
           }, 200, {
             'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
             'Pragma': 'no-cache',
@@ -83,13 +128,14 @@ export async function GET() {
         // Create new profile using stored procedure
         const { data: newProfile, error: createError } = await supabase
           .rpc('update_profile_with_related', {
-            p_user_id: userId,
+            p_clerk_user_id: userId,
             p_email: clerkUser.emailAddresses[0]?.emailAddress || '',
             p_phone_number: clerkUser.phoneNumbers[0]?.phoneNumber || '',
             p_first_name: clerkUser.firstName || '',
             p_last_name: clerkUser.lastName || '',
             p_avatar_url: clerkUser.imageUrl || '',
-            p_onboarding_completed: false
+            p_onboarding_completed: false,
+            p_professional_ids: []
           });
 
         if (createError) {
@@ -129,10 +175,32 @@ export async function GET() {
           );
         }
 
+        // Get professional IDs for the new profile
+        const { data: professionalIds, error: professionalIdsError } = await supabase
+          .from('professional_ids')
+          .select('*')
+          .eq('profile_id', profileData.id);
+
+        if (professionalIdsError) {
+          console.error('Error fetching professional IDs for new profile:', professionalIdsError);
+          // Don't throw error, just return empty array
+          return createResponse({
+            exists: true,
+            onboarding_completed: profileData.onboarding_completed || false,
+            profile: {
+              ...profileData,
+              professional_ids: []
+            }
+          });
+        }
+
         return createResponse({
           exists: true,
           onboarding_completed: profileData.onboarding_completed || false,
-          profile: profileData
+          profile: {
+            ...profileData,
+            professional_ids: professionalIds || []
+          }
         });
       } catch (err) {
         if (err instanceof AppError) throw err;
