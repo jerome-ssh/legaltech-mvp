@@ -11,14 +11,25 @@ export async function GET(req: NextRequest) {
 
     const profileId = await getProfileId(userId);
 
-    // Get the clients using the profile ID
-    const { data, error } = await supabase
-      .from('clients')
+    const { searchParams } = new URL(req.url);
+    const start = searchParams.get('start');
+    const end = searchParams.get('end');
+
+    let query = supabase
+      .from('schedules')
       .select('*')
       .eq('profile_id', profileId);
 
+    if (start && end) {
+      query = query
+        .gte('start_time', start)
+        .lte('end_time', end);
+    }
+
+    const { data, error } = await query.order('start_time', { ascending: true });
+
     if (error) {
-      console.error('Clients fetch error:', error);
+      console.error('Schedules fetch error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -40,31 +51,52 @@ export async function POST(req: NextRequest) {
     const profileId = await getProfileId(userId);
 
     const body = await req.json();
-    const { first_name, last_name, email, phone_number, address, city, state, zip_code } = body;
+    const { 
+      title, 
+      start_time, 
+      end_time, 
+      description, 
+      type = 'meeting',
+      status = 'scheduled',
+      participants = [],
+      location,
+      is_recurring = false,
+      recurrence_pattern,
+      reminder_time,
+      reminder_type = []
+    } = body;
 
     // Validate required fields
-    if (!first_name || !last_name) {
-      return NextResponse.json({ error: 'First name and last name are required' }, { status: 400 });
+    if (!title || !start_time || !end_time) {
+      return NextResponse.json(
+        { error: 'Title, start time, and end time are required' },
+        { status: 400 }
+      );
     }
 
     const { data, error } = await supabase
-      .from('clients')
+      .from('schedules')
       .insert({
         profile_id: profileId,
-        first_name,
-        last_name,
-        email,
-        phone_number,
-        address,
-        city,
-        state,
-        zip_code
+        title,
+        start_time,
+        end_time,
+        description,
+        type,
+        status,
+        participants,
+        location,
+        is_recurring,
+        recurrence_pattern,
+        reminder_time,
+        reminder_type,
+        reminder_sent: false
       })
       .select()
       .single();
 
     if (error) {
-      console.error('Client creation error:', error);
+      console.error('Schedule creation error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -89,28 +121,28 @@ export async function PUT(req: NextRequest) {
     const { id, ...updates } = body;
 
     if (!id) {
-      return NextResponse.json({ error: 'Client ID is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Schedule ID is required' }, { status: 400 });
     }
 
-    // Check if the client exists and belongs to the user
-    const { data: existingClient, error: fetchError } = await supabase
-      .from('clients')
+    // Check if the schedule exists and belongs to the user
+    const { data: existingSchedule, error: fetchError } = await supabase
+      .from('schedules')
       .select('id')
       .eq('id', id)
       .eq('profile_id', profileId)
       .single();
 
     if (fetchError) {
-      console.error('Client fetch error:', fetchError);
-      return NextResponse.json({ error: 'Failed to fetch client' }, { status: 500 });
+      console.error('Schedule fetch error:', fetchError);
+      return NextResponse.json({ error: 'Failed to fetch schedule' }, { status: 500 });
     }
 
-    if (!existingClient) {
-      return NextResponse.json({ error: 'Client not found or unauthorized' }, { status: 404 });
+    if (!existingSchedule) {
+      return NextResponse.json({ error: 'Schedule not found or unauthorized' }, { status: 404 });
     }
 
     const { data, error } = await supabase
-      .from('clients')
+      .from('schedules')
       .update(updates)
       .eq('id', id)
       .eq('profile_id', profileId)
@@ -118,7 +150,7 @@ export async function PUT(req: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Client update error:', error);
+      console.error('Schedule update error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -143,34 +175,34 @@ export async function DELETE(req: NextRequest) {
     const id = searchParams.get('id');
 
     if (!id) {
-      return NextResponse.json({ error: 'Client ID is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Schedule ID is required' }, { status: 400 });
     }
 
-    // Check if the client exists and belongs to the user
-    const { data: existingClient, error: fetchError } = await supabase
-      .from('clients')
+    // Check if the schedule exists and belongs to the user
+    const { data: existingSchedule, error: fetchError } = await supabase
+      .from('schedules')
       .select('id')
       .eq('id', id)
       .eq('profile_id', profileId)
       .single();
 
     if (fetchError) {
-      console.error('Client fetch error:', fetchError);
-      return NextResponse.json({ error: 'Failed to fetch client' }, { status: 500 });
+      console.error('Schedule fetch error:', fetchError);
+      return NextResponse.json({ error: 'Failed to fetch schedule' }, { status: 500 });
     }
 
-    if (!existingClient) {
-      return NextResponse.json({ error: 'Client not found or unauthorized' }, { status: 404 });
+    if (!existingSchedule) {
+      return NextResponse.json({ error: 'Schedule not found or unauthorized' }, { status: 404 });
     }
 
     const { error } = await supabase
-      .from('clients')
+      .from('schedules')
       .delete()
       .eq('id', id)
       .eq('profile_id', profileId);
 
     if (error) {
-      console.error('Client deletion error:', error);
+      console.error('Schedule deletion error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -180,4 +212,4 @@ export async function DELETE(req: NextRequest) {
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
-} 
+}

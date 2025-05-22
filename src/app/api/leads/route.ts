@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { supabase, handleSupabaseError } from '@/lib/supabase';
+import { supabase, getProfileId } from '@/lib/supabase';
 
 console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
 console.log('Supabase SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SET' : 'NOT SET');
@@ -8,194 +8,178 @@ console.log('Supabase SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY 
 export async function GET(req: NextRequest) {
   try {
     const { userId } = auth();
-    console.log('GET /api/leads - User ID:', userId);
-    
     if (!userId) {
-      console.log('Unauthorized: No user ID found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const profileId = await getProfileId(userId);
+
+    // Get the leads using the profile ID
     const { data, error } = await supabase
       .from('leads')
       .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .eq('profile_id', profileId);
 
     if (error) {
-      console.error('Supabase query error:', error);
-      return NextResponse.json(
-        { error: 'Failed to fetch leads' },
-        { status: 500 }
-      );
+      console.error('Leads fetch error:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    if (!data) {
-      console.log('No leads found for user:', userId);
-      return NextResponse.json([]);
-    }
-
-    console.log('Successfully fetched leads:', data.length);
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('Unexpected error in GET /api/leads:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ data });
+  } catch (error: unknown) {
+    console.error('Unexpected error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
     const { userId } = auth();
-    console.log('POST /api/leads - User ID:', userId);
-    
     if (!userId) {
-      console.log('Unauthorized: No user ID found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await req.json();
-    console.log('Request body:', body);
+    const profileId = await getProfileId(userId);
 
-    if (!body.name) {
-      console.log('Bad request: Missing required field "name"');
-      return NextResponse.json(
-        { error: 'Name is required' },
-        { status: 400 }
-      );
+    const body = await req.json();
+    const { name, email, phone, company, status, source, notes } = body;
+
+    // Validate required fields
+    if (!name || !email) {
+      return NextResponse.json({ error: 'Name and email are required' }, { status: 400 });
     }
 
     const { data, error } = await supabase
       .from('leads')
-      .insert([
-        {
-          ...body,
-          user_id: userId,
-          status: 'new',
-          created_at: new Date().toISOString(),
-        },
-      ])
+      .insert({
+        profile_id: profileId,
+        name,
+        email,
+        phone,
+        company,
+        status: status || 'new',
+        source,
+        notes
+      })
       .select()
       .single();
 
     if (error) {
-      console.error('Supabase insert error:', error);
-      return NextResponse.json(
-        { error: 'Failed to create lead' },
-        { status: 500 }
-      );
+      console.error('Lead creation error:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    console.log('Successfully created lead:', data);
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('Unexpected error in POST /api/leads:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ data });
+  } catch (error: unknown) {
+    console.error('Unexpected error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
 export async function PUT(req: NextRequest) {
   try {
     const { userId } = auth();
-    console.log('PUT /api/leads userId:', userId);
     if (!userId) {
-      console.log('Unauthorized: No user ID found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const profileId = await getProfileId(userId);
+
     const body = await req.json();
-    console.log('PUT /api/leads body:', body);
     const { id, ...updates } = body;
 
     if (!id) {
-      console.log('Bad request: Missing lead ID');
-      return NextResponse.json(
-        { error: 'Lead ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Lead ID is required' }, { status: 400 });
+    }
+
+    // Check if the lead exists and belongs to the user
+    const { data: existingLead, error: fetchError } = await supabase
+      .from('leads')
+      .select('id')
+      .eq('id', id)
+      .eq('profile_id', profileId)
+      .single();
+
+    if (fetchError) {
+      console.error('Lead fetch error:', fetchError);
+      return NextResponse.json({ error: 'Failed to fetch lead' }, { status: 500 });
+    }
+
+    if (!existingLead) {
+      return NextResponse.json({ error: 'Lead not found or unauthorized' }, { status: 404 });
     }
 
     const { data, error } = await supabase
       .from('leads')
       .update(updates)
       .eq('id', id)
-      .eq('user_id', userId)
+      .eq('profile_id', profileId)
       .select()
       .single();
 
     if (error) {
-      console.error('Error updating lead:', error);
-      return NextResponse.json(
-        { error: 'Failed to update lead' },
-        { status: 500 }
-      );
+      console.error('Lead update error:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    if (!data) {
-      console.log('Lead not found or unauthorized:', id);
-      return NextResponse.json(
-        { error: 'Lead not found or unauthorized' },
-        { status: 404 }
-      );
-    }
-
-    console.log('Successfully updated lead:', data);
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('Error in leads API:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ data });
+  } catch (error: unknown) {
+    console.error('Unexpected error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
 export async function DELETE(req: NextRequest) {
   try {
     const { userId } = auth();
-    console.log('DELETE /api/leads userId:', userId);
     if (!userId) {
-      console.log('Unauthorized: No user ID found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const profileId = await getProfileId(userId);
+
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
-    console.log('DELETE /api/leads id:', id);
 
     if (!id) {
-      console.log('Bad request: Missing lead ID');
-      return NextResponse.json(
-        { error: 'Lead ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Lead ID is required' }, { status: 400 });
+    }
+
+    // Check if the lead exists and belongs to the user
+    const { data: existingLead, error: fetchError } = await supabase
+      .from('leads')
+      .select('id')
+      .eq('id', id)
+      .eq('profile_id', profileId)
+      .single();
+
+    if (fetchError) {
+      console.error('Lead fetch error:', fetchError);
+      return NextResponse.json({ error: 'Failed to fetch lead' }, { status: 500 });
+    }
+
+    if (!existingLead) {
+      return NextResponse.json({ error: 'Lead not found or unauthorized' }, { status: 404 });
     }
 
     const { error } = await supabase
       .from('leads')
       .delete()
       .eq('id', id)
-      .eq('user_id', userId);
+      .eq('profile_id', profileId);
 
     if (error) {
-      console.error('Error deleting lead:', error);
-      return NextResponse.json(
-        { error: 'Failed to delete lead' },
-        { status: 500 }
-      );
+      console.error('Lead deletion error:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    console.log('Successfully deleted lead:', id);
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Error in leads API:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ data: { id } });
+  } catch (error: unknown) {
+    console.error('Unexpected error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 } 

@@ -12,23 +12,21 @@ export interface Message {
   matter_title: string;
   matter_id: string;
   sender_id: string;
+  profile_id: string;
   attachments?: string | null;
 }
 
 interface SupabaseMessage {
   id: string;
-  message_text: string;
+  content: string;
   created_at: string;
-  read: boolean;
-  sender_id: string;
+  is_read: boolean;
+  users?: { full_name: string };
+  cases?: { title: string };
   case_id: string;
+  sender_id: string;
+  profile_id: string;
   attachments?: string | null;
-  users: {
-    full_name: string;
-  } | null;
-  cases: {
-    title: string;
-  } | null;
 }
 
 export function useMessages() {
@@ -61,13 +59,14 @@ export function useMessages() {
 
       const formattedMessages = (data as SupabaseMessage[]).map(msg => ({
         id: msg.id,
-        message_text: msg.message_text,
+        message_text: msg.content,
         created_at: msg.created_at,
-        read: msg.read,
+        read: msg.is_read,
         sender_name: msg.users?.full_name || msg.sender_id,
         matter_title: msg.cases?.title || msg.case_id,
         matter_id: msg.case_id,
         sender_id: msg.sender_id,
+        profile_id: msg.profile_id,
         attachments: msg.attachments
       }));
 

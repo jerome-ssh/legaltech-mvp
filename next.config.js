@@ -18,7 +18,8 @@ const nextConfig = {
       'img.clerk.com',
       'images.clerk.dev',
       'res.cloudinary.com',
-      'lh3.googleusercontent.com'
+      'lh3.googleusercontent.com',
+      'ueqzjuclosoedybixqgs.supabase.co'
     ],
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],

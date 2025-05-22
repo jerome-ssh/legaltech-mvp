@@ -54,10 +54,12 @@ function ClientsTabContent({ shouldFetch }: ClientsTabContentProps) {
         ]);
 
         if (!clientsResponse.ok) {
-          throw new Error('Failed to fetch clients');
+          const errorData = await clientsResponse.json();
+          throw new Error(errorData.error || 'Failed to fetch clients');
         }
         if (!casesResponse.ok) {
-          throw new Error('Failed to fetch cases');
+          const errorData = await casesResponse.json();
+          throw new Error(errorData.error || 'Failed to fetch cases');
         }
 
         const [clientsData, casesData] = await Promise.all([
@@ -66,8 +68,8 @@ function ClientsTabContent({ shouldFetch }: ClientsTabContentProps) {
         ]);
 
         if (mounted) {
-          setClients(clientsData.data);
-          setCases(casesData.data);
+          setClients(Array.isArray(clientsData.data) ? clientsData.data : []);
+          setCases(Array.isArray(casesData.data) ? casesData.data : []);
         }
       } catch (err) {
         console.error('Error in fetchData:', err);
@@ -94,6 +96,77 @@ function ClientsTabContent({ shouldFetch }: ClientsTabContentProps) {
       mounted = false;
     };
   }, [shouldFetch]);
+
+  const handleAddClient = async () => {
+    try {
+      const response = await fetch('/api/clients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          first_name: '',
+          last_name: '',
+          email: '',
+          phone_number: '',
+          address: '',
+          city: '',
+          state: '',
+          zip_code: ''
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create client');
+      }
+
+      const data = await response.json();
+      setClients(prev => [...prev, data.data]);
+    } catch (err) {
+      console.error('Error creating client:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create client');
+    }
+  };
+
+  const handleUpdateClient = async (id: string, updates: Partial<Client>) => {
+    try {
+      const response = await fetch('/api/clients', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, ...updates }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update client');
+      }
+
+      const data = await response.json();
+      setClients(prev => prev.map(client => 
+        client.id === id ? data.data : client
+      ));
+    } catch (err) {
+      console.error('Error updating client:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update client');
+    }
+  };
+
+  const handleDeleteClient = async (id: string) => {
+    try {
+      const response = await fetch(`/api/clients?id=${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete client');
+      }
+
+      setClients(prev => prev.filter(client => client.id !== id));
+    } catch (err) {
+      console.error('Error deleting client:', err);
+      setError(err instanceof Error ? err.message : 'Failed to delete client');
+    }
+  };
 
   const filteredClients = clients.filter(client => 
     `${client.first_name} ${client.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -138,7 +211,10 @@ function ClientsTabContent({ shouldFetch }: ClientsTabContentProps) {
               className="pl-10 bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border-gray-200/20 dark:border-gray-800/20"
             />
           </div>
-          <Button className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white">
+          <Button 
+            className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white"
+            onClick={handleAddClient}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Add Client
           </Button>

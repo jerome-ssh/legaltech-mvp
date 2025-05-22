@@ -89,12 +89,13 @@ function MessagesTabContent({ shouldFetch }: MessagesTabContentProps) {
 
         const response = await fetch('/api/messages');
         if (!response.ok) {
-          throw new Error('Failed to fetch messages');
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to fetch messages');
         }
 
         const data = await response.json();
         if (mounted) {
-          const messages = Array.isArray(data) ? data : [];
+          const messages = Array.isArray(data.data) ? data.data : [];
           setThreads(groupMessagesByThread(messages));
         }
       } catch (err) {
@@ -118,37 +119,42 @@ function MessagesTabContent({ shouldFetch }: MessagesTabContentProps) {
 
   const handleThreadSelect = async (thread: MessageThread) => {
     try {
-      const response = await fetch(`/api/messages/${thread.id}`);
+      const response = await fetch(`/api/messages?id=${thread.id}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch thread messages');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch thread messages');
       }
 
       const data = await response.json();
       setSelectedThread({
         ...thread,
-        messages: data.data
+        messages: Array.isArray(data.data) ? data.data : []
       });
 
       // Mark thread as read if it's unread
       if (thread.status === 'unread') {
-        const updateResponse = await fetch(`/api/messages/${thread.id}`, {
+        const updateResponse = await fetch('/api/messages', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ status: 'read' }),
+          body: JSON.stringify({ id: thread.id, status: 'read' }),
         });
 
         if (!updateResponse.ok) {
-          throw new Error('Failed to update thread status');
+          const errorData = await updateResponse.json();
+          throw new Error(errorData.error || 'Failed to update thread status');
         }
 
+        const updateData = await updateResponse.json();
         setThreads(threads.map(t =>
           t.id === thread.id ? { ...t, status: 'read' } : t
         ));
       }
     } catch (err) {
       if (err instanceof AppError) {
+        setError(err.message);
+      } else if (err instanceof Error) {
         setError(err.message);
       } else {
         setError('Failed to load thread messages');
@@ -161,35 +167,40 @@ function MessagesTabContent({ shouldFetch }: MessagesTabContentProps) {
     if (!selectedThread || !replyContent.trim()) return;
 
     try {
-      const response = await fetch(`/api/messages/${selectedThread.id}/reply`, {
+      const response = await fetch('/api/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          thread_id: selectedThread.id,
           content: replyContent,
           recipient: selectedThread.recipient
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to send reply');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send reply');
       }
 
       // Refresh thread messages
-      const messagesResponse = await fetch(`/api/messages/${selectedThread.id}`);
+      const messagesResponse = await fetch(`/api/messages?id=${selectedThread.id}`);
       if (!messagesResponse.ok) {
-        throw new Error('Failed to refresh thread messages');
+        const errorData = await messagesResponse.json();
+        throw new Error(errorData.error || 'Failed to refresh thread messages');
       }
 
       const messagesData = await messagesResponse.json();
       setSelectedThread({
         ...selectedThread,
-        messages: messagesData.data
+        messages: Array.isArray(messagesData.data) ? messagesData.data : []
       });
       setReplyContent('');
     } catch (err) {
       if (err instanceof AppError) {
+        setError(err.message);
+      } else if (err instanceof Error) {
         setError(err.message);
       } else {
         setError('Failed to send reply');

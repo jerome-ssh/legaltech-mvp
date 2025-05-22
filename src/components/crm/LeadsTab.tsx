@@ -50,13 +50,14 @@ function LeadsTabContent({ shouldFetch }: LeadsTabContentProps) {
 
         const response = await fetch('/api/leads');
         if (!response.ok) {
-          throw new Error('Failed to fetch leads');
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to fetch leads');
         }
 
         const data = await response.json();
         
         if (mounted) {
-          setLeads(Array.isArray(data) ? data : []);
+          setLeads(Array.isArray(data.data) ? data.data : []);
         }
       } catch (err) {
         if (mounted) {
@@ -95,21 +96,30 @@ function LeadsTabContent({ shouldFetch }: LeadsTabContentProps) {
     setLeads(updatedLeads);
 
     try {
-      const response = await fetch(`/api/leads/${movedLead.id}`, {
+      const response = await fetch('/api/leads', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ id: movedLead.id, status: newStatus }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update lead status');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update lead status');
       }
+
+      const data = await response.json();
+      // Update the lead with the response data
+      setLeads(prev => prev.map(lead => 
+        lead.id === movedLead.id ? data.data : lead
+      ));
     } catch (err) {
       // Revert the local state if the update fails
       setLeads(leads);
       if (err instanceof AppError) {
+        setError(err.message);
+      } else if (err instanceof Error) {
         setError(err.message);
       } else {
         setError('Failed to update lead status');

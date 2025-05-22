@@ -1,3 +1,4 @@
+"use client";
 import { useUser } from '@clerk/nextjs';
 import { supabase } from '@/lib/supabase';
 import { ProfileFormData } from '@/types/profile';

@@ -102,9 +102,12 @@ function SchedulesTabContent({ shouldFetch }: SchedulesTabContentProps) {
         setLoading(true);
         setError(null);
         const response = await fetch('/api/schedules');
-        if (!response.ok) throw new Error('Failed to fetch schedules');
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to fetch schedules');
+        }
         const data = await response.json();
-        if (mounted) setSchedules(Array.isArray(data) ? data : []);
+        if (mounted) setSchedules(Array.isArray(data.data) ? data.data : []);
       } catch (err) {
         if (mounted) {
           if (err instanceof AppError) setError(err.message);
@@ -198,67 +201,98 @@ function SchedulesTabContent({ shouldFetch }: SchedulesTabContentProps) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(eventData),
         });
-      } else if (modalMode === 'edit' && selectedEvent) {
+      } else {
         response = await fetch('/api/schedules', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...eventData, id: selectedEvent.id }),
+          body: JSON.stringify({ id: eventData.id, ...eventData }),
         });
       }
-      if (response && response.ok) {
-        setModalOpen(false);
-        // Refresh schedules
-        const refetch = await fetch('/api/schedules');
-        const data = await refetch.json();
-        setSchedules(Array.isArray(data) ? data : []);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save schedule');
       }
-    } catch (err) {
-      // Optionally show error toast
+
+      const data = await response.json();
+      if (modalMode === 'create') {
+        setSchedules(prev => [...prev, data.data]);
+      } else {
+        setSchedules(prev => prev.map(s => s.id === eventData.id ? data.data : s));
+      }
       setModalOpen(false);
+      toast.success(modalMode === 'create' ? 'Schedule created' : 'Schedule updated');
+    } catch (err) {
+      if (err instanceof AppError) {
+        setError(err.message);
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Failed to save schedule');
+        console.error('Error saving schedule:', err);
+      }
     }
   };
   const handleModalDelete = async (id: string) => {
     try {
-      const response = await fetch('/api/schedules', {
+      const response = await fetch(`/api/schedules?id=${id}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
       });
-      if (response.ok) {
-        setModalOpen(false);
-        // Refresh schedules
-        const refetch = await fetch('/api/schedules');
-        const data = await refetch.json();
-        setSchedules(Array.isArray(data) ? data : []);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete schedule');
       }
+
+      setSchedules(prev => prev.filter(s => s.id !== id));
+      setModalOpen(false);
+      toast.success('Schedule deleted');
     } catch (err) {
-      // Optionally show error toast
+      if (err instanceof AppError) {
+        setError(err.message);
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Failed to delete schedule');
+        console.error('Error deleting schedule:', err);
+      }
     }
   };
 
   // Drag-and-drop handlers
   const handleCalendarEventDrop = async (info: any) => {
-    const event = schedules.find(s => s.id === info.event.id);
-    if (!event) return;
     try {
+      const event = schedules.find(s => s.id === info.event.id);
+      if (!event) return;
+
       const response = await fetch('/api/schedules', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...event,
-          start_time: info.event.startStr,
-          end_time: info.event.endStr || info.event.startStr,
+          id: event.id,
+          start_time: info.event.start.toISOString(),
+          end_time: info.event.end.toISOString(),
         }),
       });
-      if (response.ok) {
-        // Refresh schedules
-        const refetch = await fetch('/api/schedules');
-        const data = await refetch.json();
-        setSchedules(Array.isArray(data) ? data : []);
-      } else {
-        info.revert(); // revert drag if update fails
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update schedule');
       }
+
+      const data = await response.json();
+      setSchedules(prev => prev.map(s => s.id === event.id ? data.data : s));
+      toast.success('Schedule updated');
     } catch (err) {
+      if (err instanceof AppError) {
+        setError(err.message);
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Failed to update schedule');
+        console.error('Error updating schedule:', err);
+      }
+      // Revert the drag
       info.revert();
     }
   };
@@ -293,27 +327,54 @@ function SchedulesTabContent({ shouldFetch }: SchedulesTabContentProps) {
 
   const deleteEvent = async (id: string) => {
     try {
-      await fetch(`/api/schedules/${id}`, { method: 'DELETE' });
-      setSchedules(schedules.filter(s => s.id !== id));
-      toast.success('Event deleted successfully');
-    } catch (error) {
-      console.error('Error deleting event:', error);
-      toast.error('Failed to delete event');
+      const response = await fetch(`/api/schedules?id=${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete schedule');
+      }
+
+      setSchedules(prev => prev.filter(s => s.id !== id));
+      toast.success('Schedule deleted');
+    } catch (err) {
+      if (err instanceof AppError) {
+        setError(err.message);
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Failed to delete schedule');
+        console.error('Error deleting schedule:', err);
+      }
     }
   };
 
   const updateEventStatus = async (id: string, status: string) => {
     try {
-      await fetch(`/api/schedules/${id}`, {
-        method: 'PATCH',
+      const response = await fetch('/api/schedules', {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ id, status }),
       });
-      setSchedules(schedules.map(s => s.id === id ? { ...s, status: status as 'scheduled' | 'completed' | 'cancelled' } : s));
-      toast.success(`Event marked as ${status}`);
-    } catch (error) {
-      console.error('Error updating event status:', error);
-      toast.error('Failed to update event status');
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update schedule status');
+      }
+
+      const data = await response.json();
+      setSchedules(prev => prev.map(s => s.id === id ? data.data : s));
+      toast.success('Schedule status updated');
+    } catch (err) {
+      if (err instanceof AppError) {
+        setError(err.message);
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Failed to update schedule status');
+        console.error('Error updating schedule status:', err);
+      }
     }
   };
 
