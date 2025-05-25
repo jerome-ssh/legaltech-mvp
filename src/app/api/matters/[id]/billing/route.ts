@@ -39,34 +39,27 @@ type BillingFrequency = typeof VALID_BILLING_FREQUENCIES[number];
 // The combination allows for flexible billing setups, e.g., Hourly + Block, Retainer + Standard, etc.
 
 const billingSchema = z.object({
-  billing_method: z.enum(VALID_BILLING_METHODS),
-  payment_pattern: z.enum(VALID_PAYMENT_PATTERNS),
-  currency: z.string().uuid(),
-  // Optional fields
-  rate: z.number().optional(),
-  payment_terms: z.string().optional(),
-  retainer_amount: z.number().optional(),
-  retainer_balance: z.number().optional(),
-  billing_frequency: z.enum(VALID_BILLING_FREQUENCIES).optional(),
-  custom_frequency: z.string().optional(),
-  billing_notes: z.string().optional(),
-  payment_medium: z.string().uuid().optional(),
-  priority: z.string().uuid().optional(),
-  status: z.string().uuid().optional(),
-  custom_terms: z.string().optional(),
+  matter_id: z.string().uuid(),
+  billing_method_id: z.string().uuid(),
+  payment_pattern_id: z.string().uuid(),
+  currency_id: z.string().uuid(),
+  payment_medium_id: z.string().uuid().optional(),
+  rate_value: z.number(),
+  terms_details: z.object({
+    standard: z.string(),
+    custom: z.string().optional()
+  }),
+  billing_frequency_id: z.string().uuid().optional(),
   features: z.object({
     automated_time_capture: z.boolean().optional(),
     blockchain_invoicing: z.boolean().optional(),
     send_invoice_on_approval: z.boolean().optional()
-  }).optional()
-}).refine((data) => {
-  // If billing_frequency is 'custom', custom_frequency must be provided
-  if (data.billing_frequency === 'custom' && !data.custom_frequency) {
-    return false;
-  }
-  return true;
-}, {
-  message: "Custom frequency is required when billing frequency is 'custom'"
+  }).optional(),
+  retainer_amount: z.number().optional(),
+  retainer_balance: z.number().optional(),
+  notes: z.string().optional(),
+  priority_id: z.string().uuid().optional(),
+  status_id: z.string().uuid().optional()
 });
 
 // GET /api/matters/[id]/billing - Get matter billing information
@@ -118,7 +111,9 @@ export async function GET(
           id, name, status
         ),
         currency:currencies (
-          id, code, name, symbol
+          id,
+          value,
+          label
         )
       `)
       .eq('matter_id', params.id)
@@ -158,54 +153,6 @@ export async function POST(
       }, { status: 400 });
     }
     const billingData = parseResult.data;
-
-    // Validate currency exists
-    const { data: currencyRow, error: currencyError } = await supabase
-      .from('currencies')
-      .select('id')
-      .eq('id', billingData.currency)
-      .single();
-    if (currencyError || !currencyRow) {
-      return NextResponse.json({ error: 'Invalid currency' }, { status: 400 });
-    }
-
-    // Validate payment_medium if provided
-    if (billingData.payment_medium) {
-      const { data: paymentMediumRow, error: paymentMediumError } = await supabase
-        .from('payment_mediums')
-        .select('id')
-        .eq('id', billingData.payment_medium)
-        .single();
-      if (paymentMediumError || !paymentMediumRow) {
-        return NextResponse.json({ error: 'Invalid payment medium' }, { status: 400 });
-      }
-    }
-
-    // Validate priority if provided
-    if (billingData.priority) {
-      const { data: priorityRow, error: priorityError } = await supabase
-        .from('priorities')
-        .select('id')
-        .eq('id', billingData.priority)
-        .single();
-      if (priorityError || !priorityRow) {
-        return NextResponse.json({ error: 'Invalid priority' }, { status: 400 });
-      }
-    }
-
-    // Validate status exists or set to default 'active'
-    let statusId = billingData.status;
-    if (!statusId) {
-      const { data: statusRow, error: statusError } = await supabase
-        .from('matter_status')
-        .select('id')
-        .eq('name', 'active')
-        .single();
-      if (statusError || !statusRow) {
-        return NextResponse.json({ error: 'Default status "active" not found' }, { status: 400 });
-      }
-      statusId = statusRow.id;
-    }
 
     // Get the user's profile_id
     const { data: profile, error: profileError } = await supabase
@@ -250,21 +197,19 @@ export async function POST(
       .insert([
         {
           matter_id: params.id,
-          payment_pattern: billingData.payment_pattern,
-          billing_method: billingData.billing_method,
-          rate: billingData.rate,
-          currency: billingData.currency,
-          payment_terms: billingData.payment_terms,
+          billing_method_id: billingData.billing_method_id,
+          payment_pattern_id: billingData.payment_pattern_id,
+          currency_id: billingData.currency_id,
+          payment_medium_id: billingData.payment_medium_id,
+          rate_value: billingData.rate_value,
+          terms_details: billingData.terms_details,
+          billing_frequency_id: billingData.billing_frequency_id,
+          features: billingData.features,
           retainer_amount: billingData.retainer_amount,
           retainer_balance: billingData.retainer_balance,
-          billing_frequency: billingData.billing_frequency,
-          custom_frequency: billingData.custom_frequency,
-          billing_notes: billingData.billing_notes,
-          payment_medium: billingData.payment_medium,
-          priority: billingData.priority,
-          status: statusId,
-          custom_terms: billingData.custom_terms,
-          features: billingData.features
+          notes: billingData.notes,
+          priority_id: billingData.priority_id,
+          status_id: billingData.status_id
         }
       ])
       .select(`
@@ -279,12 +224,15 @@ export async function POST(
           id, name, status
         ),
         currency:currencies (
-          id, code, name, symbol
+          id,
+          value,
+          label
         )
       `)
       .single();
 
     if (error) {
+      console.error('Error creating billing:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -317,35 +265,37 @@ export async function PUT(
     const billingData = parseResult.data;
 
     // Validate payment_medium if provided
-    if (billingData.payment_medium) {
+    if (billingData.payment_medium_id) {
       const { data: paymentMediumRow, error: paymentMediumError } = await supabase
         .from('payment_mediums')
         .select('id')
-        .eq('id', billingData.payment_medium)
+        .eq('id', billingData.payment_medium_id)
         .single();
       if (paymentMediumError || !paymentMediumRow) {
         return NextResponse.json({ error: 'Invalid payment medium' }, { status: 400 });
       }
     }
 
-    // Validate priority if provided
-    if (billingData.priority) {
+    // Validate priority if provided (by name)
+    let priorityIdPut = null;
+    if (billingData.priority_id) {
       const { data: priorityRow, error: priorityError } = await supabase
         .from('priorities')
         .select('id')
-        .eq('id', billingData.priority)
+        .eq('id', billingData.priority_id)
         .single();
       if (priorityError || !priorityRow) {
         return NextResponse.json({ error: 'Invalid priority' }, { status: 400 });
       }
+      priorityIdPut = priorityRow.id;
     }
 
     // Validate status if provided
-    if (billingData.status) {
+    if (billingData.status_id) {
       const { data: statusRow, error: statusError } = await supabase
         .from('matter_status')
         .select('id')
-        .eq('id', billingData.status)
+        .eq('id', billingData.status_id)
         .single();
       if (statusError || !statusRow) {
         return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
@@ -379,21 +329,18 @@ export async function PUT(
     const { data: billing, error } = await supabase
       .from('matter_billing')
       .update({
-        payment_pattern: billingData.payment_pattern,
-        billing_method: billingData.billing_method,
-        rate: billingData.rate,
-        currency: billingData.currency,
-        payment_terms: billingData.payment_terms,
+        payment_pattern_id: billingData.payment_pattern_id,
+        billing_method_id: billingData.billing_method_id,
+        rate_value: billingData.rate_value,
+        terms_details: billingData.terms_details,
+        billing_frequency_id: billingData.billing_frequency_id,
+        features: billingData.features,
         retainer_amount: billingData.retainer_amount,
         retainer_balance: billingData.retainer_balance,
-        billing_frequency: billingData.billing_frequency,
-        custom_frequency: billingData.custom_frequency,
-        billing_notes: billingData.billing_notes,
-        payment_medium: billingData.payment_medium,
-        priority: billingData.priority,
-        status: billingData.status,
-        custom_terms: billingData.custom_terms,
-        features: billingData.features,
+        notes: billingData.notes,
+        payment_medium_id: billingData.payment_medium_id,
+        priority_id: priorityIdPut,
+        status_id: billingData.status_id,
         updated_at: new Date().toISOString()
       })
       .eq('matter_id', params.id)
@@ -409,7 +356,9 @@ export async function PUT(
           id, name, status
         ),
         currency:currencies (
-          id, code, name, symbol
+          id,
+          value,
+          label
         )
       `)
       .single();

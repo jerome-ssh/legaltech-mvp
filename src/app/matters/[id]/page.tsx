@@ -39,12 +39,11 @@ interface Matter {
     billing_type: string;
     rate: number;
     currency: string;
-    payment_terms?: string;
+    terms_details?: string;
     retainer_amount?: number;
     retainer_balance?: number;
     billing_frequency?: string;
-    custom_frequency?: string;
-    billing_notes?: string;
+    notes?: string;
   } | null;
   matter_intake_links: {
     id: string;
@@ -272,10 +271,10 @@ export default function MatterDetailsPage({ params }: { params: { id: string } }
                           {matter.matter_billing.rate} {matter.matter_billing.currency}
                         </p>
                       </div>
-                      {matter.matter_billing.payment_terms && (
+                      {matter.matter_billing.terms_details && (
                         <div>
-                          <h3 className="text-sm font-medium text-gray-500">Payment Terms</h3>
-                          <p className="mt-1">{matter.matter_billing.payment_terms}</p>
+                          <h3 className="text-sm font-medium text-gray-500">Terms Details</h3>
+                          <p className="mt-1">{matter.matter_billing.terms_details}</p>
                         </div>
                       )}
                       {matter.matter_billing.billing_frequency && (
@@ -283,7 +282,6 @@ export default function MatterDetailsPage({ params }: { params: { id: string } }
                           <h3 className="text-sm font-medium text-gray-500">Billing Frequency</h3>
                           <p className="mt-1">
                             {matter.matter_billing.billing_frequency}
-                            {matter.matter_billing.custom_frequency && ` (${matter.matter_billing.custom_frequency})`}
                           </p>
                         </div>
                       )}
@@ -309,11 +307,11 @@ export default function MatterDetailsPage({ params }: { params: { id: string } }
                         </div>
                       </div>
                     )}
-                    {matter.matter_billing.billing_notes && (
+                    {matter.matter_billing.notes && (
                       <div className="border-t pt-4">
                         <h3 className="text-sm font-medium text-gray-500 mb-2">Notes</h3>
                         <p className="text-sm text-gray-600 whitespace-pre-wrap">
-                          {matter.matter_billing.billing_notes}
+                          {matter.matter_billing.notes}
                         </p>
                       </div>
                     )}

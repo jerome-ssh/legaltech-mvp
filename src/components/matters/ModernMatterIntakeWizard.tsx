@@ -42,15 +42,24 @@ interface MatterDetails {
 }
 
 interface BillingDetails {
-  billing_method: string;
-  hourly_rate?: number;
-  flat_fee_amount?: number;
-  contingency_percentage?: number;
-  retainer_amount?: number;
-  currency: string;
-  automated_time_capture: boolean;
-  blockchain_invoicing: boolean;
-  send_invoice_on_approval: boolean;
+  billing_method_id: string;
+  payment_pattern_id: string;
+  currency_id: string;
+  payment_medium_id?: string;
+  rate_value: number;
+  terms_details: {
+    standard: string;
+    custom?: string;
+  };
+  billing_frequency_id?: string;
+  features: {
+    automated_time_capture: boolean;
+    blockchain_invoicing: boolean;
+    send_invoice_on_approval: boolean;
+  };
+  retainer_amount: number | null;
+  retainer_balance: number | null;
+  notes: string | null;
 }
 
 // Types for dropdown options
@@ -86,19 +95,45 @@ export function ModernMatterIntakeWizard({ onComplete }: ModernMatterIntakeWizar
     if (typeof window !== 'undefined') {
       const savedData = localStorage.getItem('matter_intake_billing_details');
       return savedData ? JSON.parse(savedData) : {
-        billing_method: '',
-        currency: '',
-        automated_time_capture: true,
-        blockchain_invoicing: false,
-        send_invoice_on_approval: false
+        billing_method_id: '',
+        payment_pattern_id: '',
+        currency_id: '',
+        payment_medium_id: '',
+        rate_value: 0,
+        terms_details: {
+          standard: '',
+          custom: ''
+        },
+        billing_frequency_id: '',
+        features: {
+          automated_time_capture: true,
+          blockchain_invoicing: false,
+          send_invoice_on_approval: false
+        },
+        retainer_amount: null,
+        retainer_balance: null,
+        notes: null
       };
     }
     return {
-      billing_method: '',
-      currency: '',
-    automated_time_capture: true,
-    blockchain_invoicing: false,
-    send_invoice_on_approval: false
+      billing_method_id: '',
+      payment_pattern_id: '',
+      currency_id: '',
+      payment_medium_id: '',
+      rate_value: 0,
+      terms_details: {
+        standard: '',
+        custom: ''
+      },
+      billing_frequency_id: '',
+      features: {
+        automated_time_capture: true,
+        blockchain_invoicing: false,
+        send_invoice_on_approval: false
+      },
+      retainer_amount: null,
+      retainer_balance: null,
+      notes: null
     };
   });
 
@@ -108,7 +143,9 @@ export function ModernMatterIntakeWizard({ onComplete }: ModernMatterIntakeWizar
   const [matterTypeOptions, setMatterTypeOptions] = useState<Option[]>([]);
   const [matterSubTypeOptions, setMatterSubTypeOptions] = useState<SubTypeOption[]>([]);
   const [billingMethodOptions, setBillingMethodOptions] = useState<Option[]>([]);
+  const [paymentPatternOptions, setPaymentPatternOptions] = useState<Option[]>([]);
   const [currencyOptions, setCurrencyOptions] = useState<Option[]>([]);
+  const [billingFrequencyOptions, setBillingFrequencyOptions] = useState<Option[]>([]);
   const [loadingOptions, setLoadingOptions] = useState(true);
 
   useEffect(() => {
@@ -127,15 +164,19 @@ export function ModernMatterIntakeWizard({ onComplete }: ModernMatterIntakeWizar
       fetchOrCache('dropdown_matter_types', '/api/dropdowns/matter-types'),
       fetchOrCache('dropdown_matter_sub_types', '/api/dropdowns/matter-sub-types'),
       fetchOrCache('dropdown_billing_methods', '/api/dropdowns/billing-methods'),
+      fetchOrCache('dropdown_payment_patterns', '/api/dropdowns/payment-patterns'),
       fetchOrCache('dropdown_currencies', '/api/dropdowns/currencies'),
-    ]).then(([titles, clientTypes, languages, matterTypes, subTypes, billingMethods, currencies]) => {
+      fetchOrCache('dropdown_billing_frequencies', '/api/dropdowns/billing-frequencies'),
+    ]).then(([titles, clientTypes, languages, matterTypes, subTypes, billingMethods, paymentPatterns, currencies, billingFrequencies]) => {
       setTitleOptions(titles);
       setClientTypeOptions(clientTypes);
       setLanguageOptions(languages);
       setMatterTypeOptions(matterTypes);
       setMatterSubTypeOptions(subTypes);
       setBillingMethodOptions(billingMethods);
+      setPaymentPatternOptions(paymentPatterns);
       setCurrencyOptions(currencies);
+      setBillingFrequencyOptions(billingFrequencies);
     }).finally(() => setLoadingOptions(false));
   }, []);
 
@@ -427,112 +468,200 @@ export function ModernMatterIntakeWizard({ onComplete }: ModernMatterIntakeWizar
       <div>
         <Label htmlFor="billing_method">Billing Method</Label>
         <Select
-          value={billingDetails.billing_method}
-          onValueChange={(value: string) => setBillingDetails({ ...billingDetails, billing_method: value })}
+          value={billingDetails.billing_method_id}
+          onValueChange={(value) => setBillingDetails({ 
+            ...billingDetails, 
+            billing_method_id: value,
+            rate_value: 0
+          })}
         >
           <SelectTrigger id="billing_method" className="w-full">
             <SelectValue placeholder="Select billing method" />
           </SelectTrigger>
           <SelectContent>
             {billingMethodOptions.map((option) => (
-              <SelectItem key={option.id} value={option.value}>
+              <SelectItem key={option.id} value={option.id}>
                 {option.label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
-      {billingDetails.billing_method === 'Hourly' && (
-        <div>
-          <Label htmlFor="hourly_rate">Hourly Rate</Label>
-          <Input
-            id="hourly_rate"
-            type="number"
-            value={billingDetails.hourly_rate}
-            onChange={(e) => setBillingDetails({ ...billingDetails, hourly_rate: Number(e.target.value) })}
-            placeholder="e.g., 200"
-          />
-        </div>
-      )}
-      {billingDetails.billing_method === 'Flat Fee' && (
-        <div>
-          <Label htmlFor="flat_fee_amount">Flat Fee Amount</Label>
-          <Input
-            id="flat_fee_amount"
-            type="number"
-            value={billingDetails.flat_fee_amount}
-            onChange={(e) => setBillingDetails({ ...billingDetails, flat_fee_amount: Number(e.target.value) })}
-            placeholder="e.g., 5000"
-          />
-        </div>
-      )}
-      {billingDetails.billing_method === 'Contingency' && (
-        <div>
-          <Label htmlFor="contingency_percentage">Contingency Percentage</Label>
-          <Input
-            id="contingency_percentage"
-            type="number"
-            value={billingDetails.contingency_percentage}
-            onChange={(e) => setBillingDetails({ ...billingDetails, contingency_percentage: Number(e.target.value) })}
-            placeholder="e.g., 30"
-          />
-        </div>
-      )}
-      {billingDetails.billing_method === 'Retainer' && (
-        <div>
-          <Label htmlFor="retainer_amount">Retainer Amount</Label>
-          <Input
-            id="retainer_amount"
-            type="number"
-            value={billingDetails.retainer_amount}
-            onChange={(e) => setBillingDetails({ ...billingDetails, retainer_amount: Number(e.target.value) })}
-            placeholder="e.g., 2000"
-          />
-        </div>
-      )}
+
+      <div>
+        <Label htmlFor="payment_pattern">Payment Pattern</Label>
+        <Select
+          value={billingDetails.payment_pattern_id}
+          onValueChange={(value) => setBillingDetails({ 
+            ...billingDetails, 
+            payment_pattern_id: value
+          })}
+        >
+          <SelectTrigger id="payment_pattern" className="w-full">
+            <SelectValue placeholder="Select payment pattern" />
+          </SelectTrigger>
+          <SelectContent>
+            {paymentPatternOptions.map((option) => (
+              <SelectItem key={option.id} value={option.id}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <div>
         <Label htmlFor="currency">Currency</Label>
         <Select
-          value={billingDetails.currency}
-          onValueChange={(value) => setBillingDetails({ ...billingDetails, currency: value })}
+          value={billingDetails.currency_id}
+          onValueChange={(value) => setBillingDetails({ 
+            ...billingDetails, 
+            currency_id: value
+          })}
         >
-          <SelectTrigger>
+          <SelectTrigger id="currency" className="w-full">
             <SelectValue placeholder="Select currency" />
           </SelectTrigger>
           <SelectContent>
             {currencyOptions.map((option) => (
-              <SelectItem key={option.id} value={option.value}>
+              <SelectItem key={option.id} value={option.id}>
                 {option.label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
-      <div className="grid gap-4">
-        <div className="grid grid-cols-[20px_1fr] gap-2 items-center">
+
+      <div>
+        <Label htmlFor="billing_frequency">Billing Frequency</Label>
+        <Select
+          value={billingDetails.billing_frequency_id || ''}
+          onValueChange={(value) => setBillingDetails({ 
+            ...billingDetails, 
+            billing_frequency_id: value || undefined
+          })}
+        >
+          <SelectTrigger id="billing_frequency" className="w-full">
+            <SelectValue placeholder="Select billing frequency" />
+          </SelectTrigger>
+          <SelectContent>
+            {billingFrequencyOptions.map((option) => (
+              <SelectItem key={option.id} value={option.id}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {billingDetails.billing_method_id && (
+        <div>
+          <Label htmlFor="rate">Rate</Label>
+          <Input
+            id="rate"
+            type="number"
+            value={billingDetails.rate_value}
+            onChange={(e) => setBillingDetails({
+              ...billingDetails,
+              rate_value: Number(e.target.value)
+            })}
+            placeholder="Enter rate value"
+          />
+        </div>
+      )}
+
+      <div>
+        <Label htmlFor="terms">Payment Terms</Label>
+        <Input
+          id="terms"
+          value={billingDetails.terms_details.standard}
+          onChange={(e) => setBillingDetails({
+            ...billingDetails,
+            terms_details: { ...billingDetails.terms_details, standard: e.target.value }
+          })}
+          placeholder="e.g., Net 30"
+        />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="use_custom_terms"
+          checked={!!billingDetails.terms_details.custom}
+          onCheckedChange={(checked) => setBillingDetails({
+            ...billingDetails,
+            terms_details: { 
+              ...billingDetails.terms_details, 
+              custom: checked ? '' : undefined 
+            }
+          })}
+        />
+        <Label htmlFor="use_custom_terms">Use Custom Terms</Label>
+      </div>
+
+      {billingDetails.terms_details.custom !== undefined && (
+        <div>
+          <Label htmlFor="custom_terms">Custom Terms</Label>
+          <Textarea
+            id="custom_terms"
+            value={billingDetails.terms_details.custom || ''}
+            onChange={(e) => setBillingDetails({
+              ...billingDetails,
+              terms_details: { ...billingDetails.terms_details, custom: e.target.value }
+            })}
+            placeholder="Enter custom payment terms"
+          />
+        </div>
+      )}
+
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2">
           <Switch
             id="automated_time_capture"
-            checked={billingDetails.automated_time_capture}
-            onCheckedChange={(checked) => setBillingDetails({ ...billingDetails, automated_time_capture: checked })}
+            checked={billingDetails.features.automated_time_capture}
+            onCheckedChange={(checked) => setBillingDetails({
+              ...billingDetails,
+              features: { ...billingDetails.features, automated_time_capture: checked }
+            })}
           />
-          <Label htmlFor="automated_time_capture" className="cursor-pointer">Enable Automated Time Capture</Label>
+          <Label htmlFor="automated_time_capture">Enable Automated Time Capture</Label>
         </div>
-        <div className="grid grid-cols-[20px_1fr] gap-2 items-center">
+
+        <div className="flex items-center space-x-2">
           <Switch
             id="blockchain_invoicing"
-            checked={billingDetails.blockchain_invoicing}
-            onCheckedChange={(checked) => setBillingDetails({ ...billingDetails, blockchain_invoicing: checked })}
+            checked={billingDetails.features.blockchain_invoicing}
+            onCheckedChange={(checked) => setBillingDetails({
+              ...billingDetails,
+              features: { ...billingDetails.features, blockchain_invoicing: checked }
+            })}
           />
-          <Label htmlFor="blockchain_invoicing" className="cursor-pointer">Enable Blockchain-Secured Invoicing</Label>
+          <Label htmlFor="blockchain_invoicing">Enable Blockchain-Secured Invoicing</Label>
         </div>
-        <div className="grid grid-cols-[20px_1fr] gap-2 items-center">
+
+        <div className="flex items-center space-x-2">
           <Switch
             id="send_invoice_on_approval"
-            checked={billingDetails.send_invoice_on_approval}
-            onCheckedChange={(checked) => setBillingDetails({ ...billingDetails, send_invoice_on_approval: checked })}
+            checked={billingDetails.features.send_invoice_on_approval}
+            onCheckedChange={(checked) => setBillingDetails({
+              ...billingDetails,
+              features: { ...billingDetails.features, send_invoice_on_approval: checked }
+            })}
           />
-          <Label htmlFor="send_invoice_on_approval" className="cursor-pointer">Send Invoice on Client Approval</Label>
+          <Label htmlFor="send_invoice_on_approval">Send Invoice on Client Approval</Label>
         </div>
+      </div>
+
+      <div>
+        <Label htmlFor="notes">Billing Notes</Label>
+        <Textarea
+          id="notes"
+          value={billingDetails.notes || ''}
+          onChange={(e) => setBillingDetails({
+            ...billingDetails,
+            notes: e.target.value
+          })}
+          placeholder="Any additional notes about billing (optional)"
+        />
       </div>
     </div>
   );
@@ -593,46 +722,35 @@ export function ModernMatterIntakeWizard({ onComplete }: ModernMatterIntakeWizar
       <div className="border rounded-md p-4">
         <h3 className="text-lg font-medium mb-2">Billing Details</h3>
         <div className="grid grid-cols-2 gap-2 text-sm">
-          <div className="font-medium">Method:</div>
-          <div>{billingDetails.billing_method}</div>
+          <div className="font-medium">Billing Method:</div>
+          <div>{billingMethodOptions.find(opt => opt.id === billingDetails.billing_method_id)?.label}</div>
           
-          {billingDetails.billing_method === 'Hourly' && billingDetails.hourly_rate && (
-            <>
-              <div className="font-medium">Hourly Rate:</div>
-              <div>{billingDetails.hourly_rate} {billingDetails.currency}</div>
-            </>
-          )}
-          
-          {billingDetails.billing_method === 'Flat Fee' && billingDetails.flat_fee_amount && (
-            <>
-              <div className="font-medium">Flat Fee Amount:</div>
-              <div>{billingDetails.flat_fee_amount} {billingDetails.currency}</div>
-            </>
-          )}
-          
-          {billingDetails.billing_method === 'Contingency' && billingDetails.contingency_percentage && (
-            <>
-              <div className="font-medium">Contingency Percentage:</div>
-              <div>{billingDetails.contingency_percentage}%</div>
-            </>
-          )}
-          
-          {billingDetails.billing_method === 'Retainer' && billingDetails.retainer_amount && (
-            <>
-              <div className="font-medium">Retainer Amount:</div>
-              <div>{billingDetails.retainer_amount} {billingDetails.currency}</div>
-            </>
-          )}
+          <div className="font-medium">Payment Pattern:</div>
+          <div>{paymentPatternOptions.find(opt => opt.id === billingDetails.payment_pattern_id)?.label}</div>
           
           <div className="font-medium">Currency:</div>
-          <div>{billingDetails.currency}</div>
+          <div>{currencyOptions.find(opt => opt.id === billingDetails.currency_id)?.label}</div>
+          
+          {billingDetails.billing_frequency_id && (
+            <>
+              <div className="font-medium">Billing Frequency:</div>
+              <div>{billingFrequencyOptions.find(opt => opt.id === billingDetails.billing_frequency_id)?.label}</div>
+            </>
+          )}
+          
+          {billingDetails.rate_value > 0 && (
+            <>
+              <div className="font-medium">Rate Value:</div>
+              <div>{billingDetails.rate_value}</div>
+            </>
+          )}
           
           <div className="font-medium col-span-2">Features:</div>
           <div className="col-span-2">
             <ul className="list-disc list-inside">
-              {billingDetails.automated_time_capture && <li>Automated Time Capture</li>}
-              {billingDetails.blockchain_invoicing && <li>Blockchain-Secured Invoicing</li>}
-              {billingDetails.send_invoice_on_approval && <li>Send Invoice on Approval</li>}
+              {billingDetails.features.automated_time_capture && <li>Automated Time Capture</li>}
+              {billingDetails.features.blockchain_invoicing && <li>Blockchain-Secured Invoicing</li>}
+              {billingDetails.features.send_invoice_on_approval && <li>Send Invoice on Approval</li>}
             </ul>
           </div>
         </div>

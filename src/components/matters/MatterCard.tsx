@@ -18,9 +18,19 @@ interface Matter {
   matter_billing: {
     billing_type: string;
     rate: number;
-    currency: string;
+    currency: {
+      symbol?: string;
+      code?: string;
+    };
     priority?: {
       name: string;
+    };
+    payment_pattern?: {
+      value: string;
+      label: string;
+    } | null;
+    terms_details?: {
+      standard?: string;
     };
   } | null;
 }
@@ -94,7 +104,12 @@ export function MatterCard({ matter }: MatterCardProps) {
             <div className="flex items-center gap-1">
               <Tag className="w-4 h-4" />
               <span>
-                {matter.matter_billing.billing_type} - {matter.matter_billing.rate} {matter.matter_billing.currency}
+                {matter.matter_billing.payment_pattern?.label || 'N/A'} - {matter.matter_billing.rate} {matter.matter_billing.currency?.symbol || matter.matter_billing.currency?.code || 'N/A'}
+                {matter.matter_billing.terms_details?.standard && (
+                  <span className="text-xs text-gray-500 ml-1">
+                    ({matter.matter_billing.terms_details.standard})
+                  </span>
+                )}
               </span>
             </div>
           )}

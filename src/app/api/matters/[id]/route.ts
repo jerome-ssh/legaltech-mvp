@@ -32,7 +32,7 @@ export async function GET(
 
     // Fetch matter with related data
     const { data: matter, error } = await supabase
-      .from('cases')
+      .from('matters')
       .select(`
         *,
         matter_status (
@@ -181,7 +181,7 @@ export async function DELETE(
 
     // Delete the matter
     const { error } = await supabase
-      .from('cases')
+      .from('matters')
       .delete()
       .eq('id', params.id)
       .eq('profile_id', profile.id);

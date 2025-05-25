@@ -110,21 +110,42 @@ export async function GET(request: Request) {
       .from('matters')
       .select(`
         *,
+        priority:priorities (
+          id,
+          name
+        ),
         matter_status (
           status,
-          changed_at
+          changed_at,
+          notes
         ),
         matter_billing (
-          payment_pattern,
-          rate,
-          currency,
-          payment_terms,
+          payment_pattern:payment_patterns (
+            value,
+            label
+          ),
+          rate_value,
+          currency:currencies (
+            id,
+            value,
+            label
+          ),
+          terms_details,
           retainer_amount,
           retainer_balance,
-          billing_frequency,
-          custom_frequency,
-          billing_notes,
-          features
+          notes,
+          features,
+          priority:priorities (
+            id,
+            name
+          )
+        ),
+        matter_intake_links (
+          token,
+          status,
+          used_at,
+          completed_at,
+          expires_at
         )
       `, { count: 'exact' })
       .eq('profile_id', profile.id);
@@ -139,12 +160,6 @@ export async function GET(request: Request) {
     if (status && status !== 'all') {
       console.log('Applying status filter:', status);
       query = query.eq('status', status);
-    }
-
-    // Apply priority filter
-    if (priority && priority !== 'all') {
-      console.log('Applying priority filter:', priority);
-      query = query.eq('priority', priority);
     }
 
     // Apply sorting
@@ -166,40 +181,43 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Validate the response data
-    if (matters) {
-      console.log('Validating response data...');
-      matters.forEach((matter, index) => {
-        // Log any missing or invalid fields
-        if (!matter.matter_status) {
-          console.warn(`Matter ${index} missing matter_status`);
-        }
-        if (!matter.matter_billing) {
-          console.warn(`Matter ${index} missing matter_billing`);
-        }
-        if (matter.matter_billing) {
-          // Validate payment pattern
-          if (!matter.matter_billing.payment_pattern || !VALID_PAYMENT_PATTERNS.includes(matter.matter_billing.payment_pattern)) {
-            console.warn(`Matter ${index} has invalid payment_pattern:`, matter.matter_billing.payment_pattern);
-          }
-          // Validate rate
-          if (typeof matter.matter_billing.rate !== 'number' || matter.matter_billing.rate < 0) {
-            console.warn(`Matter ${index} has invalid rate:`, matter.matter_billing.rate);
-          }
-          // Validate currency
-          if (!matter.matter_billing.currency) {
-            console.warn(`Matter ${index} missing currency`);
-          }
+    // Return empty array if no matters found
+    if (!matters) {
+      return NextResponse.json({
+        matters: [],
+        pagination: {
+          total: 0,
+          page,
+          pageSize,
+          totalPages: 0
         }
       });
     }
+
+    // Validate the response data
+    console.log('Validating response data...');
+    matters.forEach((matter, index) => {
+      // Log any missing or invalid fields
+      if (!matter.matter_status) {
+        console.warn(`Matter ${index} missing matter_status`);
+      }
+      if (!matter.matter_billing) {
+        console.warn(`Matter ${index} missing matter_billing`);
+      }
+      if (matter.matter_billing) {
+        // Only validate rate_value if rate_value is set
+        if (matter.matter_billing.rate_value && !matter.matter_billing.currency) {
+          console.warn(`Matter ${index} missing currency for rate_value ${matter.matter_billing.rate_value}`);
+        }
+      }
+    });
 
     console.log('Query successful. Found', count, 'matters');
     
     return NextResponse.json({
       matters,
       pagination: {
-        total: count,
+        total: count || 0,
         page,
         pageSize,
         totalPages: Math.ceil((count || 0) / pageSize)

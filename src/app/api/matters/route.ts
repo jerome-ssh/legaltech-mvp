@@ -20,17 +20,17 @@ const matterSchema = z.object({
   estimated_value: z.number().optional(),
   matter_date: z.string().optional(),
   intake_data: z.any().optional(), // Allow extra intake-specific data
-  priority: z.enum(['High', 'Medium', 'Low']).optional(),
+  priority: z.enum(['High', 'Medium', 'Low']).optional(), // Used only for lookup, not stored
   // Billing fields
-  payment_pattern: z.enum(['Standard', 'Block', 'Subscription', 'Contingency', 'Hybrid']).optional(),
+  billing_method_id: z.string().uuid(),
+  payment_pattern_id: z.string().nullable().optional(),
   rate: z.number().optional(),
   currency: z.string().optional(),
   payment_terms: z.string().optional(),
   retainer_amount: z.number().optional(),
   retainer_balance: z.number().optional(),
-  billing_frequency: z.string().optional(),
-  custom_frequency: z.string().optional(),
-  billing_notes: z.string().optional(),
+  billing_frequency_id: z.string().nullable().optional(),
+  notes: z.string().optional(),
   features: z.any().optional()
 });
 
@@ -64,20 +64,26 @@ export async function GET() {
           notes
         ),
         matter_billing (
-          payment_pattern,
-          rate,
-          currency,
-          payment_terms,
+          payment_pattern:payment_patterns (
+            value,
+            label
+          ),
+          billing_method:billing_methods (
+            id,
+            value,
+            label
+          ),
+          rate_value,
+          currency:currencies (
+            id,
+            value,
+            label
+          ),
+          terms_details,
           retainer_amount,
           retainer_balance,
-          billing_frequency,
-          custom_frequency,
-          billing_notes,
-          features,
-          priority:priority (
-            id,
-            name
-          )
+          notes,
+          features
         )
       `)
       .eq('profile_id', profile.id)
@@ -118,15 +124,15 @@ export async function POST(request: Request) {
       'matter_date',
       'intake_data',
       'priority',
-      'payment_pattern',
+      'billing_method_id',
+      'payment_pattern_id',
       'rate',
       'currency',
       'payment_terms',
       'retainer_amount',
       'retainer_balance',
-      'billing_frequency',
-      'custom_frequency',
-      'billing_notes',
+      'billing_frequency_id',
+      'notes',
       'features'
     ];
     const receivedFields = Object.keys(body);
@@ -155,24 +161,30 @@ export async function POST(request: Request) {
 
     // Set backend defaults for billing fields if not provided
     const billingDefaults = {
-      payment_pattern: 'Standard',
-      rate: 0,
-      currency: 'USD',
-      payment_terms: 'Net 30',
+      payment_pattern_id: null,
+      rate_value: 0,
+      currency_id: null,
+      terms_details: { standard: 'Net 30' },
       retainer_amount: 0,
       retainer_balance: 0,
-      billing_frequency: 'Monthly',
-      custom_frequency: null,
-      billing_notes: null,
+      billing_frequency_id: null,
+      notes: null,
       features: null,
     };
+    // Build billingData to match the matter_billing schema
     const billingData = {
-      matter_id: undefined, // to be set after matter insert
-      ...billingDefaults,
-      ...Object.fromEntries(
-        Object.entries(matterData).filter(([k]) => k in billingDefaults && matterData[k as keyof typeof matterData] !== undefined)
-      ),
-      priority: null // to be set after priority lookup
+      matter_id: undefined,
+      billing_method_id: matterData.billing_method_id,
+      payment_pattern_id: matterData.payment_pattern_id ?? null,
+      rate_value: matterData.rate ?? 0,
+      currency_id: matterData.currency ?? null,
+      retainer_amount: matterData.retainer_amount ?? 0,
+      retainer_balance: matterData.retainer_balance ?? 0,
+      billing_frequency_id: matterData.billing_frequency_id ?? null,
+      notes: matterData.notes ?? null,
+      features: matterData.features ?? null,
+      priority_id: null,
+      ...('terms_details' in matterData ? { terms_details: (matterData as any).terms_details } : { terms_details: { standard: 'Net 30' } }),
     };
 
     // Get the user's profile_id
@@ -187,7 +199,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    // Start a transaction
+    // Look up the priority UUID
+    let priorityId = null;
+    if (matterData.priority) {
+      const { data: priorityRow, error: priorityError } = await supabase
+        .from('priorities')
+        .select('id')
+        .eq('name', matterData.priority)
+        .single();
+      if (priorityError || !priorityRow) {
+        console.error('Priority lookup error:', priorityError || 'Not found');
+        return NextResponse.json({ error: `Priority '${matterData.priority}' not found` }, { status: 400 });
+      }
+      priorityId = priorityRow.id;
+    }
+    // Insert into matters with priority_id
     const { data: matter, error: matterError } = await supabase
       .from('matters')
       .insert([
@@ -200,12 +226,12 @@ export async function POST(request: Request) {
           estimated_value: matterData.estimated_value,
           matter_date: matterData.matter_date,
           type_id: matterData.type_id,
-          sub_type_id: matterData.sub_type_id
+          sub_type_id: matterData.sub_type_id,
+          priority_id: priorityId
         }
       ])
       .select()
       .single();
-
     if (matterError) {
       console.error('Supabase insert error:', matterError);
       return NextResponse.json({ error: matterError.message }, { status: 500 });
@@ -229,30 +255,15 @@ export async function POST(request: Request) {
       // Continue anyway as this is not critical
     }
 
-    // Look up the priority UUID
-    let priorityId = null;
-    if (matterData.priority) {
-      const { data: priorityRow, error: priorityError } = await supabase
-        .from('priorities')
-        .select('id')
-        .eq('name', matterData.priority)
-        .single();
-      if (priorityError || !priorityRow) {
-        console.error('Priority lookup error:', priorityError || 'Not found');
-        return NextResponse.json({ error: `Priority '${matterData.priority}' not found` }, { status: 400 });
-      }
-      priorityId = priorityRow.id;
-    }
+    // Insert into matter_billing with priority_id
     billingData.matter_id = matter.id;
-    billingData.priority = priorityId;
-
-    // Create matter billing with priority UUID
+    (billingData as any).priority_id = priorityId;
+    if (Object.prototype.hasOwnProperty.call(billingData, 'priority')) delete (billingData as any).priority;
     const { error: billingError } = await supabase
       .from('matter_billing')
       .insert([
         billingData
       ]);
-
     if (billingError) {
       console.error('Error creating matter billing:', billingError);
       // Continue anyway as this is not critical

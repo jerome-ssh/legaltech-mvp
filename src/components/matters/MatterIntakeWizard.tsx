@@ -124,37 +124,36 @@ interface MatterErrors {
 }
 
 interface BillingDetails {
-  billing_method: string;
-  payment_pattern: string;
-  currency: string;
+  billing_method_id: string | null;
+  payment_pattern_id: string | null;
+  currency_id: string | null;
   payment_medium: string;
-  automated_time_capture: boolean;
-  blockchain_invoicing: boolean;
-  send_invoice_on_approval: boolean;
-  retainer_amount: string;
-  retainer_balance: string;
-  payment_terms: string;
-  hourly_rate?: number;
-  flat_fee_amount?: number;
-  contingency_percentage?: number;
-  billing_frequency?: string;
-  use_custom_frequency: boolean;
-  custom_frequency?: string;
-  billing_notes?: string;
+  rate_value: number;
+  terms_details: {
+    standard: string;
+    custom?: string;
+  };
+  billing_frequency_id: string | null;
+  features: {
+    automated_time_capture: boolean;
+    blockchain_invoicing: boolean;
+    send_invoice_on_approval: boolean;
+  };
+  retainer_amount: number | null;
+  retainer_balance: number | null;
+  notes: string | null;
 }
 
 interface BillingErrors {
   billing_method?: string;
-  hourly_rate?: string;
-  flat_fee_amount?: string;
-  contingency_percentage?: string;
-  retainer_amount?: string;
+  payment_pattern_id?: string;
   currency?: string;
   payment_medium?: string;
-  payment_pattern?: string;
-  payment_terms?: string;
-  billing_frequency?: string;
-  custom_frequency?: string;
+  terms?: string;
+  rate?: string;
+  billing_frequency_id?: string;
+  retainer_amount?: string;
+  custom_terms?: string;
   [key: string]: string | undefined;
 }
 
@@ -163,7 +162,10 @@ interface BillingPayload {
   payment_pattern_id: number | null;
   rate: number;
   currency_id: number | null;
-  payment_terms: string;
+  terms_details: {
+    standard: string;
+    custom?: string;
+  };
   retainer_amount: number;
   retainer_balance: number;
   billing_frequency_id: string;
@@ -187,6 +189,26 @@ interface BillingPayload {
 }
 
 const FORM_MIN_HEIGHT = '600px'; // Match the minHeight used in CardContent for step 1
+
+const billingMethodRequirements: Record<string, { requiresMedium: boolean; requiresFrequency: boolean }> = {
+  'Hourly': { requiresMedium: true, requiresFrequency: true },
+  'Flat Fee': { requiresMedium: true, requiresFrequency: true },
+  'Subscription': { requiresMedium: true, requiresFrequency: true },
+  'Hybrid': { requiresMedium: true, requiresFrequency: true },
+  'Retainer': { requiresMedium: true, requiresFrequency: true },
+  'Contingency': { requiresMedium: false, requiresFrequency: false },
+  'Pro Bono': { requiresMedium: false, requiresFrequency: false },
+  'Other': { requiresMedium: false, requiresFrequency: false },
+};
+
+// Payment Terms options
+const paymentTermsOptions = [
+  { value: 'Net 30', label: 'Net 30' },
+  { value: 'Net 7', label: 'Net 7' },
+  { value: 'Net 15', label: 'Net 15' },
+  { value: 'Due on receipt', label: 'Due on receipt' },
+  { value: 'Other', label: 'Other / Custom' },
+];
 
 export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
   const router = useRouter();
@@ -306,24 +328,50 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
   const [billingErrors, setBillingErrors] = useState<BillingErrors>({});
 
   // Load saved billing details from localStorage if available
-  const [billingDetails, setBillingDetails] = useState<BillingDetails>({
-    billing_method: '',
-    payment_pattern: '',
-    currency: '',
-    payment_medium: '',
-    automated_time_capture: true,
-    blockchain_invoicing: false,
-    send_invoice_on_approval: false,
-    retainer_amount: '',
-    retainer_balance: '',
-    payment_terms: '',
-    hourly_rate: undefined,
-    flat_fee_amount: undefined,
-    contingency_percentage: undefined,
-    billing_frequency: '',
-    use_custom_frequency: false,
-    custom_frequency: '',
-    billing_notes: '',
+  const [billingDetails, setBillingDetails] = useState<BillingDetails>(() => {
+    if (typeof window !== 'undefined') {
+      const savedData = localStorage.getItem('matter_intake_billing_details');
+      return savedData ? JSON.parse(savedData) : {
+        billing_method_id: null,
+        payment_pattern_id: null,
+        currency_id: null,
+        payment_medium: '',
+        rate_value: 0,
+        terms_details: {
+          standard: '',
+          custom: ''
+        },
+        billing_frequency_id: null,
+        features: {
+          automated_time_capture: true,
+          blockchain_invoicing: false,
+          send_invoice_on_approval: false
+        },
+        retainer_amount: null,
+        retainer_balance: null,
+        notes: null
+      };
+    }
+    return {
+      billing_method_id: null,
+      payment_pattern_id: null,
+      currency_id: null,
+      payment_medium: '',
+      rate_value: 0,
+      terms_details: {
+        standard: '',
+        custom: ''
+      },
+      billing_frequency_id: null,
+      features: {
+        automated_time_capture: true,
+        blockchain_invoicing: false,
+        send_invoice_on_approval: false
+      },
+      retainer_amount: null,
+      retainer_balance: null,
+      notes: null
+    };
   });
 
   // Save client details to localStorage whenever they change
@@ -406,11 +454,21 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
   // Update billing details when options are loaded
   useEffect(() => {
     if (billingMethodOptions?.length > 0 && currencyOptions?.length > 0) {
-      setBillingDetails(prev => ({
-        ...prev,
-        billing_method: prev.billing_method || billingMethodOptions[0]?.value || '',
-        currency: prev.currency || currencyOptions[0]?.value || ''
-      }));
+      setBillingDetails(prev => {
+        let methodId: string | null = prev.billing_method_id;
+        if (!methodId && billingMethodOptions[0]?.id) {
+          methodId = String(billingMethodOptions[0].id);
+        }
+        let currencyId: string | null = prev.currency_id;
+        if (!currencyId && currencyOptions[0]?.id) {
+          currencyId = String(currencyOptions[0].id);
+        }
+        return {
+          ...prev,
+          billing_method_id: methodId,
+          currency_id: currencyId
+        };
+      });
     }
   }, [billingMethodOptions, currencyOptions]);
 
@@ -469,6 +527,42 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
       });
   }, []);
 
+  // Set default for billingDetails.terms_details.standard to 'Net 30' if not set
+  useEffect(() => {
+    if (!billingDetails.terms_details.standard && !billingDetails.terms_details.custom) {
+      setBillingDetails(prev => ({
+        ...prev,
+        terms_details: { ...prev.terms_details, standard: 'Net 30' }
+      }));
+    }
+    // eslint-disable-next-line
+  }, []);
+
+  // Set default for billingDetails.payment_pattern_id to 'Standard' and currency_id to 'USD' if not set
+  useEffect(() => {
+    // Set default payment pattern
+    if (!billingDetails.payment_pattern_id && paymentPatternOptions.length > 0) {
+      const standardOption = paymentPatternOptions.find(option => option.label.toLowerCase().includes('standard'));
+      if (standardOption) {
+        setBillingDetails(prev => ({
+          ...prev,
+          payment_pattern_id: standardOption.value
+        }));
+      }
+    }
+    // Set default currency
+    if (!billingDetails.currency_id && currencyOptions.length > 0) {
+      const usdOption = currencyOptions.find(option => option.label.toLowerCase().includes('usd') || option.value.toLowerCase() === 'usd');
+      if (usdOption) {
+        setBillingDetails(prev => ({
+          ...prev,
+          currency_id: String(usdOption.id)
+        }));
+      }
+    }
+    // eslint-disable-next-line
+  }, [paymentPatternOptions, currencyOptions]);
+
   const validateClientForm = (): boolean => {
     const errors: ClientErrors = {};
     
@@ -508,40 +602,36 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
   
   const validateBillingForm = (): boolean => {
     const errors: BillingErrors = {};
-    
-    errors.billing_method = validateRequired(billingDetails.billing_method, 'Billing method');
-    errors.payment_pattern = validateRequired(billingDetails.payment_pattern, 'Payment pattern');
-    errors.currency = validateRequired(billingDetails.currency, 'Currency');
-    errors.payment_medium = validateRequired(billingDetails.payment_medium, 'Payment medium');
-    errors.payment_terms = validateRequired(billingDetails.payment_terms, 'Payment terms');
-    errors.retainer_amount = billingDetails.billing_method === 'Retainer' ? validateRequired(billingDetails.retainer_amount, 'Retainer amount') : undefined;
-    
-    // Only require billing_frequency for recurring billing methods
-    if (["Hourly", "Retainer", "Subscription"].includes(billingDetails.billing_method)) {
-      errors.billing_frequency = validateRequired(billingDetails.billing_frequency, 'Billing frequency');
-    } else {
-      errors.billing_frequency = undefined;
+    const method = billingDetails.billing_method_id ?? '';
+
+    // Always required
+    errors.billing_method = validateRequired(method, 'Billing method');
+    errors.payment_pattern_id = validateRequired(billingDetails.payment_pattern_id, 'Payment pattern');
+    errors.terms = validateRequired(billingDetails.terms_details.standard, 'Payment terms');
+
+    // Rate required for all except Pro Bono/Other
+    if (!['Pro Bono', 'Other'].includes(method)) {
+      if (!billingDetails.rate_value || billingDetails.rate_value <= 0) {
+        errors.rate = 'Rate is required';
+      }
     }
 
-    // Only require custom_frequency if use_custom_frequency is true
-    if (billingDetails.use_custom_frequency) {
-      errors.custom_frequency = validateRequired(billingDetails.custom_frequency, 'Custom frequency');
-    } else {
-      errors.custom_frequency = undefined;
+    // Payment Medium required for all except Contingency, Pro Bono, Other
+    if (!['Contingency', 'Pro Bono', 'Other'].includes(method)) {
+      errors.payment_medium = validateRequired(billingDetails.payment_medium, 'Payment medium');
     }
 
-    // Validate rate fields based on selected billing method
-    if (billingDetails.billing_method === 'Hourly' && !billingDetails.hourly_rate) {
-      errors.hourly_rate = 'Hourly rate is required';
+    // Frequency required for recurring methods
+    if (["Hourly", "Retainer", "Subscription", "Hybrid"].includes(method)) {
+      errors.billing_frequency_id = validateRequired(billingDetails.billing_frequency_id, 'Billing frequency');
     }
-    if (billingDetails.billing_method === 'Flat Fee' && !billingDetails.flat_fee_amount) {
-      errors.flat_fee_amount = 'Flat fee amount is required';
+
+    // Retainer amount required for Retainer
+    if (method === 'Retainer') {
+      errors.retainer_amount = validateRequired(billingDetails.retainer_amount, 'Retainer amount');
     }
-    if (billingDetails.billing_method === 'Contingency' && !billingDetails.contingency_percentage) {
-      errors.contingency_percentage = 'Contingency percentage is required';
-    }
+
     setBillingErrors(errors);
-    // Form is valid if there are no error messages
     return Object.values(errors).every(error => !error);
   };
 
@@ -690,32 +780,28 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
         type_id: Number(matterDetails.matter_type_id),
         sub_type_id: Number(matterDetails.sub_type_id),
         priority: matterDetails.priority,
-        // Add all required billing fields as null for initial matter creation
-        intake_data: null,
-        payment_pattern: null,
-        rate: null,
-        currency: null,
-        payment_terms: null,
-        retainer_amount: null,
-        retainer_balance: null,
-        billing_frequency: null,
-        custom_frequency: null,
-        billing_notes: null,
-        features: null
+        intake_data: { send_eform: sendEForm },
+        payment_pattern_id: billingDetails.payment_pattern_id,
+        rate: typeof billingDetails.rate_value === 'number' ? billingDetails.rate_value : (billingDetails.rate_value ?? 0),
+        currency: typeof billingDetails.currency_id === 'string' ? billingDetails.currency_id : null,
+        payment_terms: billingDetails.terms_details.standard || '',
+        retainer_amount: typeof billingDetails.retainer_amount === 'number' ? billingDetails.retainer_amount : (billingDetails.retainer_amount ?? 0),
+        retainer_balance: typeof billingDetails.retainer_balance === 'number' ? billingDetails.retainer_balance : (billingDetails.retainer_balance ?? 0),
+        billing_frequency_id: billingDetails.billing_frequency_id,
+        notes: billingDetails.notes || '',
+        features: billingDetails.features,
+        billing_method_id: billingDetails.billing_method_id
       };
 
-      // Do NOT remove required fields from the payload
-      // Remove only truly optional/empty fields if needed
-      // Object.keys(matterPayload).forEach(key => {
-      //   if (matterPayload[key] === undefined) {
-      //     delete matterPayload[key];
-      //   }
-      // });
+      // Remove null/undefined fields in a type-safe way
+      const cleanedMatterPayload = Object.fromEntries(
+        Object.entries(matterPayload).filter(([_, value]) => value !== undefined && value !== null)
+      );
 
       const matterResponse = await fetch('/api/matters', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(matterPayload)
+        body: JSON.stringify(cleanedMatterPayload)
       });
 
       const matterData = await matterResponse.json();
@@ -731,62 +817,36 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
       }
 
       // Get UUIDs for dropdowns
-      const currency_id = currencyOptions.find(option => option.value === billingDetails.currency)?.id || null;
+      const currency_id = billingDetails.currency_id ?? '';
       const payment_medium_id = paymentMediumOptions.find(option => option.value === billingDetails.payment_medium)?.id || null;
-      const payment_pattern_id = paymentPatternOptions.find(option => option.value === billingDetails.payment_pattern)?.id || null;
-      const billing_method_id = billingMethodOptions.find(option => option.id?.toString() === billingDetails.billing_method)?.id || null;
-      const billing_frequency_id = billingFrequencyOptions.find(option => option.value === billingDetails.billing_frequency)?.id || null;
-
-      // Calculate rate based on billing method
-      let rate = null;
-      if (billingDetails.billing_method === 'Hourly') rate = billingDetails.hourly_rate;
-      if (billingDetails.billing_method === 'Flat Fee') rate = billingDetails.flat_fee_amount;
-      if (billingDetails.billing_method === 'Contingency') rate = billingDetails.contingency_percentage;
-      if (billingDetails.billing_method === 'Retainer') rate = billingDetails.retainer_amount;
-
-      // Build features object
-      const features = {
-        automated_time_capture: billingDetails.automated_time_capture,
-        blockchain_invoicing: billingDetails.blockchain_invoicing,
-        send_invoice_on_approval: billingDetails.send_invoice_on_approval
-      };
+      const payment_pattern_id = billingDetails.payment_pattern_id ?? '';
+      const billing_method_id = billingDetails.billing_method_id ?? '';
+      const billing_frequency_id = billingDetails.billing_frequency_id ?? '';
 
       // Build the matter_billing payload with all required fields
-      const billingPayload: BillingPayload = {
+      const billingPayload = {
         matter_id: matterId,
-        payment_pattern: billingDetails.payment_pattern || '',
-        rate: typeof rate === 'string' ? Number(rate) : (rate ?? 0),
-        currency: currency_id || '',
-        payment_terms: billingDetails.payment_terms || null,
-        retainer_amount: billingDetails.retainer_amount ? Number(billingDetails.retainer_amount) : 0,
-        retainer_balance: billingDetails.retainer_balance ? Number(billingDetails.retainer_balance) : 0,
-        billing_frequency: billing_frequency_id || '',
-        custom_frequency: billingDetails.billing_frequency === 'Custom' ? (billingDetails.custom_frequency || '') : '',
-        billing_notes: billingDetails.billing_notes || null,
-        features: features,
-        payment_medium: payment_medium_id,
-        billing_method: billing_method_id,
-        intake_data: {
-          client_id: clientId,
-          matter_id: matterId,
-          status: 'pending',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
+        billing_method_id: billing_method_id,
+        payment_pattern_id: payment_pattern_id,
+        currency_id: currency_id,
+        payment_medium_id: payment_medium_id,
+        terms_details: billingDetails.terms_details,
+        billing_frequency_id: billing_frequency_id,
+        features: billingDetails.features,
+        retainer_amount: billingDetails.retainer_amount,
+        retainer_balance: billingDetails.retainer_balance,
+        notes: billingDetails.notes
       };
 
-      // Do NOT remove required fields from the payload
-      // Remove only truly optional/empty fields if needed
-      // Object.keys(billingPayload).forEach(key => {
-      //   if (billingPayload[key] === undefined) {
-      //     delete billingPayload[key];
-      //   }
-      // });
+      // Remove null/undefined fields in a type-safe way
+      const cleanedBillingPayload = Object.fromEntries(
+        Object.entries(billingPayload).filter(([_, value]) => value !== undefined && value !== null)
+      );
 
       const billingResponse = await fetch(`/api/matters/${matterId}/billing`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(billingPayload)
+        body: JSON.stringify(cleanedBillingPayload)
       });
 
       if (!billingResponse.ok) {
@@ -859,6 +919,14 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
       title: getPrefixedTitle({ ...clientDetails, last_name: newLastName }, prev.title)
     }));
   };
+
+  // Helper to get the selected billing method value (name)
+  const selectedBillingMethodValue = billingMethodOptions.find(
+    option => String(option.id) === (billingDetails.billing_method_id ?? '')
+  )?.value || '';
+
+  // Helper to determine if custom terms is active
+  const isCustomTermsActive = billingDetails.terms_details.custom !== undefined;
 
   const renderStep = () => {
     switch (currentStep) {
@@ -1268,299 +1336,230 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
           <div className="space-y-6">
             <div className="space-y-1">
               <Label htmlFor="billing_method">Billing Method <span className="text-red-500">*</span></Label>
-              {loadingOptions ? (
-                <div className="flex items-center space-x-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="text-sm text-gray-500">Loading options...</span>
-                </div>
-              ) : (
-                <Select
-                  inputId="billing_method"
-                  className={`react-select ${billingErrors.billing_method ? 'border-red-500' : ''}`}
-                  classNamePrefix="react-select"
-                  options={billingMethodOptions}
-                  value={billingMethodOptions?.find(option => option.id?.toString() === billingDetails.billing_method)}
-                  onChange={(selectedOption) => {
-                    setBillingDetails({
-                      ...billingDetails,
-                      billing_method: selectedOption?.id?.toString() || '',
-                      // Reset related fields when billing method changes
-                      hourly_rate: undefined,
-                      flat_fee_amount: undefined,
-                      contingency_percentage: undefined,
-                      retainer_amount: '',
-                    });
-                  }}
-                  placeholder="Select billing method"
-                  isDisabled={loadingOptions}
-                />
-              )}
-              {billingErrors.billing_method && (
-                <p className="text-sm text-red-500 flex items-center mt-1">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  {billingErrors.billing_method}
-                </p>
-              )}
-            </div>
-            {billingDetails.billing_method === 'Hourly' && (
-              <div className="space-y-1">
-                <Label htmlFor="hourly_rate">Hourly Rate</Label>
-                <Input
-                  id="hourly_rate"
-                  type="number"
-                  value={billingDetails.hourly_rate ?? ''}
-                  onChange={(e) => setBillingDetails({ ...billingDetails, hourly_rate: Number(e.target.value) })}
-                  placeholder="e.g., 200"
-                  className={billingErrors.hourly_rate ? 'border-red-500' : ''}
-                />
-                {billingErrors.hourly_rate && (
-                  <p className="text-sm text-red-500 flex items-center">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    {billingErrors.hourly_rate}
-                  </p>
-                )}
-              </div>
-            )}
-            {billingDetails.billing_method === 'Flat Fee' && (
-              <div className="space-y-1">
-                <Label htmlFor="flat_fee_amount">Flat Fee Amount</Label>
-                <Input
-                  id="flat_fee_amount"
-                  type="number"
-                  value={billingDetails.flat_fee_amount ?? ''}
-                  onChange={(e) => setBillingDetails({ ...billingDetails, flat_fee_amount: Number(e.target.value) })}
-                  placeholder="e.g., 5000"
-                  className={billingErrors.flat_fee_amount ? 'border-red-500' : ''}
-                />
-                {billingErrors.flat_fee_amount && (
-                  <p className="text-sm text-red-500 flex items-center">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    {billingErrors.flat_fee_amount}
-                  </p>
-                )}
-              </div>
-            )}
-            {billingDetails.billing_method === 'Contingency' && (
-              <div className="space-y-1">
-                <Label htmlFor="contingency_percentage">Contingency Percentage</Label>
-                <Input
-                  id="contingency_percentage"
-                  type="number"
-                  value={billingDetails.contingency_percentage ?? ''}
-                  onChange={(e) => setBillingDetails({ ...billingDetails, contingency_percentage: Number(e.target.value) })}
-                  placeholder="e.g., 30"
-                  className={billingErrors.contingency_percentage ? 'border-red-500' : ''}
-                />
-                {billingErrors.contingency_percentage && (
-                  <p className="text-sm text-red-500 flex items-center">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    {billingErrors.contingency_percentage}
-                  </p>
-                )}
-              </div>
-            )}
-            {billingDetails.billing_method === 'Retainer' && (
-              <div className="space-y-1">
-                <Label htmlFor="retainer_amount">Retainer Amount</Label>
-                <Input
-                  id="retainer_amount"
-                  type="number"
-                  value={billingDetails.retainer_amount}
-                  onChange={(e) => setBillingDetails({ ...billingDetails, retainer_amount: e.target.value })}
-                  placeholder="e.g., 2000"
-                  className={billingErrors.retainer_amount ? 'border-red-500' : ''}
-                />
-                {billingErrors.retainer_amount && (
-                  <p className="text-sm text-red-500 flex items-center">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    {billingErrors.retainer_amount}
-                  </p>
-                )}
-              </div>
-            )}
-            <div className="space-y-1">
-              <Label htmlFor="currency">Currency <span className="text-red-500">*</span></Label>
               <Select
-                inputId="currency"
-                className={`react-select ${billingErrors.currency ? 'border-red-500' : ''}`}
+                inputId="billing_method"
+                className={`react-select ${billingErrors.billing_method ? 'border-red-500' : ''}`}
                 classNamePrefix="react-select"
-                options={currencyOptions}
-                value={currencyOptions.find(option => option.value === billingDetails.currency)}
-                onChange={(selectedOption) => {
-                  setBillingDetails({
-                    ...billingDetails,
-                    currency: selectedOption?.value || 'USD'
-                  });
-                }}
-                placeholder="Select currency"
-                isClearable
-                isSearchable
+                options={billingMethodOptions}
+                value={billingMethodOptions.find(option => String(option.id) === (billingDetails.billing_method_id ?? ''))}
+                onChange={selectedOption => setBillingDetails({
+                  ...billingDetails,
+                  billing_method_id: selectedOption ? String(selectedOption.id) : null
+                })}
+                placeholder="Select billing method"
+                styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.8rem' }) }}
               />
-              {billingErrors.currency && (
-                <p className="text-sm text-red-500 flex items-center">
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  {billingErrors.currency}
-                </p>
-              )}
             </div>
+
+            {/* Payment Pattern Field */}
             <div className="space-y-1">
-              <Label htmlFor="payment_medium">Payment Medium <span className="text-red-500">*</span></Label>
+              <Label htmlFor="payment_pattern">Payment Pattern <span className="text-red-500">*</span></Label>
               <Select
-                inputId="payment_medium"
-                className={`react-select ${billingErrors.payment_medium ? 'border-red-500' : ''}`}
+                inputId="payment_pattern"
+                className={`react-select ${billingErrors.payment_pattern_id ? 'border-red-500' : ''}`}
                 classNamePrefix="react-select"
-                options={paymentMediumOptions}
-                value={paymentMediumOptions.find(option => option.value === billingDetails.payment_medium)}
-                onChange={(selectedOption) => {
-                  setBillingDetails({
+                options={paymentPatternOptions}
+                value={paymentPatternOptions.find(option => option.value === billingDetails.payment_pattern_id)}
+                onChange={selectedOption => setBillingDetails({
+                  ...billingDetails,
+                  payment_pattern_id: selectedOption ? selectedOption.value : null
+                })}
+                placeholder="Select payment pattern"
+                styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.8rem' }) }}
+              />
+            </div>
+
+            {/* Conditionally render Payment Medium */}
+            {selectedBillingMethodValue !== 'Pro Bono' && (
+              <div className="space-y-1">
+                <Label htmlFor="payment_medium">Payment Medium <span className="text-red-500">*</span></Label>
+                <Select
+                  inputId="payment_medium"
+                  className={`react-select ${billingErrors.payment_medium ? 'border-red-500' : ''}`}
+                  classNamePrefix="react-select"
+                  options={paymentMediumOptions}
+                  value={paymentMediumOptions.find(option => option.value === billingDetails.payment_medium)}
+                  onChange={selectedOption => setBillingDetails({
                     ...billingDetails,
                     payment_medium: selectedOption?.value || ''
-                  });
-                }}
-                placeholder="Select payment medium"
-                isClearable
-                isSearchable
-              />
-              {billingErrors.payment_medium && (
-                <p className="text-sm text-red-500 flex items-center">
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  {billingErrors.payment_medium}
-                </p>
+                  })}
+                  placeholder="Select payment medium"
+                  styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.8rem' }) }}
+                />
+              </div>
+            )}
+
+            {/* Conditionally render Billing Frequency */}
+            {billingMethodRequirements[selectedBillingMethodValue]?.requiresFrequency && (
+              <div className="space-y-1">
+                <Label htmlFor="billing_frequency">Billing Frequency <span className="text-red-500">*</span></Label>
+                <Select
+                  inputId="billing_frequency"
+                  className={`react-select ${billingErrors.billing_frequency ? 'border-red-500' : ''}`}
+                  classNamePrefix="react-select"
+                  options={billingFrequencyOptions}
+                  value={billingFrequencyOptions.find(option => option.value === billingDetails.billing_frequency_id)}
+                  onChange={selectedOption => setBillingDetails({
+                    ...billingDetails,
+                    billing_frequency_id: selectedOption ? selectedOption.value : null
+                  })}
+                  placeholder="Select billing frequency"
+                  styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.8rem' }) }}
+                />
+              </div>
+            )}
+
+            {/* Rate and Currency Section */}
+            {selectedBillingMethodValue && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label htmlFor="rate">Rate <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="rate"
+                    type="number"
+                    value={billingDetails.rate_value}
+                    onChange={(e) => setBillingDetails({
+                      ...billingDetails,
+                      rate_value: Number(e.target.value)
+                    })}
+                    placeholder={`Enter ${selectedBillingMethodValue} rate`}
+                    style={{ fontSize: '0.8rem', height: '32px' }}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="currency">Currency <span className="text-red-500">*</span></Label>
+                  <Select
+                    inputId="currency"
+                    className={`react-select ${billingErrors.currency ? 'border-red-500' : ''}`}
+                    classNamePrefix="react-select"
+                    options={currencyOptions}
+                    value={currencyOptions.find(option => String(option.id) === (billingDetails.currency_id ?? ''))}
+                    onChange={selectedOption => setBillingDetails({
+                      ...billingDetails,
+                      currency_id: selectedOption ? String(selectedOption.id) : null
+                    })}
+                    placeholder="Select currency"
+                    styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.8rem' }) }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Terms Section */}
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <Label htmlFor="terms">Payment Terms <span className="text-red-500">*</span> <span className="text-gray-500 text-xs">(e.g., when payment is due: Net 30, Due on receipt)</span></Label>
+                <Select
+                  inputId="terms"
+                  classNamePrefix="react-select"
+                  options={paymentTermsOptions}
+                  value={isCustomTermsActive ? null : (paymentTermsOptions.find(option => option.value === (billingDetails.terms_details.standard || '')) || paymentTermsOptions[0])}
+                  onChange={selectedOption => {
+                    if (selectedOption?.value === 'Other') {
+                      setBillingDetails({
+                        ...billingDetails,
+                        terms_details: { ...billingDetails.terms_details, standard: '', custom: '' }
+                      });
+                    } else {
+                      setBillingDetails({
+                        ...billingDetails,
+                        terms_details: { ...billingDetails.terms_details, standard: selectedOption?.value || '', custom: undefined }
+                      });
+                    }
+                  }}
+                  placeholder="Select payment terms"
+                  styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.8rem' }) }}
+                  isDisabled={isCustomTermsActive}
+                />
+              </div>
+              <div className="flex items-center space-x-2 mt-2">
+                <Switch
+                  id="use_custom_terms"
+                  checked={isCustomTermsActive}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setBillingDetails({
+                        ...billingDetails,
+                        terms_details: { ...billingDetails.terms_details, custom: '', standard: '' }
+                      });
+                    } else {
+                      setBillingDetails({
+                        ...billingDetails,
+                        terms_details: { ...billingDetails.terms_details, custom: undefined, standard: '' }
+                      });
+                    }
+                  }}
+                />
+                <Label htmlFor="use_custom_terms">Use Custom Terms</Label>
+              </div>
+              {isCustomTermsActive && (
+                <div className="space-y-1">
+                  <Label htmlFor="custom_terms">Custom Terms <span className="text-red-500">*</span></Label>
+                  <Textarea
+                    id="custom_terms"
+                    value={billingDetails.terms_details.custom || ''}
+                    onChange={(e) => setBillingDetails({
+                      ...billingDetails,
+                      terms_details: { ...billingDetails.terms_details, custom: e.target.value, standard: '' }
+                    })}
+                    placeholder="Enter custom payment terms"
+                    style={{ fontSize: '0.8rem', minHeight: '48px' }}
+                  />
+                </div>
               )}
             </div>
+
+            {/* Features Section */}
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
                 <Switch
                   id="automated_time_capture"
-                  checked={billingDetails.automated_time_capture}
-                  onCheckedChange={(checked) => setBillingDetails({ ...billingDetails, automated_time_capture: checked })}
+                  checked={billingDetails.features.automated_time_capture}
+                  onCheckedChange={(checked) => setBillingDetails({
+                    ...billingDetails,
+                    features: { ...billingDetails.features, automated_time_capture: checked }
+                  })}
                 />
                 <Label htmlFor="automated_time_capture">Enable Automated Time Capture</Label>
               </div>
+
               <div className="flex items-center space-x-2">
                 <Switch
                   id="blockchain_invoicing"
-                  checked={billingDetails.blockchain_invoicing}
-                  onCheckedChange={(checked) => setBillingDetails({ ...billingDetails, blockchain_invoicing: checked })}
+                  checked={billingDetails.features.blockchain_invoicing}
+                  onCheckedChange={(checked) => setBillingDetails({
+                    ...billingDetails,
+                    features: { ...billingDetails.features, blockchain_invoicing: checked }
+                  })}
                 />
                 <Label htmlFor="blockchain_invoicing">Enable Blockchain-Secured Invoicing</Label>
               </div>
+
               <div className="flex items-center space-x-2">
                 <Switch
                   id="send_invoice_on_approval"
-                  checked={billingDetails.send_invoice_on_approval}
-                  onCheckedChange={(checked) => setBillingDetails({ ...billingDetails, send_invoice_on_approval: checked })}
+                  checked={billingDetails.features.send_invoice_on_approval}
+                  onCheckedChange={(checked) => setBillingDetails({
+                    ...billingDetails,
+                    features: { ...billingDetails.features, send_invoice_on_approval: checked }
+                  })}
                 />
                 <Label htmlFor="send_invoice_on_approval">Send Invoice on Client Approval</Label>
               </div>
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="payment_pattern">Payment Pattern <span className="text-red-500">*</span></Label>
-              <UISelect
-                value={billingDetails.payment_pattern}
-                onValueChange={(value: string) => setBillingDetails(prev => ({ ...prev, payment_pattern: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select payment pattern" />
-                </SelectTrigger>
-                <SelectContent>
-                  {paymentPatternOptions.map(option => (
-                    <SelectItem key={option.id?.toString() ?? option.value} value={option.id?.toString() ?? option.value}>
-                      {option.icon && <span className={`mr-2 ${option.icon}`}></span>}
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </UISelect>
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="payment_terms">Payment Terms <span className="text-red-500">*</span></Label>
-              <Input
-                id="payment_terms"
-                value={billingDetails.payment_terms}
-                onChange={(e) => setBillingDetails({ ...billingDetails, payment_terms: e.target.value })}
-                placeholder="e.g., Net 30"
-                className={billingErrors.payment_terms ? 'border-red-500' : ''}
-              />
-              {billingErrors.payment_terms && (
-                <p className="text-sm text-red-500 flex items-center">
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  {billingErrors.payment_terms}
-                </p>
-              )}
-            </div>
-            {/* Billing Frequency field: only show for recurring billing methods */}
-            {['Hourly', 'Retainer', 'Subscription'].includes(billingDetails.billing_method) && (
-              <div className="space-y-4">
-                <div className="space-y-1">
-                  <Label htmlFor="billing_frequency">Billing Frequency <span className="text-red-500">*</span></Label>
-                  <Select
-                    inputId="billing_frequency"
-                    className={`react-select ${billingErrors.billing_frequency ? 'border-red-500' : ''}`}
-                    classNamePrefix="react-select"
-                    options={billingFrequencyOptions}
-                    value={billingFrequencyOptions.find(option => option.value === billingDetails.billing_frequency)}
-                    onChange={(selectedOption) => {
-                      setBillingDetails({
-                        ...billingDetails,
-                        billing_frequency: selectedOption?.value || '',
-                        use_custom_frequency: selectedOption?.value === 'Custom'
-                      });
-                    }}
-                    placeholder="Select billing frequency"
-                    isClearable
-                    isSearchable
-                  />
-                  {billingErrors.billing_frequency && (
-                    <p className="text-sm text-red-500 flex items-center">
-                      <AlertCircle className="h-3 w-3 mr-1" />
-                      {billingErrors.billing_frequency}
-                    </p>
-                  )}
-                </div>
 
-                {billingDetails.billing_frequency === 'Custom' && (
-                  <div className="space-y-1">
-                    <Label htmlFor="custom_frequency">Custom Frequency <span className="text-red-500">*</span></Label>
-                    <Textarea
-                      id="custom_frequency"
-                      value={billingDetails.custom_frequency}
-                      onChange={(e) => setBillingDetails({ ...billingDetails, custom_frequency: e.target.value })}
-                      placeholder="Describe custom frequency (e.g., Every 2 weeks, Quarterly, etc.)"
-                      className={billingErrors.custom_frequency ? 'border-red-500' : ''}
-                    />
-                    {billingErrors.custom_frequency && (
-                      <p className="text-sm text-red-500 flex items-center">
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        {billingErrors.custom_frequency}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-            {/* Retainer Balance: only show if billing method is Retainer */}
-            {billingDetails.billing_method === 'Retainer' && (
-              <div className="space-y-1">
-                <Label htmlFor="retainer_balance">Retainer Balance</Label>
-                <Input
-                  id="retainer_balance"
-                  type="number"
-                  value={billingDetails.retainer_balance}
-                  onChange={(e) => setBillingDetails({ ...billingDetails, retainer_balance: e.target.value })}
-                  placeholder="e.g., 1000"
-                />
-              </div>
-            )}
-            {/* Billing Notes: always show, optional */}
+            {/* Notes Section */}
             <div className="space-y-1">
-              <Label htmlFor="billing_notes">Billing Notes</Label>
-              <textarea
-                id="billing_notes"
-                className="w-full border rounded p-2 min-h-[60px]"
-                value={billingDetails.billing_notes || ''}
-                onChange={(e) => setBillingDetails({ ...billingDetails, billing_notes: e.target.value })}
+              <Label htmlFor="notes">Billing Notes</Label>
+              <Textarea
+                id="notes"
+                value={billingDetails.notes || ''}
+                onChange={(e) => setBillingDetails({
+                  ...billingDetails,
+                  notes: e.target.value
+                })}
                 placeholder="Any additional notes about billing (optional)"
+                style={{ fontSize: '0.8rem', minHeight: '48px' }}
               />
             </div>
           </div>
@@ -1630,27 +1629,20 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
               <h3 className="text-lg font-semibold mb-3 text-gray-800">Billing Details</h3>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="font-medium text-gray-600">Method:</div>
-                <div className="text-gray-900">{billingDetails.billing_method}</div>
+                <div className="text-gray-900">{selectedBillingMethodValue}</div>
                 
-                {billingDetails.billing_method === 'Hourly' && billingDetails.hourly_rate && (
+                {selectedBillingMethodValue === 'Hourly' && billingDetails.rate_value && (
                   <>
                     <div className="font-medium text-gray-600">Rate:</div>
-                    <div className="text-gray-900">{billingDetails.hourly_rate} {billingDetails.currency}</div>
-                  </>
-                )}
-                
-                {billingDetails.billing_method === 'Flat Fee' && billingDetails.flat_fee_amount && (
-                  <>
-                    <div className="font-medium text-gray-600">Fee:</div>
-                    <div className="text-gray-900">{billingDetails.flat_fee_amount} {billingDetails.currency}</div>
+                    <div className="text-gray-900">{billingDetails.rate_value} {currencyOptions.find(option => option.id === billingDetails.currency_id)?.label || billingDetails.currency_id}</div>
                   </>
                 )}
                 
                 <div className="font-medium text-gray-600">Features:</div>
                 <div className="text-gray-900">
-                  {billingDetails.automated_time_capture && 'Automated Time Capture'}
-                  {billingDetails.blockchain_invoicing && ', Blockchain Invoicing'}
-                  {billingDetails.send_invoice_on_approval && ', Auto-Invoice'}
+                  {billingDetails.features.automated_time_capture && 'Automated Time Capture'}
+                  {billingDetails.features.blockchain_invoicing && ', Blockchain Invoicing'}
+                  {billingDetails.features.send_invoice_on_approval && ', Auto-Invoice'}
                 </div>
               </div>
             </div>
