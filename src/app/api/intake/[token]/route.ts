@@ -1,11 +1,30 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
 // Initialize Supabase client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_KEY!
 );
+
+// Form validation schema with proper types
+const formSchema = z.object({
+  title_id: z.string().min(1, 'Title is required').transform(val => parseInt(val, 10)),
+  first_name: z.string().min(2, 'First name must be at least 2 characters'),
+  last_name: z.string().min(2, 'Last name must be at least 2 characters'),
+  email: z.string().email('Please enter a valid email address'),
+  phone_number: z.string()
+    .min(1, 'Phone number is required')
+    .transform(val => val.startsWith('+') ? val : `+${val}`)
+    .refine(val => /^\+[1-9]\d{1,14}$/.test(val), {
+      message: 'Please enter a valid international phone number starting with +'
+    }),
+  address: z.string().min(1, 'Address is required'),
+  preferred_language_id: z.string().min(1, 'Preferred language is required').transform(val => parseInt(val, 10)),
+  client_type_id: z.string().min(1, 'Client type is required').transform(val => parseInt(val, 10)),
+  additional_notes: z.string().optional()
+});
 
 // GET /api/intake/[token] - Get intake form details
 export async function GET(
@@ -18,7 +37,7 @@ export async function GET(
       .from('matter_intake_links')
       .select(`
         *,
-        matter:cases (
+        matter:matters (
           title,
           description
         )
@@ -27,7 +46,8 @@ export async function GET(
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error('Error fetching intake link:', error);
+      return NextResponse.json({ error: 'Failed to fetch intake form details' }, { status: 500 });
     }
 
     if (!intakeLink) {
@@ -67,16 +87,6 @@ export async function POST(
   { params }: { params: { token: string } }
 ) {
   try {
-    const body = await request.json();
-    const { form_data } = body;
-
-    if (!form_data) {
-      return NextResponse.json(
-        { error: 'Form data is required' },
-        { status: 400 }
-      );
-    }
-
     // Fetch intake form link
     const { data: intakeLink, error: linkError } = await supabase
       .from('matter_intake_links')
@@ -85,7 +95,11 @@ export async function POST(
       .single();
 
     if (linkError) {
-      return NextResponse.json({ error: linkError.message }, { status: 500 });
+      console.error('Error fetching intake link:', linkError);
+      return NextResponse.json(
+        { error: 'Failed to fetch intake form link' },
+        { status: 500 }
+      );
     }
 
     if (!intakeLink) {
@@ -109,49 +123,99 @@ export async function POST(
       );
     }
 
-    // Check if form is already completed
-    if (intakeLink.status === 'completed') {
+    // Parse and validate form data
+    const formData = await request.json();
+    const validatedData = formSchema.parse(formData);
+
+    // Start a transaction
+    const { data: client, error: clientError } = await supabase
+      .from('clients')
+      .insert({
+        title_id: validatedData.title_id,
+        first_name: validatedData.first_name,
+        last_name: validatedData.last_name,
+        email: validatedData.email,
+        phone_number: validatedData.phone_number,
+        address: validatedData.address,
+        preferred_language_id: validatedData.preferred_language_id,
+        client_type_id: validatedData.client_type_id,
+        additional_notes: validatedData.additional_notes
+      })
+      .select()
+      .single();
+
+    if (clientError) {
+      console.error('Error creating client:', clientError);
       return NextResponse.json(
-        { error: 'This intake form has already been submitted' },
-        { status: 400 }
+        { error: 'Failed to create client record' },
+        { status: 500 }
       );
     }
 
-    // Update intake form status and store form data
-    const { data: updatedLink, error: updateError } = await supabase
+    // Update matter status
+    try {
+      // Create a unique status name with timestamp
+      const statusName = `intake_completed_${Date.now()}`;
+      
+      // Insert new matter status
+      const { error: statusError } = await supabase
+        .from('matter_status')
+        .insert({
+          matter_id: intakeLink.matter_id,
+          name: statusName,
+          description: 'Client intake form completed'
+        });
+
+      if (statusError) {
+        console.error('Error updating matter status:', statusError);
+        // Don't fail the request, just log the error
+      }
+
+      // Update matter status
+      const { error: matterError } = await supabase
+        .from('matters')
+        .update({ status: 'intake_completed' })
+        .eq('id', intakeLink.matter_id);
+
+      if (matterError) {
+        console.error('Error updating matter:', matterError);
+        // Don't fail the request, just log the error
+      }
+    } catch (statusError) {
+      console.error('Error in matter status update:', statusError);
+      // Don't fail the request, just log the error
+    }
+
+    // Update intake link status
+    const { error: updateError } = await supabase
       .from('matter_intake_links')
       .update({
         status: 'completed',
         completed_at: new Date().toISOString(),
-        form_data
+        form_data: formData
       })
-      .eq('id', intakeLink.id)
-      .select()
-      .single();
+      .eq('id', intakeLink.id);
 
     if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 });
+      console.error('Error updating intake link:', updateError);
+      return NextResponse.json(
+        { error: 'Failed to update intake form status' },
+        { status: 500 }
+      );
     }
 
-    // Update matter status to intake_completed
-    const { error: matterError } = await supabase
-      .from('matter_status')
-      .insert([
-        {
-          matter_id: intakeLink.matter_id,
-          status: 'intake_completed',
-          notes: 'Intake form completed by client',
-          changed_at: new Date().toISOString()
-        }
-      ]);
-
-    if (matterError) {
-      console.error('Error updating matter status:', matterError);
-    }
-
-    return NextResponse.json({ success: true, intakeLink: updatedLink });
+    return NextResponse.json({
+      message: 'Intake form submitted successfully',
+      client
+    });
   } catch (error) {
     console.error('Error submitting intake form:', error);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Invalid form data', details: error.errors },
+        { status: 400 }
+      );
+    }
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

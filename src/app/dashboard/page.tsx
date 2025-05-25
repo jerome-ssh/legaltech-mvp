@@ -33,6 +33,7 @@ import {
   Mic,
   MicOff,
   Info,
+  Loader2,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import dynamic from 'next/dynamic';
@@ -65,12 +66,15 @@ interface Task {
 }
 
 interface DashboardData {
-  openCases: number;
+  openMatters: number;
   deadlines: number;
   unreadMessages: number;
-  billingAmount: number;
-  activity: Activity[];
-  tasks: Task[];
+  billing: {
+    paid: number;
+    outstanding: number;
+  };
+  activity: any[];
+  tasks: any[];
 }
 
 interface HistoryEntry {
@@ -78,22 +82,63 @@ interface HistoryEntry {
   response: string;
 }
 
-interface CaseStage {
+interface MatterStage {
   id: string;
   stage: string;
   due: string;
-  priority: "High" | "Medium" | "Low";
+  priority: string;
   client_name: string;
   client_img: string;
   progress: number;
 }
 
-const useCases = [
-  { icon: FileQuestion, label: "Document Review" },
-  { icon: Scale, label: "Legal Research" },
-  { icon: Gavel, label: "Case Analysis" },
-  { icon: Briefcase, label: "Contract Review" },
-  { icon: FileCheck, label: "Compliance Check" },
+interface Client {
+  name: string;
+  avatar_url: string;
+}
+
+interface Matter {
+  id: string;
+  title: string;
+  status: string;
+  priority: string;
+  due_date: string;
+  clients: Client;
+}
+
+interface MatterWithClient {
+  id: string;
+  title: string;
+  status: string;
+  priority: string;
+  due_date: string;
+  clients: {
+    name: string;
+    avatar_url: string;
+  };
+}
+
+const useMatters = [
+  {
+    icon: FileText,
+    label: "All Matters",
+    href: "/dashboard/matters",
+  },
+  {
+    icon: FileText,
+    label: "Open Matters",
+    href: "/dashboard/matters?status=open",
+  },
+  {
+    icon: FileText,
+    label: "Closed Matters",
+    href: "/dashboard/matters?status=closed",
+  },
+  {
+    icon: FileText,
+    label: "My Matters",
+    href: "/dashboard/matters?assigned=me",
+  },
 ];
 
 export default function Dashboard() {
@@ -101,12 +146,15 @@ export default function Dashboard() {
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [dashboardData, setDashboardData] = useState<DashboardData>({
-    openCases: 0,
+    openMatters: 0,
     deadlines: 0,
     unreadMessages: 0,
-    billingAmount: 0,
+    billing: {
+      paid: 0,
+      outstanding: 0,
+    },
     activity: [],
-    tasks: []
+    tasks: [],
   });
   const [prompt, setPrompt] = useState("");
   const [fileName, setFileName] = useState("");
@@ -116,8 +164,9 @@ export default function Dashboard() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const [selectedUseCase, setSelectedUseCase] = useState<string | null>(null);
-  const [caseStages, setCaseStages] = useState<CaseStage[]>([]);
+  const [matterStages, setMatterStages] = useState<MatterStage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Clerk authentication check
   useEffect(() => {
@@ -127,136 +176,124 @@ export default function Dashboard() {
   }, [isLoaded, isSignedIn, router]);
 
   useEffect(() => {
-    async function fetchData() {
+    async function fetchDashboardData() {
       try {
-        // Get the current user's profile_id
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('clerk_id', user?.id)
-          .single();
-
-        if (profileError) throw profileError;
-        if (!profile) throw new Error('Profile not found');
-        const profileId = profile.id;
-
-        const [{ count: openCases }, { count: deadlines }, { count: unreadMessages }, { data: billingData }, { data: activityData }, { data: tasksData }] = await Promise.all([
-          supabase.from("cases").select("id", { count: "exact", head: true }).eq("status", "open").eq("profile_id", profileId),
-          supabase.from("deadlines").select("id", { count: "exact", head: true }).gt("due_date", new Date().toISOString()).eq("profile_id", profileId),
-          supabase.from("messages").select("id", { count: "exact", head: true }).eq("read", false).eq("profile_id", profileId),
-          supabase.from("billing").select("amount").eq("profile_id", profileId).order("created_at", { ascending: false }).limit(1),
-          supabase.from("activity").select("description,created_at").eq("profile_id", profileId).order("created_at", { ascending: false }).limit(3),
-          supabase.from("tasks").select("title,status,completed_at").eq("profile_id", profileId).order("created_at", { ascending: false }).limit(3),
-        ]);
-
-        setDashboardData({
-          openCases: openCases ?? 0,
-          deadlines: deadlines ?? 0,
-          unreadMessages: unreadMessages ?? 0,
-          billingAmount: billingData?.[0]?.amount || 0,
-          activity: activityData || [],
-          tasks: tasksData || []
-        });
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-        setDashboardData({
-          openCases: 0,
-          deadlines: 0,
-          unreadMessages: 0,
-          billingAmount: 0,
-          activity: [],
-          tasks: []
-        });
-      }
-    }
-
-    if (user?.id) {
-      fetchData();
-    }
-  }, [user?.id, supabase]);
-
-  useEffect(() => {
-    async function fetchCaseStages() {
-      try {
-        const { data, error } = await supabase
-          .from('case_stages')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          console.error('Supabase error:', error);
-          // If table doesn't exist, use sample data
-          setCaseStages([
-            {
-              id: '1',
-              stage: 'Initial Consultation',
-              due: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-              priority: 'High',
-              client_name: 'John Doe',
-              client_img: 'https://ui-avatars.com/api/?name=John+Doe&background=random',
-              progress: 30
-            },
-            {
-              id: '2',
-              stage: 'Document Review',
-              due: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-              priority: 'Medium',
-              client_name: 'Jane Smith',
-              client_img: 'https://ui-avatars.com/api/?name=Jane+Smith&background=random',
-              progress: 60
-            },
-            {
-              id: '3',
-              stage: 'Court Filing',
-              due: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-              priority: 'Low',
-              client_name: 'Mike Johnson',
-              client_img: 'https://ui-avatars.com/api/?name=Mike+Johnson&background=random',
-              progress: 90
-            }
-          ]);
-          return;
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          throw new Error('No authenticated user');
         }
 
-        setCaseStages(data || []);
-      } catch (error) {
-        console.error('Error fetching case stages:', error);
-        // Use sample data in case of any error
-        setCaseStages([
-          {
-            id: '1',
-            stage: 'Initial Consultation',
-            due: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-            priority: 'High',
-            client_name: 'John Doe',
-            client_img: 'https://ui-avatars.com/api/?name=John+Doe&background=random',
-            progress: 30
-          },
-          {
-            id: '2',
-            stage: 'Document Review',
-            due: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-            priority: 'Medium',
-            client_name: 'Jane Smith',
-            client_img: 'https://ui-avatars.com/api/?name=Jane+Smith&background=random',
-            progress: 60
-          },
-          {
-            id: '3',
-            stage: 'Court Filing',
-            due: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-            priority: 'Low',
-            client_name: 'Mike Johnson',
-            client_img: 'https://ui-avatars.com/api/?name=Mike+Johnson&background=random',
-            progress: 90
-          }
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('clerk_id', user.id)
+          .single();
+
+        if (!profile) {
+          throw new Error('Profile not found');
+        }
+
+        const profileId = profile.id;
+
+        const [{ count: openMatters }, { count: deadlines }, { count: unreadMessages }, { data: billingData }, { data: activityData }, { data: tasksData }] = await Promise.all([
+          supabase.from("matters").select("id", { count: "exact", head: true }).eq("status", "open").eq("profile_id", profileId),
+          supabase.from("deadlines").select("id", { count: "exact", head: true }).eq("profile_id", profileId),
+          supabase.from("messages").select("id", { count: "exact", head: true }).eq("profile_id", profileId).eq("is_read", false),
+          supabase.from("billing").select("*").eq("profile_id", profileId).order("created_at", { ascending: false }).limit(1),
+          supabase.from("activity_log").select("*").eq("profile_id", profileId).order("created_at", { ascending: false }).limit(5),
+          supabase.from("tasks").select("*").eq("profile_id", profileId).order("due_date", { ascending: true }).limit(5),
         ]);
+
+        setDashboardData({
+          openMatters: openMatters ?? 0,
+          deadlines: deadlines ?? 0,
+          unreadMessages: unreadMessages ?? 0,
+          billing: billingData?.[0] || { paid: 0, outstanding: 0 },
+          activity: activityData || [],
+          tasks: tasksData || [],
+        });
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+        setError('Failed to load dashboard data');
+        setDashboardData({
+          openMatters: 0,
+          deadlines: 0,
+          unreadMessages: 0,
+          billing: {
+            paid: 0,
+            outstanding: 0,
+          },
+          activity: [],
+          tasks: [],
+        });
       } finally {
         setLoading(false);
       }
     }
 
-    fetchCaseStages();
+    async function fetchMatterStages() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          throw new Error('No authenticated user');
+        }
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('clerk_id', user.id)
+          .single();
+
+        if (!profile) {
+          throw new Error('Profile not found');
+        }
+
+        const profileId = profile.id;
+
+        const { data, error } = await supabase
+          .from('matters')
+          .select(`
+            id,
+            title,
+            status,
+            priority,
+            due_date,
+            clients (
+              name,
+              avatar_url
+            )
+          `)
+          .eq('profile_id', profileId)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        if (error) {
+          throw error;
+        }
+
+        if (!data) {
+          setMatterStages([]);
+          return;
+        }
+
+        const typedData = data as unknown as MatterWithClient[];
+        setMatterStages(typedData.map(matter => ({
+          id: matter.id,
+          stage: matter.status,
+          due: matter.due_date,
+          priority: matter.priority,
+          client_name: matter.clients?.name || 'Unknown Client',
+          client_img: matter.clients?.avatar_url || '',
+          progress: 0, // You might want to calculate this based on some criteria
+        })));
+      } catch (err) {
+        console.error('Error fetching matter stages:', err);
+        setMatterStages([]);
+      }
+    }
+
+    fetchDashboardData();
+    fetchMatterStages();
   }, []);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -364,8 +401,8 @@ export default function Dashboard() {
                 <CardContent className="p-4 flex items-center gap-4">
                   <FolderOpen className="text-blue-500 w-6 h-6" />
                   <div>
-                    <p className="text-sm text-gray-500">Open Cases</p>
-                    <p className="text-xl font-bold">{dashboardData.openCases}</p>
+                    <p className="text-sm text-gray-500">Open Matters</p>
+                    <p className="text-xl font-bold">{dashboardData.openMatters}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -395,7 +432,7 @@ export default function Dashboard() {
                   <CreditCard className="text-red-500 w-6 h-6" />
                   <div>
                     <p className="text-sm text-gray-500">Billing Status</p>
-                    <p className="text-xl font-bold">${dashboardData.billingAmount}</p>
+                    <p className="text-xl font-bold">${dashboardData.billing.paid} / ${dashboardData.billing.outstanding}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -499,7 +536,7 @@ export default function Dashboard() {
               {fileName && <p className="text-sm mb-2 text-gray-700">Uploaded: {fileName}</p>}
               <div className="flex justify-between items-center mb-3">
                 <div className="flex gap-2 flex-wrap">
-                  {useCases.map(({ icon: Icon, label }) => (
+                  {useMatters.map(({ icon: Icon, label }) => (
                     <Button
                       key={label}
                       size="sm"
@@ -538,10 +575,12 @@ export default function Dashboard() {
               <div className="flex justify-center items-center h-32">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
               </div>
-            ) : caseStages.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">No cases found</div>
+            ) : error ? (
+              <div className="text-center text-red-500 py-8">{error}</div>
+            ) : matterStages.length === 0 ? (
+              <div className="text-center text-gray-500 py-8">No matters found</div>
             ) : (
-              caseStages.map(({ id, stage, due, priority, client_name, client_img, progress }, index) => (
+              matterStages.map(({ id, stage, due, priority, client_name, client_img, progress }, index) => (
                 <div
                   key={id}
                   className="relative flex items-center gap-4 p-4 rounded-lg bg-gradient-to-r from-white to-blue-50 border hover:shadow-lg transition duration-200"

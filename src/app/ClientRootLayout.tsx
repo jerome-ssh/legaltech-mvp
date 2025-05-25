@@ -3,7 +3,8 @@
 import { ClerkProvider } from '@clerk/nextjs';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
-import '@/styles/globals.css';
+import '@/app/globals.css';
+import '@/styles/react-select.css';
 import { Inter } from 'next/font/google';
 import ClientLayout from './ClientLayout';
 import InstallPrompt from '@/components/pwa/InstallPrompt';
@@ -20,17 +21,30 @@ export default function ClientRootLayout({
   children: React.ReactNode;
 }) {
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').then(
-          (registration) => {
-            console.log('ServiceWorker registration successful');
-          },
-          (err) => {
-            console.log('ServiceWorker registration failed: ', err);
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+      const registerSW = async () => {
+        try {
+          const registration = await navigator.serviceWorker.register('/sw.js', {
+            scope: '/',
+          });
+          
+          if (registration.installing) {
+            console.log('Service worker installing');
+          } else if (registration.waiting) {
+            console.log('Service worker installed');
+          } else if (registration.active) {
+            console.log('Service worker active');
           }
-        );
-      });
+        } catch (error) {
+          console.error('Service worker registration failed:', error);
+        }
+      };
+
+      if (document.readyState === 'complete') {
+        registerSW();
+      } else {
+        window.addEventListener('load', registerSW);
+      }
     }
   }, []);
 

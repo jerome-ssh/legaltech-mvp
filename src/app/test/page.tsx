@@ -141,12 +141,12 @@ export default function TestPage() {
 
             if (profilesError) throw profilesError;
 
-            // Get cases
-            const { data: cases, error: casesError } = await supabase
-                .from('cases')
+            // Get matters
+            const { data: matters, error: mattersError } = await supabase
+                .from('matters')
                 .select('*');
 
-            if (casesError) throw casesError;
+            if (mattersError) throw mattersError;
 
             // Get documents
             const { data: documents, error: documentsError } = await supabase
@@ -164,9 +164,9 @@ export default function TestPage() {
                             count: profiles?.length || 0,
                             sample: profiles?.[0] || null
                         },
-                        cases: {
-                            count: cases?.length || 0,
-                            sample: cases?.[0] || null
+                        matters: {
+                            count: matters?.length || 0,
+                            sample: matters?.[0] || null
                         },
                         documents: {
                             count: documents?.length || 0,

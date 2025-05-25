@@ -41,9 +41,23 @@ export const validatePhone = (phone: string): string => {
  * @param fieldName Name of the field for the error message
  * @returns Error message or empty string if valid
  */
-export const validateRequired = (value: string, fieldName: string): string => {
-  if (!value || value.trim() === '') {
+export const validateRequired = (value: any, fieldName: string): string => {
+  if (value === undefined || value === null) {
     return `${fieldName} is required`;
+  }
+
+  if (typeof value === 'string') {
+    if (value.trim() === '') {
+      return `${fieldName} is required`;
+    }
+  } else if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return `${fieldName} is required`;
+    }
+  } else if (typeof value === 'object') {
+    if (Object.keys(value).length === 0) {
+      return `${fieldName} is required`;
+    }
   }
   
   return '';

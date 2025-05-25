@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     const professionalIds = body.professionalIds || body.professional_ids || [];
 
     // Format professional IDs as JSONB (without JSON.stringify)
-    const formattedProfessionalIds = professionalIds.map(id => ({
+    const formattedProfessionalIds = professionalIds.map((id: any) => ({
       country: id.country || '',
       state: id.state || '',
       professional_id: id.professional_id || id.professionalId || '',
@@ -41,13 +41,13 @@ export async function POST(req: Request) {
     console.log('API route: User mapping check:', { mappingData, mappingError });
 
     // Check if profile exists
-    const { data: profileData, error: profileError } = await supabase
+    const { data: existingProfileData, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('clerk_id', userId)
       .single();
 
-    console.log('API route: Profile check:', { profileData, profileError });
+    console.log('API route: Profile check:', { existingProfileData, profileError });
 
     // Check if role exists
     const { data: roleData, error: roleError } = await supabase
@@ -75,10 +75,10 @@ export async function POST(req: Request) {
       p_last_name: body.last_name,
       p_firm_name: body.firm_name,
       p_specialization: body.specialization,
-      p_years_of_practice: parseInt(body.years_of_practice) || 0,
+      p_years_of_practice: body.yearsOfPractice !== undefined ? (body.yearsOfPractice ? parseInt(body.yearsOfPractice) : null) : (body.years_of_practice ? parseInt(body.years_of_practice) : null),
       p_avatar_url: body.avatar_url || '',
       p_address: body.address || '',
-      p_home_address: body.home_address || '',
+      p_home_address: body.homeAddress || body.home_address || '',
       p_gender: body.gender || '',
       p_role: body.role || 'attorney',
       p_onboarding_completed: true,
@@ -99,10 +99,25 @@ export async function POST(req: Request) {
       );
     }
 
+    // Get the updated profile to return to the client
+    const { data: profileData, error: profileFetchError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('clerk_id', userId)
+      .single();
+      
+    if (profileFetchError) {
+      console.error('Failed to fetch updated profile:', profileFetchError);
+      return NextResponse.json(
+        { success: false, error: 'Profile updated but failed to fetch updated data', details: profileFetchError.message },
+        { status: 500 }
+      );
+    }
+    
     // Clear any cached data
     const response = NextResponse.json({ 
       success: true, 
-      data 
+      profile: profileData
     }, {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',

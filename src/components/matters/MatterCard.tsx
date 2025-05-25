@@ -19,6 +19,9 @@ interface Matter {
     billing_type: string;
     rate: number;
     currency: string;
+    priority?: {
+      name: string;
+    };
   } | null;
 }
 
@@ -40,6 +43,7 @@ const getPriorityColor = (priority: string) => {
 };
 
 const getStatusColor = (status: string) => {
+  if (!status) return 'bg-gray-100 text-gray-800';
   switch (status.toLowerCase()) {
     case 'active':
       return 'bg-blue-100 text-blue-800';
@@ -56,7 +60,8 @@ const getStatusColor = (status: string) => {
 
 export function MatterCard({ matter }: MatterCardProps) {
   const router = useRouter();
-  const latestStatus = matter.matter_status?.[0]?.status || matter.status;
+  const latestStatus = matter.matter_status?.[0]?.status || matter.status || 'Active';
+  const priorityName = matter.matter_billing?.priority?.name || 'Medium';
 
   return (
     <Card
@@ -67,8 +72,8 @@ export function MatterCard({ matter }: MatterCardProps) {
         <div className="flex justify-between items-start mb-4">
           <h3 className="text-lg font-semibold text-gray-900">{matter.title}</h3>
           <div className="flex gap-2">
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(matter.priority)}`}>
-              {matter.priority}
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(priorityName)}`}>
+              {priorityName}
             </span>
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(latestStatus)}`}>
               {latestStatus}

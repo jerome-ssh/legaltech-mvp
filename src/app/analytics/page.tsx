@@ -33,19 +33,19 @@ import { toast } from "react-hot-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Types
-interface CaseData {
+interface MatterData {
   name: string;
-  cases: number;
+  matters: number;
   revenue: number;
   expenses: number;
 }
 
-interface CaseType {
+interface MatterType {
   name: string;
   value: number;
 }
 
-interface BillingData {
+interface MatterBillingData {
   month: string;
   paid: number;
   outstanding: number;
@@ -57,8 +57,8 @@ interface TaskData {
 }
 
 interface SummaryStats {
-  totalCases: number;
-  activeCases: number;
+  totalMatters: number;
+  activeMatters: number;
   totalRevenue: number;
   averageCaseDuration: number;
   clientSatisfaction: number;
@@ -66,7 +66,7 @@ interface SummaryStats {
   successRate: number;
 }
 
-interface CaseStatus {
+interface MatterStatus {
   status: string;
   count: number;
 }
@@ -97,20 +97,20 @@ export default function Analytics() {
   const [timePeriod, setTimePeriod] = useState("monthly");
   const [dateRange, setDateRange] = useState<{ start: Date | null; end: Date | null }>({ start: null, end: null });
   const [focusedChartIndex, setFocusedChartIndex] = useState<number | null>(null);
-  const [caseData, setCaseData] = useState<CaseData[]>([]);
-  const [caseTypes, setCaseTypes] = useState<CaseType[]>([]);
-  const [billingPerformance, setBillingPerformance] = useState<BillingData[]>([]);
+  const [matterData, setMatterData] = useState<MatterData[]>([]);
+  const [matterTypes, setMatterTypes] = useState<MatterType[]>([]);
+  const [billingPerformance, setBillingPerformance] = useState<MatterBillingData[]>([]);
   const [recurringTasks, setRecurringTasks] = useState<TaskData[]>([]);
   const [summaryStats, setSummaryStats] = useState<SummaryStats>({
-    totalCases: 0,
-    activeCases: 0,
+    totalMatters: 0,
+    activeMatters: 0,
     totalRevenue: 0,
     averageCaseDuration: 0,
     clientSatisfaction: 0,
     totalClients: 0,
     successRate: 0,
   });
-  const [caseStatuses, setCaseStatuses] = useState<CaseStatus[]>([]);
+  const [matterStatuses, setMatterStatuses] = useState<MatterStatus[]>([]);
   const [clientFeedback, setClientFeedback] = useState<ClientFeedback[]>([]);
 
   useEffect(() => {
@@ -123,25 +123,25 @@ export default function Analytics() {
     try {
       // Fetch all data in parallel
       const [
-        casesResult,
+        mattersResult,
         typesResult,
         billingResult,
         tasksResult,
         statusResult,
         feedbackResult
       ] = await Promise.all([
-        supabase.from('cases').select('*').order('created_at', { ascending: true }),
-        supabase.from('case_types').select('*'),
-        supabase.from('billing').select('*').order('created_at', { ascending: true }),
+        supabase.from('matters').select('*').order('created_at', { ascending: true }),
+        supabase.from('matter_types').select('*'),
+        supabase.from('matter_billing').select('*').order('created_at', { ascending: true }),
         supabase.from('tasks').select('*').eq('is_recurring', true),
-        supabase.from('cases').select('status'),
+        supabase.from('matters').select('status'),
         supabase.from('client_feedback').select('rating')
       ]);
 
       // Handle individual errors without failing the entire request
       const errors = [];
-      if (casesResult.error) errors.push(`Cases: ${casesResult.error.message}`);
-      if (typesResult.error) errors.push(`Case types: ${typesResult.error.message}`);
+      if (mattersResult.error) errors.push(`Matters: ${mattersResult.error.message}`);
+      if (typesResult.error) errors.push(`Matter types: ${typesResult.error.message}`);
       if (billingResult.error) errors.push(`Billing: ${billingResult.error.message}`);
       if (tasksResult.error) errors.push(`Tasks: ${tasksResult.error.message}`);
       if (statusResult.error) errors.push(`Status: ${statusResult.error.message}`);
@@ -153,8 +153,8 @@ export default function Analytics() {
       }
 
       // Process and set data with fallback to empty arrays
-      setCaseData(processCaseData(casesResult.data || []));
-      setCaseTypes(typesResult.data || []);
+      setMatterData(processMatterData(mattersResult.data || []));
+      setMatterTypes(typesResult.data || []);
       setBillingPerformance(processBillingData(billingResult.data || []));
       setRecurringTasks(processTasksData(tasksResult.data || []));
 
@@ -168,7 +168,7 @@ export default function Analytics() {
         status,
         count: Number(count),
       }));
-      setCaseStatuses(statuses.length ? statuses : [
+      setMatterStatuses(statuses.length ? statuses : [
         { status: 'Open', count: 0 },
         { status: 'Closed', count: 0 },
         { status: 'Pending', count: 0 }
@@ -193,7 +193,7 @@ export default function Analytics() {
       ]);
 
       // Calculate summary statistics
-      const stats = calculateSummaryStats(casesResult.data || []);
+      const stats = calculateSummaryStats(mattersResult.data || []);
       setSummaryStats(stats);
 
     } catch (error) {
@@ -205,18 +205,18 @@ export default function Analytics() {
     }
   };
 
-  const processCaseData = (cases: any[]): CaseData[] => {
-    // Group cases by month and calculate metrics
-    const monthlyData = cases.reduce((acc: Record<string, { cases: number; revenue: number; expenses: number }>, case_: any) => {
-      const month = new Date(case_.created_at).toLocaleString('default', { month: 'short' });
+  const processMatterData = (matters: any[]): MatterData[] => {
+    // Group matters by month and calculate metrics
+    const monthlyData = matters.reduce((acc: Record<string, { matters: number; revenue: number; expenses: number }>, matter_: any) => {
+      const month = new Date(matter_.created_at).toLocaleString('default', { month: 'short' });
       
       if (!acc[month]) {
-        acc[month] = { cases: 0, revenue: 0, expenses: 0 };
+        acc[month] = { matters: 0, revenue: 0, expenses: 0 };
       }
 
-      acc[month].cases++;
-      acc[month].revenue += Number(case_.revenue) || 0;
-      acc[month].expenses += Number(case_.expenses) || 0;
+      acc[month].matters++;
+      acc[month].revenue += Number(matter_.revenue) || 0;
+      acc[month].expenses += Number(matter_.expenses) || 0;
 
       return acc;
     }, {});
@@ -226,14 +226,14 @@ export default function Analytics() {
     return Object.entries(monthlyData)
       .map(([month, data]) => ({
         name: month,
-        cases: data.cases,
+        matters: data.matters,
         revenue: data.revenue,
         expenses: data.expenses
       }))
       .sort((a, b) => months.indexOf(a.name) - months.indexOf(b.name));
   };
 
-  const processBillingData = (billing: any[]): BillingData[] => {
+  const processBillingData = (billing: any[]): MatterBillingData[] => {
     // Group billing data by month
     const monthlyData = billing.reduce((acc: Record<string, { paid: number; outstanding: number }>, bill: any) => {
       const month = new Date(bill.created_at).toLocaleString('default', { month: 'short' });
@@ -274,23 +274,23 @@ export default function Analytics() {
     }));
   };
 
-  const calculateSummaryStats = (cases: any[]): SummaryStats => {
-    const totalCases = cases.length;
-    const activeCases = cases.filter(c => c.status === 'active').length;
-    const totalRevenue = cases.reduce((sum, c) => sum + (Number(c.revenue) || 0), 0);
+  const calculateSummaryStats = (matters: any[]): SummaryStats => {
+    const totalMatters = matters.length;
+    const activeMatters = matters.filter(c => c.status === 'active').length;
+    const totalRevenue = matters.reduce((sum, c) => sum + (Number(c.revenue) || 0), 0);
     
-    // Calculate case duration for closed cases
-    const closedCases = cases.filter(c => c.end_date);
-    const totalDuration = closedCases.reduce((sum, c) => {
+    // Calculate case duration for closed matters
+    const closedMatters = matters.filter(c => c.end_date);
+    const totalDuration = closedMatters.reduce((sum, c) => {
       const startDate = new Date(c.start_date).getTime();
       const endDate = new Date(c.end_date).getTime();
       return sum + (endDate - startDate) / (1000 * 60 * 60 * 24); // Convert to days
     }, 0);
     
-    const averageCaseDuration = closedCases.length > 0 ? totalDuration / closedCases.length : 0;
-    const totalClients = new Set(cases.map(c => c.client_id).filter(Boolean)).size;
-    const successfulCases = cases.filter(c => c.status === 'closed' && c.outcome === 'successful').length;
-    const successRate = closedCases.length > 0 ? (successfulCases / closedCases.length) * 100 : 0;
+    const averageCaseDuration = closedMatters.length > 0 ? totalDuration / closedMatters.length : 0;
+    const totalClients = new Set(matters.map(c => c.client_id).filter(Boolean)).size;
+    const successfulMatters = matters.filter(c => c.status === 'closed' && c.outcome === 'successful').length;
+    const successRate = closedMatters.length > 0 ? (successfulMatters / closedMatters.length) * 100 : 0;
 
     // Calculate client satisfaction from feedback data
     const clientSatisfaction = clientFeedback.length > 0
@@ -299,8 +299,8 @@ export default function Analytics() {
       : 0;
 
     return {
-      totalCases,
-      activeCases,
+      totalMatters,
+      activeMatters,
       totalRevenue,
       averageCaseDuration,
       clientSatisfaction,
@@ -313,8 +313,8 @@ export default function Analytics() {
     try {
       const csvContent = [
         ['Metric', 'Value'],
-        ['Total Cases', summaryStats.totalCases],
-        ['Active Cases', summaryStats.activeCases],
+        ['Total Matters', summaryStats.totalMatters],
+        ['Active Matters', summaryStats.activeMatters],
         ['Total Revenue', summaryStats.totalRevenue],
         ['Average Case Duration', summaryStats.averageCaseDuration],
         ['Client Satisfaction', summaryStats.clientSatisfaction],
@@ -373,7 +373,7 @@ export default function Analytics() {
 
   const chartConfigs: ChartConfig[] = [
     {
-      title: "Cases Over Time",
+      title: "Matters Over Time",
       chart: (data) => (
         <LineChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" />
@@ -381,10 +381,10 @@ export default function Analytics() {
           <YAxis />
           <Tooltip />
           <Legend />
-          <Line type="monotone" dataKey="cases" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+          <Line type="monotone" dataKey="matters" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
         </LineChart>
       ),
-      data: caseData,
+      data: matterData,
     },
     {
       title: "Revenue vs Expenses",
@@ -398,21 +398,21 @@ export default function Analytics() {
           <Bar dataKey="expenses" fill="#ef4444" radius={[10, 10, 0, 0]} />
         </BarChart>
       ),
-      data: caseData,
+      data: matterData,
     },
     {
-      title: "Case Types Distribution",
+      title: "Matter Types Distribution",
       chart: () => (
         <PieChart>
-          <Pie data={caseTypes} dataKey="value" nameKey="name" outerRadius={70} label>
-            {caseTypes.map((entry, index) => (
+          <Pie data={matterTypes} dataKey="value" nameKey="name" outerRadius={70} label>
+            {matterTypes.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
           <Tooltip />
         </PieChart>
       ),
-      data: caseTypes,
+      data: matterTypes,
     },
     {
       title: "Billing Performance",
@@ -430,18 +430,18 @@ export default function Analytics() {
       data: billingPerformance,
     },
     {
-      title: "Case Status Overview",
+      title: "Matter Status Overview",
       chart: (data) => (
         <PieChart>
-          <Pie data={caseStatuses} dataKey="count" nameKey="status" outerRadius={70} label>
-            {caseStatuses.map((entry, index) => (
+          <Pie data={matterStatuses} dataKey="count" nameKey="status" outerRadius={70} label>
+            {matterStatuses.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
           <Tooltip />
         </PieChart>
       ),
-      data: caseStatuses,
+      data: matterStatuses,
     },
     {
       title: "Client Satisfaction",
@@ -473,9 +473,9 @@ export default function Analytics() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="shadow-sm transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100/50 hover:shadow-[0_4px_32px_0_rgba(59,130,246,0.12)] dark:hover:shadow-[0_4px_32px_0_rgba(255,255,255,0.27)]">
             <CardContent className="p-6">
-              <h3 className="text-sm font-medium text-black dark:text-black">Total Cases</h3>
-              <p className="text-3xl font-bold text-black mt-2 dark:text-black">{summaryStats.totalCases}</p>
-              <p className="text-sm text-gray-700 mt-1 dark:text-black">{summaryStats.activeCases} Active Matters</p>
+              <h3 className="text-sm font-medium text-black dark:text-black">Total Matters</h3>
+              <p className="text-3xl font-bold text-black mt-2 dark:text-black">{summaryStats.totalMatters}</p>
+              <p className="text-sm text-gray-700 mt-1 dark:text-black">{summaryStats.activeMatters} Active Matters</p>
             </CardContent>
           </Card>
           <Card className="shadow-sm transition-shadow bg-gradient-to-br from-white/90 via-blue-50 to-pink-100/50 hover:shadow-[0_4px_32px_0_rgba(59,130,246,0.12)] dark:hover:shadow-[0_4px_32px_0_rgba(255,255,255,0.27)]">

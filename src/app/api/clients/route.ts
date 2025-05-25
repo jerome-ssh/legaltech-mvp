@@ -1,6 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { supabase, getProfileId } from '@/lib/supabase';
+import { z } from 'zod';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client
+const supabaseClient = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_KEY!
+);
+
+const clientSchema = z.object({
+  title_id: z.number(),
+  first_name: z.string().min(1),
+  last_name: z.string().min(1),
+  email: z.string().email(),
+  address: z.string().optional(),
+  preferred_language_id: z.number(),
+  client_type_id: z.number(),
+  phone_number: z.string().regex(/^\+[1-9]\d{1,14}$/, 'Please enter a valid international phone number'),
+});
 
 export async function GET(req: NextRequest) {
   try {
@@ -30,49 +49,67 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(request: Request) {
   try {
     const { userId } = auth();
     if (!userId) {
+      console.error('Auth error: No userId');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const profileId = await getProfileId(userId);
+    const body = await request.json();
+    console.log('Received client POST body:', body);
+    const parseResult = clientSchema.safeParse(body);
+    if (!parseResult.success) {
+      console.error('Client validation error:', parseResult.error.errors);
+      return NextResponse.json({ error: 'Invalid client data', details: parseResult.error.errors }, { status: 400 });
+    }
+    const clientData = parseResult.data;
 
-    const body = await req.json();
-    const { first_name, last_name, email, phone_number, address, city, state, zip_code } = body;
+    // Get the user's profile_id
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('profiles')
+      .select('id')
+      .eq('clerk_id', userId)
+      .single();
 
-    // Validate required fields
-    if (!first_name || !last_name) {
-      return NextResponse.json({ error: 'First name and last name are required' }, { status: 400 });
+    if (profileError) {
+      console.error('Profile lookup error:', profileError);
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    const { data, error } = await supabase
+    // Create the client
+    const { data: client, error } = await supabaseClient
       .from('clients')
-      .insert({
-        profile_id: profileId,
-        first_name,
-        last_name,
-        email,
-        phone_number,
-        address,
-        city,
-        state,
-        zip_code
-      })
+      .insert([
+        {
+          title_id: clientData.title_id,
+          first_name: clientData.first_name,
+          last_name: clientData.last_name,
+          email: clientData.email,
+          address: clientData.address,
+          preferred_language_id: clientData.preferred_language_id,
+          client_type_id: clientData.client_type_id,
+          phone_number: clientData.phone_number,
+          profile_id: profile.id,
+          created_at: new Date().toISOString(),
+        }
+      ])
       .select()
       .single();
 
     if (error) {
-      console.error('Client creation error:', error);
+      console.error('Supabase insert error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ data });
-  } catch (error: unknown) {
-    console.error('Unexpected error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return NextResponse.json({ id: client.id });
+  } catch (error) {
+    console.error('Error creating client:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
 

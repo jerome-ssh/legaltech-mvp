@@ -24,6 +24,7 @@ const STATUS_OPTIONS = [
   { value: 'pending', label: 'Pending' },
   { value: 'closed', label: 'Closed' },
   { value: 'archived', label: 'Archived' },
+  { value: 'intake_completed', label: 'Intake Completed' }
 ];
 
 export default function MatterStatus({ matterId, currentStatus, onStatusChange }: MatterStatusProps) {
@@ -39,7 +40,10 @@ export default function MatterStatus({ matterId, currentStatus, onStatusChange }
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ 
+          status: newStatus,
+          notes: `Status changed from ${status} to ${newStatus}`
+        }),
       });
 
       if (!response.ok) {
@@ -48,8 +52,8 @@ export default function MatterStatus({ matterId, currentStatus, onStatusChange }
       }
 
       const data = await response.json();
-      setStatus(data.status);
-      onStatusChange?.(data.status);
+      setStatus(newStatus);
+      onStatusChange?.(newStatus);
 
       toast({
         title: 'Status Updated',

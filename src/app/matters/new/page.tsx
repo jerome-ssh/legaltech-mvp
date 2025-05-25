@@ -58,7 +58,7 @@ export default function NewMatter() {
 
       // Create the new matter
       const { error } = await supabase
-        .from('cases')
+        .from('matters')
         .insert([
           {
             ...formData,

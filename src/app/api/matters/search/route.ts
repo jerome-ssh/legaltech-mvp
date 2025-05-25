@@ -12,14 +12,28 @@ const supabase = createClient(
 const VALID_SORT_FIELDS = ['created_at', 'updated_at', 'title', 'status', 'priority'];
 const VALID_SORT_DIRECTIONS = ['asc', 'desc'];
 
+// Valid payment patterns
+const VALID_PAYMENT_PATTERNS = ['Standard', 'Block', 'Subscription', 'Contingency', 'Hybrid'];
+
+// Valid status values
+const VALID_STATUS_VALUES = ['active', 'pending', 'closed', 'archived'];
+
+// Valid priority values
+const VALID_PRIORITY_VALUES = ['high', 'medium', 'low'];
+
 // GET /api/matters/search - Search and filter matters
 export async function GET(request: Request) {
   try {
+    console.log('Starting matter search request...');
+    
     const { userId } = auth();
     if (!userId) {
+      console.error('Unauthorized: No userId provided');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    console.log('Fetching profile for userId:', userId);
+    
     // Get the user's profile_id
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
@@ -28,8 +42,11 @@ export async function GET(request: Request) {
       .single();
 
     if (profileError) {
+      console.error('Profile error:', profileError);
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
+
+    console.log('Profile found:', profile);
 
     // Get query parameters
     const url = new URL(request.url);
@@ -41,8 +58,19 @@ export async function GET(request: Request) {
     const page = parseInt(url.searchParams.get('page') || '1');
     const pageSize = parseInt(url.searchParams.get('pageSize') || '10');
 
+    console.log('Query parameters:', {
+      searchQuery,
+      status,
+      priority,
+      sortBy,
+      sortDirection,
+      page,
+      pageSize
+    });
+
     // Validate sort parameters
     if (!VALID_SORT_FIELDS.includes(sortBy)) {
+      console.error('Invalid sort field:', sortBy);
       return NextResponse.json(
         { error: `Invalid sort field. Must be one of: ${VALID_SORT_FIELDS.join(', ')}` },
         { status: 400 }
@@ -50,15 +78,36 @@ export async function GET(request: Request) {
     }
 
     if (!VALID_SORT_DIRECTIONS.includes(sortDirection)) {
+      console.error('Invalid sort direction:', sortDirection);
       return NextResponse.json(
         { error: `Invalid sort direction. Must be one of: ${VALID_SORT_DIRECTIONS.join(', ')}` },
         { status: 400 }
       );
     }
 
+    // Validate status if provided
+    if (status && status !== 'all' && !VALID_STATUS_VALUES.includes(status)) {
+      console.error('Invalid status value:', status);
+      return NextResponse.json(
+        { error: `Invalid status. Must be one of: ${VALID_STATUS_VALUES.join(', ')}` },
+        { status: 400 }
+      );
+    }
+
+    // Validate priority if provided
+    if (priority && priority !== 'all' && !VALID_PRIORITY_VALUES.includes(priority)) {
+      console.error('Invalid priority value:', priority);
+      return NextResponse.json(
+        { error: `Invalid priority. Must be one of: ${VALID_PRIORITY_VALUES.join(', ')}` },
+        { status: 400 }
+      );
+    }
+
+    console.log('Building query...');
+
     // Build the query
     let query = supabase
-      .from('cases')
+      .from('matters')
       .select(`
         *,
         matter_status (
@@ -66,43 +115,87 @@ export async function GET(request: Request) {
           changed_at
         ),
         matter_billing (
-          billing_type,
+          payment_pattern,
           rate,
-          currency
+          currency,
+          payment_terms,
+          retainer_amount,
+          retainer_balance,
+          billing_frequency,
+          custom_frequency,
+          billing_notes,
+          features
         )
       `, { count: 'exact' })
       .eq('profile_id', profile.id);
 
     // Apply search filter
     if (searchQuery) {
+      console.log('Applying search filter:', searchQuery);
       query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
     }
 
     // Apply status filter
-    if (status) {
+    if (status && status !== 'all') {
+      console.log('Applying status filter:', status);
       query = query.eq('status', status);
     }
 
     // Apply priority filter
-    if (priority) {
+    if (priority && priority !== 'all') {
+      console.log('Applying priority filter:', priority);
       query = query.eq('priority', priority);
     }
 
     // Apply sorting
+    console.log('Applying sorting:', { sortBy, sortDirection });
     query = query.order(sortBy, { ascending: sortDirection === 'asc' });
 
     // Apply pagination
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
+    console.log('Applying pagination:', { from, to });
     query = query.range(from, to);
 
     // Execute the query
+    console.log('Executing query...');
     const { data: matters, error, count } = await query;
 
     if (error) {
+      console.error('Query error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Validate the response data
+    if (matters) {
+      console.log('Validating response data...');
+      matters.forEach((matter, index) => {
+        // Log any missing or invalid fields
+        if (!matter.matter_status) {
+          console.warn(`Matter ${index} missing matter_status`);
+        }
+        if (!matter.matter_billing) {
+          console.warn(`Matter ${index} missing matter_billing`);
+        }
+        if (matter.matter_billing) {
+          // Validate payment pattern
+          if (!matter.matter_billing.payment_pattern || !VALID_PAYMENT_PATTERNS.includes(matter.matter_billing.payment_pattern)) {
+            console.warn(`Matter ${index} has invalid payment_pattern:`, matter.matter_billing.payment_pattern);
+          }
+          // Validate rate
+          if (typeof matter.matter_billing.rate !== 'number' || matter.matter_billing.rate < 0) {
+            console.warn(`Matter ${index} has invalid rate:`, matter.matter_billing.rate);
+          }
+          // Validate currency
+          if (!matter.matter_billing.currency) {
+            console.warn(`Matter ${index} missing currency`);
+          }
+        }
+      });
+    }
+
+    console.log('Query successful. Found', count, 'matters');
+    
     return NextResponse.json({
       matters,
       pagination: {
@@ -113,7 +206,7 @@ export async function GET(request: Request) {
       }
     });
   } catch (error) {
-    console.error('Error searching matters:', error);
+    console.error('Unexpected error in matter search:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

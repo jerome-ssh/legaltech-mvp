@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
-interface BillingRecord {
+interface MatterBillingRecord {
   id: string;
   invoice_number: string;
   case_id: string;
@@ -18,7 +18,7 @@ interface BillingRecord {
 
 export default function BillingDashboard() {
   const { user, isLoaded } = useUser();
-  const [records, setRecords] = useState<BillingRecord[]>([]);
+  const [records, setRecords] = useState<MatterBillingRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -33,7 +33,7 @@ export default function BillingDashboard() {
       try {
         // Assumes RLS restricts to user
         const { data, error } = await supabase
-          .from("billing")
+          .from("matter_billing")
           .select("id, invoice_number, case_id, amount, status, created_at")
           .order("created_at", { ascending: false });
         if (error) throw error;

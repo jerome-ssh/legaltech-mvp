@@ -35,7 +35,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { barNumber, firmName, specialization, yearsOfPractice } = body;
+    const { barNumber, firmName, specialization, years_of_practice } = body;
 
     console.log('API route: Updating Supabase profile for userId:', userId);
     // Update profile in Supabase
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
         bar_number: barNumber,
         firm_name: firmName,
         specialization: specialization,
-        years_of_practice: yearsOfPractice,
+        years_of_practice: years_of_practice,
         onboarding_completed: true,
         updated_at: new Date().toISOString()
       })

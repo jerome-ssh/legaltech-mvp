@@ -1,40 +1,53 @@
-// src/lib/cache.ts
-export class Cache<T> {
-  private cache: Map<string, { data: T; timestamp: number }>;
-  private ttl: number;
+import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
-  constructor(ttlMinutes: number = 5) {
-    this.cache = new Map();
-    this.ttl = ttlMinutes * 60 * 1000;
-  }
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
-  set(key: string, data: T): void {
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now()
-    });
-  }
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const { clerk_id, email, first_name, last_name, phone_number, role_id } = body;
 
-  get(key: string): T | null {
-    const item = this.cache.get(key);
-    if (!item) return null;
-    
-    if (Date.now() - item.timestamp > this.ttl) {
-      this.cache.delete(key);
-      return null;
+    if (!clerk_id || !email) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
     }
-    
-    return item.data;
-  }
 
-  delete(key: string): void {
-    this.cache.delete(key);
-  }
+    const { data, error } = await supabase
+      .from('profiles')
+      .insert([
+        {
+          clerk_id,
+          email,
+          first_name,
+          last_name,
+          phone_number,
+          role_id,
+          onboarding_completed: false
+        }
+      ])
+      .select()
+      .single();
 
-  clear(): void {
-    this.cache.clear();
+    if (error) {
+      console.error('Error creating profile:', error);
+      return NextResponse.json(
+        { error: 'Failed to create profile' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ data });
+  } catch (error) {
+    console.error('Error in profile creation:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
-
-export const userCache = new Cache<any>(5);
-export const profileCache = new Cache<any>(5);

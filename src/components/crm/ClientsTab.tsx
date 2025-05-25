@@ -21,7 +21,7 @@ interface Client {
   created_at: string;
 }
 
-interface Case {
+interface Matter {
   id: string;
   client_id: string;
   status: string;
@@ -33,7 +33,7 @@ interface ClientsTabContentProps {
 
 function ClientsTabContent({ shouldFetch }: ClientsTabContentProps) {
   const [clients, setClients] = useState<Client[]>([]);
-  const [cases, setCases] = useState<Case[]>([]);
+  const [matters, setMatters] = useState<Matter[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -47,29 +47,29 @@ function ClientsTabContent({ shouldFetch }: ClientsTabContentProps) {
         setLoading(true);
         setError(null);
 
-        // Fetch clients and cases in parallel
-        const [clientsResponse, casesResponse] = await Promise.all([
+        // Fetch clients and matters in parallel
+        const [clientsResponse, mattersResponse] = await Promise.all([
           fetch('/api/clients'),
-          fetch('/api/cases')
+          fetch('/api/matters')
         ]);
 
         if (!clientsResponse.ok) {
           const errorData = await clientsResponse.json();
           throw new Error(errorData.error || 'Failed to fetch clients');
         }
-        if (!casesResponse.ok) {
-          const errorData = await casesResponse.json();
-          throw new Error(errorData.error || 'Failed to fetch cases');
+        if (!mattersResponse.ok) {
+          const errorData = await mattersResponse.json();
+          throw new Error(errorData.error || 'Failed to fetch matters');
         }
 
-        const [clientsData, casesData] = await Promise.all([
+        const [clientsData, mattersData] = await Promise.all([
           clientsResponse.json(),
-          casesResponse.json()
+          mattersResponse.json()
         ]);
 
         if (mounted) {
           setClients(Array.isArray(clientsData.data) ? clientsData.data : []);
-          setCases(Array.isArray(casesData.data) ? casesData.data : []);
+          setMatters(Array.isArray(mattersData.data) ? mattersData.data : []);
         }
       } catch (err) {
         console.error('Error in fetchData:', err);
@@ -223,8 +223,8 @@ function ClientsTabContent({ shouldFetch }: ClientsTabContentProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredClients.map((client) => {
-          const clientCases = cases.filter((c) => c.client_id === client.id);
-          const openCases = clientCases.filter((c) => c.status === 'open').length;
+          const clientMatters = matters.filter((m) => m.client_id === client.id);
+          const openMatters = clientMatters.filter((m) => m.status === 'open').length;
 
           return (
             <motion.div
@@ -270,11 +270,11 @@ function ClientsTabContent({ shouldFetch }: ClientsTabContentProps) {
                         <div className="flex items-center text-gray-600 dark:text-gray-300">
                           <Activity className="w-4 h-4 mr-2" />
                           <span className="text-sm">
-                            {clientCases.length} Case{clientCases.length !== 1 ? 's' : ''}
+                            {clientMatters.length} Matter{clientMatters.length !== 1 ? 's' : ''}
                           </span>
                         </div>
                         <div className="text-sm font-medium bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-                          {openCases} Open
+                          {openMatters} Open
                         </div>
                       </div>
                     </div>

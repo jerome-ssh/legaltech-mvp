@@ -35,7 +35,7 @@ export async function GET(
 
     // Verify matter exists and user has access
     const { data: matter, error: matterError } = await supabase
-      .from('cases')
+      .from('matters')
       .select('id')
       .eq('id', params.id)
       .eq('profile_id', profile.id)
@@ -106,7 +106,7 @@ export async function PUT(
 
     // Verify matter exists and user has access
     const { data: matter, error: matterError } = await supabase
-      .from('cases')
+      .from('matters')
       .select('id, status')
       .eq('id', params.id)
       .eq('profile_id', profile.id)
@@ -122,6 +122,7 @@ export async function PUT(
       .insert([
         {
           matter_id: params.id,
+          name: status,
           status,
           previous_status: matter.status,
           changed_by: userId,
@@ -138,8 +139,11 @@ export async function PUT(
 
     // Update matter status
     const { error: updateError } = await supabase
-      .from('cases')
-      .update({ status })
+      .from('matters')
+      .update({ 
+        status,
+        updated_at: new Date().toISOString()
+      })
       .eq('id', params.id);
 
     if (updateError) {

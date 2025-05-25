@@ -18,7 +18,7 @@ export async function GET() {
 
     // Fetch all data in parallel, filtered by userId
     const [
-      casesResult,
+      mattersResult,
       typesResult,
       billingResult,
       tasksResult,
@@ -27,20 +27,20 @@ export async function GET() {
     ] = await Promise.all([
       // Matters by month
       supabase
-        .from('cases')
+        .from('matters')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: true }),
 
       // Case types
       supabase
-        .from('cases')
+        .from('matters')
         .select('case_type')
         .eq('user_id', userId),
 
       // Billing data
       supabase
-        .from('cases')
+        .from('matters')
         .select('billing_amount, status')
         .eq('user_id', userId),
 
@@ -52,7 +52,7 @@ export async function GET() {
 
       // Case status
       supabase
-        .from('cases')
+        .from('matters')
         .select('status')
         .eq('user_id', userId),
 
@@ -63,23 +63,23 @@ export async function GET() {
         .eq('user_id', userId)
     ]);
 
-    // Process cases by month
-    const casesByMonth = casesResult.data?.reduce((acc: any, case_: any) => {
-      const month = new Date(case_.created_at).toLocaleString('default', { month: 'long' });
+    // Process matters by month
+    const mattersByMonth = mattersResult.data?.reduce((acc: any, matter: any) => {
+      const month = new Date(matter.created_at).toLocaleString('default', { month: 'long' });
       acc[month] = (acc[month] || 0) + 1;
       return acc;
     }, {});
 
     // Process case types
-    const caseTypes = typesResult.data?.reduce((acc: any, case_: any) => {
-      acc[case_.case_type] = (acc[case_.case_type] || 0) + 1;
+    const caseTypes = typesResult.data?.reduce((acc: any, matter: any) => {
+      acc[matter.case_type] = (acc[matter.case_type] || 0) + 1;
       return acc;
     }, {});
 
     // Process billing data
-    const billingData = billingResult.data?.reduce((acc: any, case_: any) => {
-      if (case_.status === 'completed') {
-        acc.totalBilled += case_.billing_amount || 0;
+    const billingData = billingResult.data?.reduce((acc: any, matter: any) => {
+      if (matter.status === 'completed') {
+        acc.totalBilled += matter.billing_amount || 0;
         acc.completedCases++;
       }
       return acc;
@@ -102,8 +102,8 @@ export async function GET() {
     }, { completed: 0, pending: 0, overdue: 0 });
 
     // Process case status
-    const caseStatus = statusResult.data?.reduce((acc: any, case_: any) => {
-      acc[case_.status] = (acc[case_.status] || 0) + 1;
+    const caseStatus = statusResult.data?.reduce((acc: any, matter: any) => {
+      acc[matter.status] = (acc[matter.status] || 0) + 1;
       return acc;
     }, {});
 
@@ -115,7 +115,7 @@ export async function GET() {
     }, { total: 0, count: 0 });
 
     return NextResponse.json({
-      casesByMonth,
+      mattersByMonth,
       caseTypes,
       billingData,
       tasks,

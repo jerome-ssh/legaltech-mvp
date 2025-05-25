@@ -10,6 +10,8 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { setHours, setMinutes } from 'date-fns';
 import { toast } from 'sonner';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 export interface ScheduleEvent {
   id?: string;
@@ -23,6 +25,10 @@ export interface ScheduleEvent {
   end_time: string;
   recurrence: string;
   reminder: string;
+  is_recurring?: boolean;
+  recurrence_pattern?: string;
+  reminder_time?: string;
+  reminder_type?: string[];
 }
 
 interface ScheduleEventModalProps {
@@ -70,6 +76,21 @@ const reminderOptions = [
   { value: 'custom', label: 'Custom...' },
 ];
 
+const REMINDER_OPTIONS = [
+  { value: '5m', label: '5 minutes before' },
+  { value: '15m', label: '15 minutes before' },
+  { value: '30m', label: '30 minutes before' },
+  { value: '1h', label: '1 hour before' },
+  { value: '2h', label: '2 hours before' },
+  { value: '1d', label: '1 day before' }
+];
+
+const NOTIFICATION_TYPES = [
+  { value: 'email', label: 'Email' },
+  { value: 'sms', label: 'SMS' },
+  { value: 'push', label: 'Push Notification' }
+];
+
 export function ScheduleEventModal({ 
   open, 
   onClose, 
@@ -90,6 +111,10 @@ export function ScheduleEventModal({
     end_time: '',
     recurrence: '',
     reminder: '',
+    is_recurring: false,
+    recurrence_pattern: '',
+    reminder_time: '',
+    reminder_type: [],
   });
 
   const [recurrenceType, setRecurrenceType] = useState('');
@@ -111,6 +136,10 @@ export function ScheduleEventModal({
         end_time: event.end_time ? event.end_time.slice(0, 16) : '',
         recurrence: event.recurrence || '',
         reminder: event.reminder || '',
+        is_recurring: event.is_recurring || false,
+        recurrence_pattern: event.recurrence_pattern || '',
+        reminder_time: event.reminder_time || '',
+        reminder_type: event.reminder_type || [],
       });
       const rec = event.recurrence || 'none';
       if ([ 'daily','weekly','biweekly','monthly','none' ].includes(rec)) {
@@ -142,6 +171,10 @@ export function ScheduleEventModal({
         end_time: '',
         recurrence: '',
         reminder: '',
+        is_recurring: false,
+        recurrence_pattern: '',
+        reminder_time: '',
+        reminder_type: [],
       });
       setRecurrenceType('none');
       setReminderType('none');
@@ -207,6 +240,10 @@ export function ScheduleEventModal({
         recurrence: recurrenceType === 'custom' ? form.recurrence : (recurrenceType === 'none' ? '' : recurrenceType),
         reminder: reminderType === 'custom' ? form.reminder : (reminderType === 'none' ? '' : reminderType),
         participants: form.participants.split(',').map((p) => p.trim()).filter(Boolean),
+        is_recurring: form.is_recurring,
+        recurrence_pattern: form.recurrence_pattern,
+        reminder_time: form.reminder_time,
+        reminder_type: form.reminder_type,
       };
       
       if ((eventData.status === 'cancelled' || eventData.status === 'completed') && event?.id && onDelete) {
@@ -239,6 +276,15 @@ export function ScheduleEventModal({
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleReminderTypeChange = (type: string) => {
+    setForm(prev => ({
+      ...prev,
+      reminder_type: prev.reminder_type?.includes(type)
+        ? prev.reminder_type.filter(t => t !== type)
+        : [...(prev.reminder_type || []), type]
+    }));
   };
 
   return (
@@ -373,6 +419,42 @@ export function ScheduleEventModal({
                 {reminderType === 'custom' && (
                   <Input name="reminder" value={form.reminder} onChange={handleChange} placeholder="Custom reminder (e.g. 2h before)" className="bg-white/80 text-black placeholder:text-gray-500 border border-gray-300 mt-2" />
                 )}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Reminder Settings</Label>
+              <div className="space-y-4">
+                <Select
+                  value={form.reminder_time}
+                  onValueChange={value => handleSelect('reminder_time', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select reminder time" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {REMINDER_OPTIONS.map(option => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <div className="space-y-2">
+                  <Label>Notification Methods</Label>
+                  <div className="space-y-2">
+                    {NOTIFICATION_TYPES.map(type => (
+                      <div key={type.value} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={type.value}
+                          checked={form.reminder_type?.includes(type.value)}
+                          onCheckedChange={() => handleReminderTypeChange(type.value)}
+                        />
+                        <Label htmlFor={type.value}>{type.label}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
             <div className="flex justify-between items-center pt-4 border-t border-gray-200/20 dark:border-gray-800/20">

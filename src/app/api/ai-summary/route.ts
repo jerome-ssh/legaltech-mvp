@@ -28,7 +28,7 @@ export async function POST(req: Request) {
 
     // Fetch matter details
     const { data: matter, error: matterError } = await supabase
-      .from('cases')
+      .from('matters')
       .select(`
         *,
         documents (*),
@@ -95,7 +95,7 @@ export async function POST(req: Request) {
 
     // Store the summary in the database
     const { error: updateError } = await supabase
-      .from('cases')
+      .from('matters')
       .update({ ai_summary: summary })
       .eq('id', matterId)
       .eq('user_id', userId);

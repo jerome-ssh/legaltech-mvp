@@ -105,7 +105,7 @@ export async function PUT(
 
     // Update the matter
     const { data: matter, error } = await supabase
-      .from('cases')
+      .from('matters')
       .update({
         title,
         description,
@@ -134,9 +134,11 @@ export async function PUT(
         .insert([
           {
             matter_id: params.id,
+            name: status,
             status,
             changed_by: userId,
-            notes: 'Status updated'
+            notes: 'Status updated',
+            changed_at: new Date().toISOString()
           }
         ]);
 

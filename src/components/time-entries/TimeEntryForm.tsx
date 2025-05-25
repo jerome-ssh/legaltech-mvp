@@ -21,31 +21,31 @@ export default function TimeEntryForm({ onClose, onSuccess }: TimeEntryFormProps
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [cases, setCases] = useState<any[]>([]);
-  const [casesLoading, setCasesLoading] = useState(true);
-  const [casesError, setCasesError] = useState<string | null>(null);
+  const [matters, setMatters] = useState<any[]>([]);
+  const [mattersLoading, setMattersLoading] = useState(true);
+  const [mattersError, setMattersError] = useState<string | null>(null);
   const supabase = createClientComponentClient();
 
   useEffect(() => {
     if (!isLoaded || !user) return;
-    setCasesLoading(true);
-    setCasesError(null);
-    const fetchCases = async () => {
+    setMattersLoading(true);
+    setMattersError(null);
+    const fetchMatters = async () => {
       try {
         const { data, error } = await supabase
-          .from("cases")
+          .from("matters")
           .select("id, name, case_participants!inner(user_id)")
           .eq("case_participants.user_id", user.id)
           .order("name");
         if (error) throw error;
-        setCases(data || []);
+        setMatters(data || []);
       } catch (err: any) {
-        setCasesError(err.message);
+        setMattersError(err.message);
       } finally {
-        setCasesLoading(false);
+        setMattersLoading(false);
       }
     };
-    fetchCases();
+    fetchMatters();
   }, [isLoaded, user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -79,10 +79,10 @@ export default function TimeEntryForm({ onClose, onSuccess }: TimeEntryFormProps
         <h2 className="text-lg font-bold mb-2">Log Time Entry</h2>
         <div>
           <label className="block text-sm font-medium mb-1">Case</label>
-          {casesLoading ? (
-            <div className="flex items-center gap-2 text-gray-500 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading cases...</div>
-          ) : casesError ? (
-            <div className="text-red-500 text-sm">{casesError}</div>
+          {mattersLoading ? (
+            <div className="flex items-center gap-2 text-gray-500 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading matters...</div>
+          ) : mattersError ? (
+            <div className="text-red-500 text-sm">{mattersError}</div>
           ) : (
             <select
               name="case_id"
@@ -93,8 +93,8 @@ export default function TimeEntryForm({ onClose, onSuccess }: TimeEntryFormProps
               className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             >
               <option value="">Select a case</option>
-              {cases.map((c: any) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+              {matters.map((m: any) => (
+                <option key={m.id} value={m.id}>{m.name}</option>
               ))}
             </select>
           )}

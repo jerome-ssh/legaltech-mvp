@@ -36,7 +36,7 @@ export async function GET(
 
     // Verify matter exists and user has access
     const { data: matter, error: matterError } = await supabase
-      .from('cases')
+      .from('matters')
       .select('id')
       .eq('id', params.id)
       .eq('profile_id', profile.id)
@@ -101,7 +101,7 @@ export async function POST(
 
     // Verify matter exists and user has access
     const { data: matter, error: matterError } = await supabase
-      .from('cases')
+      .from('matters')
       .select('id')
       .eq('id', params.id)
       .eq('profile_id', profile.id)
@@ -126,7 +126,8 @@ export async function POST(
           token,
           status: 'pending',
           sent_at: new Date().toISOString(),
-          expires_at: expires_at.toISOString()
+          expires_at: expires_at.toISOString(),
+          profile_id: profile.id
         }
       ])
       .select()
@@ -187,7 +188,7 @@ export async function PUT(
 
     // Verify matter exists and user has access
     const { data: matter, error: matterError } = await supabase
-      .from('cases')
+      .from('matters')
       .select('id')
       .eq('id', params.id)
       .eq('profile_id', profile.id)

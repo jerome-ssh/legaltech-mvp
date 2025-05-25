@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 
-interface Billing {
+interface MatterBilling {
   id: string;
   client_id: string;
   case_id: string;
@@ -17,7 +17,7 @@ interface Billing {
 
 export default function BillingDashboardPage() {
   const { isLoaded, isSignedIn } = useUser();
-  const [billing, setBilling] = useState<Billing[]>([]);
+  const [billing, setBilling] = useState<MatterBilling[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,7 +27,7 @@ export default function BillingDashboardPage() {
       setLoading(true);
       setError(null);
       const { data, error } = await supabase
-        .from("billing")
+        .from("matter_billing")
         .select("id, client_id, case_id, outstanding, paid, created_at")
         .order("created_at", { ascending: false });
       if (error) setError(error.message);

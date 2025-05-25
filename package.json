@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "node scripts/seed-analytics-data.js",
-    "create-profiles": "ts-node scripts/create-missing-profiles.ts"
+    "create-profiles": "ts-node scripts/create-missing-profiles.ts",
+    "test:isolation": "ts-node src/scripts/test-data-isolation.ts"
   },
   "dependencies": {
     "@azure/ai-text-analytics": "^5.1.0",
@@ -26,6 +27,7 @@
     "@fullcalendar/react": "^6.1.17",
     "@fullcalendar/timegrid": "^6.1.17",
     "@hello-pangea/dnd": "^18.0.1",
+    "@hookform/resolvers": "^5.0.1",
     "@mui/icons-material": "^7.1.0",
     "@mui/material": "^7.1.0",
     "@radix-ui/react-accordion": "^1.1.2",
@@ -72,6 +74,7 @@
     "date-fns": "^4.1.0",
     "dotenv": "^16.5.0",
     "framer-motion": "^12.12.1",
+    "libphonenumber-js": "^1.12.8",
     "lucide-react": "^0.331.0",
     "next": "^14.2.25",
     "next-auth": "^4.24.11",
@@ -81,8 +84,11 @@
     "react": "^18",
     "react-datepicker": "^8.3.0",
     "react-dom": "^18",
+    "react-hook-form": "^7.56.4",
     "react-hot-toast": "^2.5.2",
     "react-image-crop": "^11.0.10",
+    "react-phone-input-2": "^2.15.1",
+    "react-phone-number-input": "^3.4.12",
     "react-select": "^5.10.1",
     "react-select-country-list": "^2.2.3",
     "recharts": "^2.15.3",
@@ -93,10 +99,10 @@
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^11.1.0",
     "web-push": "^3.6.7",
-    "zod": "^3.24.4"
+    "zod": "^3.25.23"
   },
   "devDependencies": {
-    "@types/node": "^20.17.47",
+    "@types/node": "^20.17.50",
     "@types/react": "^18.3.21",
     "@types/react-dom": "^18.3.7",
     "@types/react-select": "^5.0.0",

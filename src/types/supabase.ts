@@ -38,36 +38,54 @@ export interface Database {
           role?: 'admin' | 'user'
         }
       }
-      cases: {
+      matters: {
         Row: {
           id: string
-          created_at: string
-          updated_at: string
           title: string
           description: string | null
-          status: 'open' | 'closed' | 'pending'
+          status: string
+          priority: string
           client_id: string
-          assigned_to: string | null
+          profile_id: string | null
+          matter_type_id: number | null
+          sub_type_id: number | null
+          jurisdiction: string | null
+          estimated_value: number | null
+          matter_date: string | null
+          created_at: string
+          updated_at: string
         }
         Insert: {
           id?: string
-          created_at?: string
-          updated_at?: string
           title: string
           description?: string | null
-          status?: 'open' | 'closed' | 'pending'
+          status?: string
+          priority?: string
           client_id: string
-          assigned_to?: string | null
+          profile_id?: string | null
+          matter_type_id?: number | null
+          sub_type_id?: number | null
+          jurisdiction?: string | null
+          estimated_value?: number | null
+          matter_date?: string | null
+          created_at?: string
+          updated_at?: string
         }
         Update: {
           id?: string
-          created_at?: string
-          updated_at?: string
           title?: string
           description?: string | null
-          status?: 'open' | 'closed' | 'pending'
+          status?: string
+          priority?: string
           client_id?: string
-          assigned_to?: string | null
+          profile_id?: string | null
+          matter_type_id?: number | null
+          sub_type_id?: number | null
+          jurisdiction?: string | null
+          estimated_value?: number | null
+          matter_date?: string | null
+          created_at?: string
+          updated_at?: string
         }
       }
       clients: {

@@ -76,7 +76,7 @@ export default function Matters() {
 
         // Fetch matters for this profile
         const { data, error } = await supabase
-          .from('cases')
+          .from('matters')
           .select('*')
           .eq('profile_id', profileId)
           .order('created_at', { ascending: false });
@@ -85,6 +85,14 @@ export default function Matters() {
         setMatters(data || []);
       } catch (error) {
         console.error('Error fetching matters:', error);
+        // Only set error for actual errors, not for empty results
+        if (error instanceof Error && !error.message.includes('No rows found')) {
+          toast({
+            title: 'Error',
+            description: 'Failed to fetch matters. Please try again.',
+            variant: 'destructive'
+          });
+        }
         setMatters([]);
       } finally {
         setLoading(false);
@@ -237,7 +245,7 @@ export default function Matters() {
         </div>
 
         <Dialog open={showWizard} onOpenChange={setShowWizard}>
-          <DialogContent className="max-w-4xl">
+          <DialogContent className="max-w-5xl p-0 overflow-hidden rounded-xl border-0 shadow-2xl">
             <MatterIntakeWizard onComplete={() => setShowWizard(false)} />
           </DialogContent>
         </Dialog>
