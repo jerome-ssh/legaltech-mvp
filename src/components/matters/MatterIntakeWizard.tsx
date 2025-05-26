@@ -27,9 +27,10 @@ import { ArrowLeft, ArrowRight, Check, ChevronRight, AlertCircle, Loader2, Check
 import { validateEmail, validatePhone, validateRequired, validateDate } from '@/lib/form-validation';
 import { countries } from '@/data/countries-list';
 import { regions } from '@/data/regions-states';
+import { useFormOptions } from '@/hooks/useFormOptions';
 
 interface MatterIntakeWizardProps {
-  onComplete: (matter: any) => void;
+  onComplete?: (matter?: any) => void;
 }
 
 interface ClientDetails {
@@ -101,11 +102,10 @@ interface MatterSubType {
 
 interface MatterDetails {
   title?: string;
-  matter_type_id: number | null;
-  sub_type_id: number | null;
+  matter_type_id: string | null;
+  sub_type_id: string | null;
   description: string;
   jurisdiction_country: string;
-  jurisdiction_state?: string;
   estimated_value?: number;
   start_date: Date | null;
   priority: 'High' | 'Medium' | 'Low';
@@ -117,7 +117,6 @@ interface MatterErrors {
   sub_type_id?: string;
   description?: string;
   jurisdiction_country?: string;
-  jurisdiction_state?: string;
   estimated_value?: string;
   start_date?: string;
   [key: string]: string | undefined;
@@ -127,7 +126,7 @@ interface BillingDetails {
   billing_method_id: string | null;
   payment_pattern_id: string | null;
   currency_id: string | null;
-  payment_medium: string;
+  payment_medium_id: string | null;
   rate_value: number;
   terms_details: {
     standard: string;
@@ -135,12 +134,10 @@ interface BillingDetails {
   };
   billing_frequency_id: string | null;
   features: {
-    automated_time_capture: boolean;
-    blockchain_invoicing: boolean;
-    send_invoice_on_approval: boolean;
+  automated_time_capture: boolean;
+  blockchain_invoicing: boolean;
+  send_invoice_on_approval: boolean;
   };
-  retainer_amount: number | null;
-  retainer_balance: number | null;
   notes: string | null;
 }
 
@@ -152,7 +149,6 @@ interface BillingErrors {
   terms?: string;
   rate?: string;
   billing_frequency_id?: string;
-  retainer_amount?: string;
   custom_terms?: string;
   [key: string]: string | undefined;
 }
@@ -176,7 +172,7 @@ interface BillingPayload {
     blockchain_invoicing: boolean;
     send_invoice_on_approval: boolean;
   };
-  payment_medium_id: number | null;
+  payment_medium_id: string | null;
   billing_method_id: string;
   intake_data: {
     client_id: string;
@@ -218,24 +214,27 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
   const [progress, setProgress] = useState(25);
   const [loading, setLoading] = useState(false);
   const [sendEForm, setSendEForm] = useState(false);
-  const [loadingOptions, setLoadingOptions] = useState(true);
-  const [titleOptions, setTitleOptions] = useState<Option[]>([]);
-  const [clientTypeOptions, setClientTypeOptions] = useState<Option[]>([]);
-  const [languageOptions, setLanguageOptions] = useState<Option[]>([]);
-  const [matterTypeOptions, setMatterTypeOptions] = useState<Option[]>([]);
-  const [matterSubTypeOptions, setMatterSubTypeOptions] = useState<SubTypeOption[]>([]);
-  const [billingMethodOptions, setBillingMethodOptions] = useState<Option[]>([]);
-  const [currencyOptions, setCurrencyOptions] = useState<Option[]>([]);
-  const [matterTypes, setMatterTypes] = useState<MatterType[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [submissionResult, setSubmissionResult] = useState<null | 'success' | 'error'>(null);
-  const [paymentMediumOptions, setPaymentMediumOptions] = useState<Option[]>([]);
-  const [paymentPatternOptions, setPaymentPatternOptions] = useState<Option[]>([]);
-  const [billingFrequencyOptions, setBillingFrequencyOptions] = useState<Option[]>([]);
+  
+  // Use the new hook to get all form options
+  const {
+    titleOptions,
+    clientTypeOptions,
+    languageOptions,
+    matterTypeOptions,
+    matterSubTypeOptions,
+    billingMethodOptions,
+    paymentPatternOptions,
+    currencyOptions,
+    billingFrequencyOptions,
+    paymentMediumOptions,
+    isLoading: loadingOptions,
+    error: optionsError
+  } = useFormOptions();
 
   // Form state
   const [formData, setFormData] = useState<MatterFormData>({
-    title: '',
+        title: '',
     description: '',
     client_id: '',
     priority: 'medium',
@@ -251,6 +250,23 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
     payment_schedule: '',
     payment_terms: '',
     client: {
+        first_name: '',
+        last_name: '',
+      title: '',
+      preferred_language: '',
+      client_type: '',
+        email: '',
+        phone: '',
+    }
+  });
+
+  // Load saved client details from localStorage if available
+  const [clientDetails, setClientDetails] = useState<ClientDetails>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('matter_intake_client_details');
+      if (saved) return JSON.parse(saved);
+    }
+    return {
       first_name: '',
       last_name: '',
       title: '',
@@ -258,19 +274,8 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
       client_type: '',
       email: '',
       phone: '',
-    }
-  });
-
-  // Load saved client details from localStorage if available
-  const [clientDetails, setClientDetails] = useState<ClientDetails>({
-    first_name: '',
-    last_name: '',
-    title: '',
-    preferred_language: '',
-    client_type: '',
-    email: '',
-    phone: '',
-    address: ''
+      address: ''
+    };
   });
 
   // Load saved matter details from localStorage if available
@@ -283,16 +288,16 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
         return {
           ...parsedData,
           jurisdiction_country: parsedData.jurisdiction,
-          jurisdiction_state: '',
           priority: parsedData.priority || 'Medium',
           status: parsedData.status || 'Active',
-          title: parsedData.title || '',
+          title: '',
           start_date: parsedData.start_date ? new Date(parsedData.start_date) : null,
           estimated_value: sanitizeEstimatedValue(parsedData.estimated_value),
         };
       }
       return parsedData ? {
         ...parsedData,
+        title: '',
         start_date: parsedData.start_date ? new Date(parsedData.start_date) : null,
         estimated_value: sanitizeEstimatedValue(parsedData.estimated_value),
       } : {
@@ -301,7 +306,6 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
         sub_type_id: null,
         description: '',
         jurisdiction_country: '',
-        jurisdiction_state: '',
         start_date: null,
         priority: 'Medium',
         status: 'Active',
@@ -314,7 +318,6 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
       sub_type_id: null,
       description: '',
       jurisdiction_country: '',
-      jurisdiction_state: '',
       start_date: null,
       priority: 'Medium',
       status: 'Active',
@@ -335,7 +338,7 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
         billing_method_id: null,
         payment_pattern_id: null,
         currency_id: null,
-        payment_medium: '',
+        payment_medium_id: null,
         rate_value: 0,
         terms_details: {
           standard: '',
@@ -343,12 +346,10 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
         },
         billing_frequency_id: null,
         features: {
-          automated_time_capture: true,
-          blockchain_invoicing: false,
-          send_invoice_on_approval: false
+        automated_time_capture: true,
+        blockchain_invoicing: false,
+        send_invoice_on_approval: false
         },
-        retainer_amount: null,
-        retainer_balance: null,
         notes: null
       };
     }
@@ -356,7 +357,7 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
       billing_method_id: null,
       payment_pattern_id: null,
       currency_id: null,
-      payment_medium: '',
+      payment_medium_id: null,
       rate_value: 0,
       terms_details: {
         standard: '',
@@ -364,12 +365,10 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
       },
       billing_frequency_id: null,
       features: {
-        automated_time_capture: true,
-        blockchain_invoicing: false,
-        send_invoice_on_approval: false
+      automated_time_capture: true,
+      blockchain_invoicing: false,
+      send_invoice_on_approval: false
       },
-      retainer_amount: null,
-      retainer_balance: null,
       notes: null
     };
   });
@@ -395,61 +394,22 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
     }
   }, [billingDetails]);
 
-  // Load options from API
+  // Set default values for fields with defaults when options load
   useEffect(() => {
-    const loadOptions = async () => {
-      try {
-        const [
-          titles,
-          clientTypes,
-          languages,
-          matterTypes,
-          subTypes,
-          billingMethods,
-          currencies
-        ] = await Promise.all([
-          fetch('/api/dropdowns/titles').then(res => res.json()),
-          fetch('/api/dropdowns/client-types').then(res => res.json()),
-          fetch('/api/dropdowns/languages').then(res => res.json()),
-          fetch('/api/dropdowns/matter-types').then(res => res.json()),
-          fetch('/api/dropdowns/matter-sub-types').then(res => res.json()),
-          fetch('/api/dropdowns/billing-methods').then(res => res.json()),
-          fetch('/api/dropdowns/currencies').then(res => res.json()),
-        ]);
-
-        if (titles?.options) setTitleOptions(titles.options);
-        if (clientTypes?.options) setClientTypeOptions(clientTypes.options);
-        if (languages?.options) setLanguageOptions(languages.options);
-        if (matterTypes?.options) setMatterTypeOptions(matterTypes.options);
-        if (subTypes?.options) setMatterSubTypeOptions(subTypes.options);
-        if (billingMethods?.options) setBillingMethodOptions(billingMethods.options);
-        if (currencies?.options) setCurrencyOptions(currencies.options);
-      } catch (error) {
-        console.error('Error loading dropdown options:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load form options. Please refresh the page.',
-          variant: 'destructive'
-        });
-      } finally {
-        setLoadingOptions(false);
+    setClientDetails(prev => {
+      let updated = { ...prev };
+      if (!prev.client_type && clientTypeOptions.length > 0) {
+        updated.client_type = clientTypeOptions[0].value;
       }
-    };
-
-    loadOptions();
-  }, []);
-
-  // Update form state when options are loaded
-  useEffect(() => {
-    if (titleOptions?.length > 0 && languageOptions?.length > 0 && clientTypeOptions?.length > 0) {
-      setClientDetails(prev => ({
-        ...prev,
-        title: prev.title || titleOptions[0]?.value || '',
-        preferred_language: prev.preferred_language || languageOptions[0]?.value || '',
-        client_type: prev.client_type || clientTypeOptions[0]?.value || ''
-      }));
-    }
-  }, [titleOptions, languageOptions, clientTypeOptions]);
+      if (!prev.title && titleOptions.length > 0) {
+        updated.title = titleOptions[0].value;
+      }
+      if (!prev.preferred_language && languageOptions.length > 0) {
+        updated.preferred_language = languageOptions[0].value;
+      }
+      return updated;
+    });
+  }, [clientTypeOptions, titleOptions, languageOptions]);
 
   // Update billing details when options are loaded
   useEffect(() => {
@@ -471,97 +431,6 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
       });
     }
   }, [billingMethodOptions, currencyOptions]);
-
-  // Add this useEffect to fetch matter types
-  useEffect(() => {
-    const fetchMatterTypes = async () => {
-      try {
-        const response = await fetch('/api/matter-types');
-        if (!response.ok) {
-          throw new Error('Failed to fetch matter types');
-        }
-        const data = await response.json();
-        setMatterTypes(data.matterTypes);
-      } catch (error) {
-        console.error('Error fetching matter types:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchMatterTypes();
-  }, []);
-
-  // Fetch payment medium options
-  useEffect(() => {
-    fetch('/api/dropdowns/payment-mediums').then(res => res.json()).then(data => {
-      if (data?.options) setPaymentMediumOptions(data.options);
-    });
-  }, []);
-
-  // Fetch payment pattern options from the backend
-  useEffect(() => {
-    fetch('/api/dropdowns/payment-patterns')
-      .then(res => res.json())
-      .then(data => {
-        if (data?.options) setPaymentPatternOptions(data.options);
-      });
-  }, []);
-
-  // Add useEffect for loading billing frequency options
-  useEffect(() => {
-    fetch('/api/dropdowns/billing-frequencies')
-      .then(res => res.json())
-      .then(data => {
-        if (data?.options) {
-          setBillingFrequencyOptions(data.options);
-        }
-      })
-      .catch(error => {
-        console.error('Error loading billing frequency options:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load billing frequency options',
-          variant: 'destructive'
-        });
-      });
-  }, []);
-
-  // Set default for billingDetails.terms_details.standard to 'Net 30' if not set
-  useEffect(() => {
-    if (!billingDetails.terms_details.standard && !billingDetails.terms_details.custom) {
-      setBillingDetails(prev => ({
-        ...prev,
-        terms_details: { ...prev.terms_details, standard: 'Net 30' }
-      }));
-    }
-    // eslint-disable-next-line
-  }, []);
-
-  // Set default for billingDetails.payment_pattern_id to 'Standard' and currency_id to 'USD' if not set
-  useEffect(() => {
-    // Set default payment pattern
-    if (!billingDetails.payment_pattern_id && paymentPatternOptions.length > 0) {
-      const standardOption = paymentPatternOptions.find(option => option.label.toLowerCase().includes('standard'));
-      if (standardOption) {
-        setBillingDetails(prev => ({
-          ...prev,
-          payment_pattern_id: standardOption.value
-        }));
-      }
-    }
-    // Set default currency
-    if (!billingDetails.currency_id && currencyOptions.length > 0) {
-      const usdOption = currencyOptions.find(option => option.label.toLowerCase().includes('usd') || option.value.toLowerCase() === 'usd');
-      if (usdOption) {
-        setBillingDetails(prev => ({
-          ...prev,
-          currency_id: String(usdOption.id)
-        }));
-      }
-    }
-    // eslint-disable-next-line
-  }, [paymentPatternOptions, currencyOptions]);
 
   const validateClientForm = (): boolean => {
     const errors: ClientErrors = {};
@@ -585,24 +454,23 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
   const validateMatterForm = (): boolean => {
     const errors: MatterErrors = {};
     
+    errors.title = validateRequired(matterDetails.title, 'Matter title');
     errors.matter_type_id = validateRequired(matterDetails.matter_type_id, 'Matter type');
     errors.sub_type_id = validateRequired(matterDetails.sub_type_id, 'Sub-type');
     errors.description = validateRequired(matterDetails.description, 'Description');
     errors.jurisdiction_country = validateRequired(matterDetails.jurisdiction_country, 'Country');
     errors.start_date = validateDate(matterDetails.start_date, 'Start date');
     
-    // No validation for state/province as it's optional
-    // No validation for estimated value as it's optional
-    
     setMatterErrors(errors);
     
-    // Form is valid if there are no error messages
     return Object.values(errors).every(error => !error);
   };
   
   const validateBillingForm = (): boolean => {
     const errors: BillingErrors = {};
-    const method = billingDetails.billing_method_id ?? '';
+    const method = billingMethodOptions.find(
+      option => String(option.id) === (billingDetails.billing_method_id ?? '')
+    )?.value || '';
 
     // Always required
     errors.billing_method = validateRequired(method, 'Billing method');
@@ -616,21 +484,16 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
       }
     }
 
-    // Payment Medium required for all except Contingency, Pro Bono, Other
-    if (!['Contingency', 'Pro Bono', 'Other'].includes(method)) {
-      errors.payment_medium = validateRequired(billingDetails.payment_medium, 'Payment medium');
+    // Payment Medium required for all except Pro Bono
+    if (method !== 'Pro Bono') {
+      errors.payment_medium = validateRequired(billingDetails.payment_medium_id, 'Payment medium');
     }
 
     // Frequency required for recurring methods
     if (["Hourly", "Retainer", "Subscription", "Hybrid"].includes(method)) {
       errors.billing_frequency_id = validateRequired(billingDetails.billing_frequency_id, 'Billing frequency');
     }
-
-    // Retainer amount required for Retainer
-    if (method === 'Retainer') {
-      errors.retainer_amount = validateRequired(billingDetails.retainer_amount, 'Retainer amount');
-    }
-
+    
     setBillingErrors(errors);
     return Object.values(errors).every(error => !error);
   };
@@ -645,6 +508,12 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
       formName = 'Client Information';
       isValid = validateClientForm();
       currentErrors = clientErrors;
+      // Enforce client type required
+      if (!clientDetails.client_type) {
+        isValid = false;
+        currentErrors = { ...currentErrors, client_type: 'Client type is required' };
+        setClientErrors(currentErrors);
+      }
     } else if (currentStep === 2) {
       formName = 'Matter Details';
       isValid = validateMatterForm();
@@ -713,14 +582,10 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
     return found && found.id !== undefined ? Number(found.id) : null;
   };
 
-  // Helper to build prefixed title
-  function getPrefixedTitle(client: ClientDetails, title: string | undefined) {
-    const prefix = `${client.first_name} ${client.last_name}`.trim();
-    if (!prefix) return title || '';
-    // Remove ALL occurrences of the prefix at the start
-    const regex = new RegExp(`^(${prefix}\\s*-\\s*)+`, 'i');
-    const titleWithoutPrefix = (title || '').replace(regex, '');
-    return `${prefix} - ${titleWithoutPrefix}`.trim();
+  // Helper to normalize optional fields to null
+  function normalizeNull(value: any) {
+    if (value === undefined || value === '' || (Array.isArray(value) && value.length === 0)) return null;
+    return value;
   }
 
   const handleSubmit = async () => {
@@ -755,13 +620,15 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
       const { id: clientId } = await clientResponse.json();
 
       // Validate matter_type_id and sub_type_id are valid numbers and exist in dropdowns
-      const validMatterType = matterTypes.find(type => type.id === matterDetails.matter_type_id);
+      const validMatterType = matterTypeOptions.find(type => String(type.value) === String(matterDetails.matter_type_id));
       if (!validMatterType) {
         toast({ title: 'Error', description: 'Invalid matter type selected.', variant: 'destructive' });
         setLoading(false);
         return;
       }
-      const validSubType = validMatterType.subTypes.find(sub => sub.id === matterDetails.sub_type_id);
+      const validSubType = Array.isArray(validMatterType.subTypes)
+        ? validMatterType.subTypes.find(sub => String(sub.value) === String(matterDetails.sub_type_id))
+        : undefined;
       if (!validSubType) {
         toast({ title: 'Error', description: 'Invalid sub-type selected.', variant: 'destructive' });
         setLoading(false);
@@ -769,28 +636,26 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
       }
 
       // Build the matter payload to match the DB schema
-      const jurisdiction = matterDetails.jurisdiction_country + (matterDetails.jurisdiction_state ? `, ${matterDetails.jurisdiction_state}` : '');
       const matterPayload: any = {
         client_id: clientId,
-        title: getPrefixedTitle(clientDetails, matterDetails.title),
+        title: matterDetails.title,
         description: matterDetails.description,
-        jurisdiction,
-        estimated_value: matterDetails.estimated_value,
-        matter_date: matterDetails.start_date ? matterDetails.start_date.toISOString().split('T')[0] : undefined,
+        jurisdiction: matterDetails.jurisdiction_country,
+        estimated_value: normalizeNull(matterDetails.estimated_value),
+        matter_date: matterDetails.start_date ? matterDetails.start_date.toISOString().split('T')[0] : null,
         type_id: Number(matterDetails.matter_type_id),
         sub_type_id: Number(matterDetails.sub_type_id),
         priority: matterDetails.priority,
         intake_data: { send_eform: sendEForm },
-        payment_pattern_id: billingDetails.payment_pattern_id,
-        rate: typeof billingDetails.rate_value === 'number' ? billingDetails.rate_value : (billingDetails.rate_value ?? 0),
-        currency: typeof billingDetails.currency_id === 'string' ? billingDetails.currency_id : null,
-        payment_terms: billingDetails.terms_details.standard || '',
-        retainer_amount: typeof billingDetails.retainer_amount === 'number' ? billingDetails.retainer_amount : (billingDetails.retainer_amount ?? 0),
-        retainer_balance: typeof billingDetails.retainer_balance === 'number' ? billingDetails.retainer_balance : (billingDetails.retainer_balance ?? 0),
-        billing_frequency_id: billingDetails.billing_frequency_id,
-        notes: billingDetails.notes || '',
-        features: billingDetails.features,
-        billing_method_id: billingDetails.billing_method_id
+        billing_method_id: billingDetails.billing_method_id,
+        payment_pattern_id: normalizeNull(billingDetails.payment_pattern_id),
+        rate: normalizeNull(billingDetails.rate_value),
+        currency: normalizeNull(billingDetails.currency_id),
+        payment_terms: normalizeNull(billingDetails.terms_details.standard),
+        payment_medium_id: normalizeNull(billingDetails.payment_medium_id),
+        billing_frequency_id: normalizeNull(billingDetails.billing_frequency_id),
+        notes: normalizeNull(billingDetails.notes),
+        features: normalizeNull(billingDetails.features),
       };
 
       // Remove null/undefined fields in a type-safe way
@@ -799,84 +664,32 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
       );
 
       const matterResponse = await fetch('/api/matters', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cleanedMatterPayload)
       });
 
       const matterData = await matterResponse.json();
-      if (!matterResponse.ok || !matterData?.success || !matterData?.id) {
+      if (matterResponse.ok && matterData?.success && matterData?.id) {
+        // Success: clear form fields, show success UI, and close form
+        setClientDetails({
+          first_name: '', last_name: '', title: '', preferred_language: '', client_type: '', email: '', phone: '', address: ''
+        });
+        setMatterDetails({
+          title: '', matter_type_id: null, sub_type_id: null, description: '', jurisdiction_country: '', start_date: null, priority: 'Medium', status: 'Active', estimated_value: undefined
+        });
+        setBillingDetails({
+          billing_method_id: null, payment_pattern_id: null, currency_id: null, payment_medium_id: null, rate_value: 0, terms_details: { standard: '', custom: '' }, billing_frequency_id: null, features: { automated_time_capture: true, blockchain_invoicing: false, send_invoice_on_approval: false }, notes: null
+        });
+        setSubmissionResult('success');
+        toast({ title: 'Success', description: 'Matter created successfully' });
+        if (typeof onComplete === 'function') onComplete(matterData.matter);
+        return;
+      } else {
         let errorMsg = 'Failed to create matter';
         if (matterData && matterData.error) errorMsg = matterData.error;
         throw new Error(errorMsg);
       }
-
-      const matterId = matterData.id;
-      if (!matterId) {
-        throw new Error('Matter ID missing from response');
-      }
-
-      // Get UUIDs for dropdowns
-      const currency_id = billingDetails.currency_id ?? '';
-      const payment_medium_id = paymentMediumOptions.find(option => option.value === billingDetails.payment_medium)?.id || null;
-      const payment_pattern_id = billingDetails.payment_pattern_id ?? '';
-      const billing_method_id = billingDetails.billing_method_id ?? '';
-      const billing_frequency_id = billingDetails.billing_frequency_id ?? '';
-
-      // Build the matter_billing payload with all required fields
-      const billingPayload = {
-        matter_id: matterId,
-        billing_method_id: billing_method_id,
-        payment_pattern_id: payment_pattern_id,
-        currency_id: currency_id,
-        payment_medium_id: payment_medium_id,
-        terms_details: billingDetails.terms_details,
-        billing_frequency_id: billing_frequency_id,
-        features: billingDetails.features,
-        retainer_amount: billingDetails.retainer_amount,
-        retainer_balance: billingDetails.retainer_balance,
-        notes: billingDetails.notes
-      };
-
-      // Remove null/undefined fields in a type-safe way
-      const cleanedBillingPayload = Object.fromEntries(
-        Object.entries(billingPayload).filter(([_, value]) => value !== undefined && value !== null)
-      );
-
-      const billingResponse = await fetch(`/api/matters/${matterId}/billing`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cleanedBillingPayload)
-      });
-
-      if (!billingResponse.ok) {
-        const errorData = await billingResponse.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to set up billing');
-      }
-
-      // If e-form is enabled, create and send intake form
-      if (sendEForm) {
-        const intakeResponse = await fetch(`/api/matters/${matterId}/intake`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            client_id: clientId,
-            expiration_days: 7
-          })
-        });
-
-        if (!intakeResponse.ok) {
-          throw new Error('Failed to create intake form');
-        }
-      }
-
-      // Clear stored form data
-      localStorage.removeItem('matter_intake_client_details');
-      localStorage.removeItem('matter_intake_matter_details');
-      localStorage.removeItem('matter_intake_billing_details');
-
-      setSubmissionResult('success');
-      toast({ title: 'Success', description: 'Matter created successfully' });
     } catch (error) {
       console.error('Error creating matter:', error);
       setSubmissionResult('error');
@@ -905,19 +718,11 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
   const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newFirstName = e.target.value;
     setClientDetails(prev => ({ ...prev, first_name: newFirstName }));
-    setMatterDetails(prev => ({
-      ...prev,
-      title: getPrefixedTitle({ ...clientDetails, first_name: newFirstName }, prev.title)
-    }));
   };
 
   const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newLastName = e.target.value;
     setClientDetails(prev => ({ ...prev, last_name: newLastName }));
-    setMatterDetails(prev => ({
-      ...prev,
-      title: getPrefixedTitle({ ...clientDetails, last_name: newLastName }, prev.title)
-    }));
   };
 
   // Helper to get the selected billing method value (name)
@@ -962,6 +767,7 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                 <UISelect
                   value={clientDetails.client_type ? clientDetails.client_type.toString() : ''}
                   onValueChange={handleClientTypeChange}
+                  required
                 >
                   <SelectTrigger id="client_type" className="w-full">
                     <SelectValue placeholder="Select client type" />
@@ -1044,11 +850,29 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                   defaultCountry="US"
                   id="phone"
                   value={clientDetails.phone}
-                  onChange={(value: string | undefined) => setClientDetails({ ...clientDetails, phone: value || '' })}
+                  onChange={(value: string | undefined) => {
+                    if (value) {
+                      // Remove all non-digit characters except leading +
+                      const plus = value.startsWith('+') ? '+' : '';
+                      const digits = value.replace(/\D/g, '');
+                      const truncated = digits.slice(0, 15); // E.164 max
+                      setClientDetails({ ...clientDetails, phone: plus + truncated });
+                    } else {
+                      setClientDetails({ ...clientDetails, phone: '' });
+                    }
+                  }}
                   placeholder="Enter phone number"
                   className="phone-input"
+                  disabled={clientDetails.phone.replace(/\D/g, '').length >= 15}
                 />
               </div>
+              {/* Show warning if max length reached */}
+              {(() => {
+                const digits = clientDetails.phone.replace(/\D/g, '');
+                return digits.length === 15 ? (
+                  <p className="text-xs text-yellow-600 mt-1">Maximum phone number length reached (15 digits).</p>
+                ) : null;
+              })()}
               {clientErrors.phone && (
                 <p className="text-sm text-red-500 flex items-center">
                   <AlertCircle className="h-3 w-3 mr-1" />
@@ -1066,7 +890,7 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                 <SelectTrigger id="preferred_language" className="w-full">
                   <SelectValue placeholder="Select language" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-[200px] overflow-y-auto">
                   {languageOptions.map((option) => (
                     <SelectItem key={option.id?.toString() ?? option.value} value={option.id?.toString() ?? option.value}>
                       {option.label}
@@ -1114,7 +938,7 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
 
       case 2:
         return (
-          <div style={{ minHeight: FORM_MIN_HEIGHT }} className="space-y-6">
+          <div style={{ minHeight: FORM_MIN_HEIGHT }} className="space-y-4">
             <div className="space-y-1">
               <Label htmlFor="title">Matter Title <span className="text-red-500">*</span></Label>
               <Input
@@ -1122,10 +946,11 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                 value={matterDetails.title}
                 onChange={(e) => setMatterDetails(prev => ({
                   ...prev,
-                  title: getPrefixedTitle(clientDetails, e.target.value)
+                  title: e.target.value
                 }))}
                 className={matterErrors.title ? 'border-red-500' : ''}
                 placeholder="Enter matter title"
+                required
               />
               {matterErrors.title && (
                 <p className="text-sm text-red-500 flex items-center mt-1">
@@ -1136,30 +961,35 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
             </div>
             <div className="space-y-1">
               <Label htmlFor="matter_type">Matter Type <span className="text-red-500">*</span></Label>
+              <div id="matter_type_id-wrapper" className="relative">
               <Select
-                inputId="matter_type"
-                className={`react-select ${matterErrors.matter_type_id ? 'border-red-500' : ''}`}
+                  inputId="matter_type_id"
+                  className={`react-select ${matterErrors.matter_type_id ? 'border-red-500' : ''}`}
                 classNamePrefix="react-select"
-                options={matterTypes.map(type => ({
-                  value: type.id.toString(),
-                  label: type.label
-                }))}
-                value={matterTypes.find(type => type.id === matterDetails.matter_type_id) ? {
-                  value: matterDetails.matter_type_id?.toString() || '',
-                  label: matterTypes.find(type => type.id === matterDetails.matter_type_id)?.label || ''
-                } : null}
+                  options={matterTypeOptions}
+                  value={matterTypeOptions.find(option => String(option.value) === String(matterDetails.matter_type_id))}
                 onChange={(selectedOption) => {
                   setMatterDetails({
                     ...matterDetails,
-                    matter_type_id: selectedOption ? parseInt(selectedOption.value) : null,
-                    sub_type_id: null // Reset sub-type when matter type changes
+                      matter_type_id: selectedOption ? selectedOption.value : null,
+                      sub_type_id: null,
                   });
                 }}
                 placeholder="Select matter type"
                 isClearable
                 isSearchable
-                isLoading={isLoading}
-              />
+                  menuPlacement="auto"
+                  styles={{
+                    menuList: (base) => ({
+                      ...base,
+                      maxHeight: '500px',
+                      minHeight: '300px',
+                      overflowY: 'auto',
+                      overflowX: 'hidden'
+                    })
+                  }}
+                />
+              </div>
               {matterErrors.matter_type_id && (
                 <p className="text-sm text-red-500 flex items-center">
                   <AlertCircle className="h-3 w-3 mr-1" />
@@ -1169,36 +999,49 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
             </div>
             <div className="space-y-1">
               <Label htmlFor="sub_type">Sub-Type <span className="text-red-500">*</span></Label>
+              <div id="sub_type_id-wrapper" className="relative">
               <Select
-                inputId="sub_type"
-                className={`react-select ${matterErrors.sub_type_id ? 'border-red-500' : ''}`}
+                  inputId="sub_type_id"
+                  className={`react-select ${matterErrors.sub_type_id ? 'border-red-500' : ''}`}
                 classNamePrefix="react-select"
-                options={matterDetails.matter_type_id ? 
-                  matterTypes
-                    .find(type => type.id === matterDetails.matter_type_id)
-                    ?.subTypes.map(subType => ({
-                      value: subType.id.toString(),
-                      label: subType.label
-                    })) || [] : []
-                }
-                value={matterDetails.sub_type_id ? {
-                  value: matterDetails.sub_type_id.toString(),
-                  label: matterTypes
-                    .find(type => type.id === matterDetails.matter_type_id)
-                    ?.subTypes.find(subType => subType.id === matterDetails.sub_type_id)
-                    ?.label || ''
-                } : null}
+                  options={(() => {
+                    const type = matterTypeOptions.find(type => String(type.value) === String(matterDetails.matter_type_id));
+                    return type && Array.isArray(type.subTypes)
+                      ? type.subTypes.map(subType => ({
+                          value: subType.value,
+                          label: subType.label
+                        }))
+                      : [];
+                  })()}
+                  value={(() => {
+                    const type = matterTypeOptions.find(type => String(type.value) === String(matterDetails.matter_type_id));
+                    if (type && Array.isArray(type.subTypes)) {
+                      const sub = type.subTypes.find(subType => String(subType.value) === String(matterDetails.sub_type_id));
+                      return sub ? { value: sub.value, label: sub.label } : null;
+                    }
+                    return null;
+                  })()}
                 onChange={(selectedOption) => {
                   setMatterDetails({
                     ...matterDetails,
-                    sub_type_id: selectedOption ? parseInt(selectedOption.value) : null
+                      sub_type_id: selectedOption ? selectedOption.value : null
                   });
                 }}
                 placeholder="Select sub-type"
                 isClearable
                 isSearchable
-                isDisabled={!matterDetails.matter_type_id}
-              />
+                  menuPlacement="auto"
+                  styles={{
+                    menuList: (base) => ({
+                      ...base,
+                      maxHeight: '500px',
+                      minHeight: '300px',
+                      overflowY: 'auto',
+                      overflowX: 'hidden'
+                    })
+                  }}
+                />
+              </div>
               {matterErrors.sub_type_id && (
                 <p className="text-sm text-red-500 flex items-center">
                   <AlertCircle className="h-3 w-3 mr-1" />
@@ -1207,16 +1050,43 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
               )}
             </div>
 
-            <div className="space-y-1">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1 flex flex-col justify-end">
+                <div className="h-10 flex items-end">
               <DatePicker
                 label="Matter Start Date"
                 value={matterDetails.start_date}
                 onChange={(date) => setMatterDetails({ ...matterDetails, start_date: date })}
                 placeholder="Select start date"
                 error={matterErrors.start_date}
-                required
-                minDate={new Date()}
-              />            
+                    required
+                    minDate={new Date()}
+                  />
+                </div>
+              </div>
+              <div className="space-y-1 flex flex-col justify-end">
+                <Label htmlFor="estimated_value">Estimated Value (Optional)</Label>
+                <Input
+                  id="estimated_value"
+                  type="number"
+                  value={typeof matterDetails.estimated_value === 'number' ? matterDetails.estimated_value : ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setMatterDetails({
+                      ...matterDetails,
+                      estimated_value: val ? Number(val) : undefined
+                    });
+                  }}
+                  placeholder="e.g., 100000"
+                  className={matterErrors.estimated_value ? 'border-red-500 h-10' : 'h-10'}
+                />
+                {matterErrors.estimated_value && (
+                  <p className="text-sm text-red-500 flex items-center">
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    {matterErrors.estimated_value}
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="space-y-1">
@@ -1235,10 +1105,11 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                 </p>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-4">
+
+            <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
                 <Label htmlFor="jurisdiction_country">Country <span className="text-red-500">*</span></Label>
-                <div id="jurisdiction_country-wrapper">
+                <div id="jurisdiction_country-wrapper" className="relative">
                   <Select
                     inputId="jurisdiction_country"
                     className={`react-select ${matterErrors.jurisdiction_country ? 'border-red-500' : ''}`}
@@ -1249,12 +1120,19 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                       setMatterDetails({
                         ...matterDetails,
                         jurisdiction_country: selectedOption?.value || '',
-                        jurisdiction_state: '' // Reset state when country changes
                       });
                     }}
                     placeholder="Select country"
                     isClearable
                     isSearchable
+                    menuPlacement="auto"
+                    styles={{
+                      menuList: (base) => ({
+                        ...base,
+                        maxHeight: '200px',
+                        overflowY: 'auto'
+                      })
+                    }}
                   />
                 </div>
                 {matterErrors.jurisdiction_country && (
@@ -1265,158 +1143,159 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                 )}
               </div>
               <div className="space-y-1">
-                <Label htmlFor="jurisdiction_state">State/Province</Label>
-                <Input
-                  id="jurisdiction_state"
-                  value={matterDetails.jurisdiction_state}
-                  onChange={(e) => setMatterDetails({ ...matterDetails, jurisdiction_state: e.target.value })}
-                  placeholder="Enter state/province"
-                />
+                <Label htmlFor="priority">Priority <span className="text-red-500">*</span></Label>
+                <div id="priority-wrapper" className="relative">
+                  <Select
+                    inputId="priority"
+                    className="react-select"
+                    classNamePrefix="react-select"
+                    options={[
+                      { value: 'High', label: 'High' },
+                      { value: 'Medium', label: 'Medium' },
+                      { value: 'Low', label: 'Low' },
+                    ]}
+                    value={{ value: matterDetails.priority, label: matterDetails.priority }}
+                    onChange={(selectedOption) => {
+                      setMatterDetails({
+                        ...matterDetails,
+                        priority: selectedOption?.value as 'High' | 'Medium' | 'Low',
+                      });
+                    }}
+                    placeholder="Select priority"
+                    menuPlacement="auto"
+                    styles={{
+                      menuList: (base) => ({
+                        ...base,
+                        maxHeight: '200px',
+                        overflowY: 'auto'
+                      })
+                    }}
+                  />
+                </div>
               </div>
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="estimated_value">Estimated Value (Optional)</Label>
-              <Input
-                id="estimated_value"
-                type="number"
-                value={typeof matterDetails.estimated_value === 'number' ? matterDetails.estimated_value : ''}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setMatterDetails({
-                    ...matterDetails,
-                    estimated_value: val ? Number(val) : undefined
-                  });
-                }}
-                placeholder="e.g., 100000"
-                className={matterErrors.estimated_value ? 'border-red-500' : ''}
-              />
-              {matterErrors.estimated_value && (
-                <p className="text-sm text-red-500 flex items-center">
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  {matterErrors.estimated_value}
-                </p>
-              )}
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="priority">Priority <span className="text-red-500">*</span></Label>
-              <Select
-                inputId="priority"
-                classNamePrefix="react-select"
-                options={[
-                  { value: 'High', label: 'High' },
-                  { value: 'Medium', label: 'Medium' },
-                  { value: 'Low', label: 'Low' }
-                ]}
-                value={{ value: matterDetails.priority, label: matterDetails.priority }}
-                onChange={selectedOption => setMatterDetails({ ...matterDetails, priority: selectedOption?.value || 'Medium' })}
-                placeholder="Select priority"
-              />
-            </div>
+
             <div className="space-y-1">
               <Label htmlFor="status">Status <span className="text-red-500">*</span></Label>
-              <Select
-                inputId="status"
-                classNamePrefix="react-select"
-                options={[
-                  { value: 'Active', label: 'Active' },
-                  { value: 'Closed', label: 'Closed' },
-                  { value: 'On Hold', label: 'On Hold' },
-                  { value: 'Pending', label: 'Pending' }
-                ]}
-                value={{ value: matterDetails.status, label: matterDetails.status }}
-                onChange={selectedOption => setMatterDetails({ ...matterDetails, status: selectedOption?.value || 'Active' })}
-                placeholder="Select status"
-              />
+              <div id="status-wrapper" className="relative">
+                <Select
+                  inputId="status"
+                  className="react-select"
+                  classNamePrefix="react-select"
+                  options={[
+                    { value: 'Active', label: 'Active' },
+                    { value: 'Closed', label: 'Closed' },
+                    { value: 'On Hold', label: 'On Hold' },
+                    { value: 'Pending', label: 'Pending' },
+                  ]}
+                  value={{ value: matterDetails.status, label: matterDetails.status }}
+                  onChange={(selectedOption) => {
+                    setMatterDetails({
+                      ...matterDetails,
+                      status: selectedOption?.value as 'Active' | 'Closed' | 'On Hold' | 'Pending',
+                    });
+                  }}
+                  placeholder="Select status"
+                  menuPlacement="auto"
+                  styles={{
+                    menuList: (base) => ({
+                      ...base,
+                      maxHeight: '200px',
+                      overflowY: 'auto'
+                    })
+                  }}
+                />
+              </div>
             </div>
           </div>
         );
 
       case 3:
         return (
-          <div className="space-y-6">
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
               <Label htmlFor="billing_method">Billing Method <span className="text-red-500">*</span></Label>
               <Select
                 inputId="billing_method"
                 className={`react-select ${billingErrors.billing_method ? 'border-red-500' : ''}`}
                 classNamePrefix="react-select"
-                options={billingMethodOptions}
-                value={billingMethodOptions.find(option => String(option.id) === (billingDetails.billing_method_id ?? ''))}
-                onChange={selectedOption => setBillingDetails({
-                  ...billingDetails,
-                  billing_method_id: selectedOption ? String(selectedOption.id) : null
-                })}
+                  options={billingMethodOptions}
+                  value={billingMethodOptions.find(option => String(option.id) === (billingDetails.billing_method_id ?? ''))}
+                  onChange={selectedOption => setBillingDetails({
+                    ...billingDetails,
+                    billing_method_id: selectedOption ? String(selectedOption.id) : null
+                  })}
                 placeholder="Select billing method"
-                styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.8rem' }) }}
-              />
+                  styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.8rem' }) }}
+                />
             </div>
 
-            {/* Payment Pattern Field */}
-            <div className="space-y-1">
-              <Label htmlFor="payment_pattern">Payment Pattern <span className="text-red-500">*</span></Label>
-              <Select
-                inputId="payment_pattern"
-                className={`react-select ${billingErrors.payment_pattern_id ? 'border-red-500' : ''}`}
-                classNamePrefix="react-select"
-                options={paymentPatternOptions}
-                value={paymentPatternOptions.find(option => option.value === billingDetails.payment_pattern_id)}
-                onChange={selectedOption => setBillingDetails({
-                  ...billingDetails,
-                  payment_pattern_id: selectedOption ? selectedOption.value : null
-                })}
-                placeholder="Select payment pattern"
-                styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.8rem' }) }}
-              />
+              <div className="space-y-1">
+                <Label htmlFor="payment_pattern">Payment Pattern <span className="text-red-500">*</span></Label>
+                <Select
+                  inputId="payment_pattern"
+                  className={`react-select ${billingErrors.payment_pattern_id ? 'border-red-500' : ''}`}
+                  classNamePrefix="react-select"
+                  options={paymentPatternOptions}
+                  value={paymentPatternOptions.find(option => option.value === billingDetails.payment_pattern_id)}
+                  onChange={selectedOption => setBillingDetails({
+                    ...billingDetails,
+                    payment_pattern_id: selectedOption ? selectedOption.value : null
+                  })}
+                  placeholder="Select payment pattern"
+                  styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.8rem' }) }}
+                />
+              </div>
             </div>
 
-            {/* Conditionally render Payment Medium */}
             {selectedBillingMethodValue !== 'Pro Bono' && (
+              <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <Label htmlFor="payment_medium">Payment Medium <span className="text-red-500">*</span></Label>
-                <Select
-                  inputId="payment_medium"
-                  className={`react-select ${billingErrors.payment_medium ? 'border-red-500' : ''}`}
-                  classNamePrefix="react-select"
-                  options={paymentMediumOptions}
-                  value={paymentMediumOptions.find(option => option.value === billingDetails.payment_medium)}
-                  onChange={selectedOption => setBillingDetails({
-                    ...billingDetails,
-                    payment_medium: selectedOption?.value || ''
-                  })}
-                  placeholder="Select payment medium"
-                  styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.8rem' }) }}
-                />
+                  <Label htmlFor="payment_medium">Payment Medium <span className="text-red-500">*</span></Label>
+                  <Select
+                    inputId="payment_medium"
+                    className={`react-select ${billingErrors.payment_medium ? 'border-red-500' : ''}`}
+                    classNamePrefix="react-select"
+                    options={paymentMediumOptions}
+                    value={paymentMediumOptions.find(option => String(option.id) === (billingDetails.payment_medium_id ?? ''))}
+                    onChange={selectedOption => setBillingDetails({
+                      ...billingDetails,
+                      payment_medium_id: selectedOption ? String(selectedOption.id) : null
+                    })}
+                    placeholder="Select payment medium"
+                    styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.8rem' }) }}
+                  />
+              </div>
+
+                {billingMethodRequirements[selectedBillingMethodValue]?.requiresFrequency && (
+              <div className="space-y-1">
+                    <Label htmlFor="billing_frequency">Billing Frequency <span className="text-red-500">*</span></Label>
+                    <Select
+                      inputId="billing_frequency"
+                      className={`react-select ${billingErrors.billing_frequency ? 'border-red-500' : ''}`}
+                      classNamePrefix="react-select"
+                      options={billingFrequencyOptions}
+                      value={billingFrequencyOptions.find(option => option.value === billingDetails.billing_frequency_id)}
+                      onChange={selectedOption => setBillingDetails({
+                        ...billingDetails,
+                        billing_frequency_id: selectedOption ? selectedOption.value : null
+                      })}
+                      placeholder="Select billing frequency"
+                      styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.8rem' }) }}
+                    />
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Conditionally render Billing Frequency */}
-            {billingMethodRequirements[selectedBillingMethodValue]?.requiresFrequency && (
-              <div className="space-y-1">
-                <Label htmlFor="billing_frequency">Billing Frequency <span className="text-red-500">*</span></Label>
-                <Select
-                  inputId="billing_frequency"
-                  className={`react-select ${billingErrors.billing_frequency ? 'border-red-500' : ''}`}
-                  classNamePrefix="react-select"
-                  options={billingFrequencyOptions}
-                  value={billingFrequencyOptions.find(option => option.value === billingDetails.billing_frequency_id)}
-                  onChange={selectedOption => setBillingDetails({
-                    ...billingDetails,
-                    billing_frequency_id: selectedOption ? selectedOption.value : null
-                  })}
-                  placeholder="Select billing frequency"
-                  styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.8rem' }) }}
-                />
-              </div>
-            )}
-
-            {/* Rate and Currency Section */}
             {selectedBillingMethodValue && (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
+              <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
                   <Label htmlFor="rate">Rate <span className="text-red-500">*</span></Label>
-                  <Input
+                <Input
                     id="rate"
-                    type="number"
+                  type="number"
                     value={billingDetails.rate_value}
                     onChange={(e) => setBillingDetails({
                       ...billingDetails,
@@ -1425,14 +1304,14 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                     placeholder={`Enter ${selectedBillingMethodValue} rate`}
                     style={{ fontSize: '0.8rem', height: '32px' }}
                   />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="currency">Currency <span className="text-red-500">*</span></Label>
-                  <Select
-                    inputId="currency"
-                    className={`react-select ${billingErrors.currency ? 'border-red-500' : ''}`}
-                    classNamePrefix="react-select"
-                    options={currencyOptions}
+              </div>
+            <div className="space-y-1">
+              <Label htmlFor="currency">Currency <span className="text-red-500">*</span></Label>
+              <Select
+                inputId="currency"
+                className={`react-select ${billingErrors.currency ? 'border-red-500' : ''}`}
+                classNamePrefix="react-select"
+                options={currencyOptions}
                     value={currencyOptions.find(option => String(option.id) === (billingDetails.currency_id ?? ''))}
                     onChange={selectedOption => setBillingDetails({
                       ...billingDetails,
@@ -1445,8 +1324,7 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
               </div>
             )}
 
-            {/* Terms Section */}
-            <div className="space-y-4">
+            <div className="space-y-2">
               <div className="space-y-1">
                 <Label htmlFor="terms">Payment Terms <span className="text-red-500">*</span> <span className="text-gray-500 text-xs">(e.g., when payment is due: Net 30, Due on receipt)</span></Label>
                 <Select
@@ -1456,8 +1334,8 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                   value={isCustomTermsActive ? null : (paymentTermsOptions.find(option => option.value === (billingDetails.terms_details.standard || '')) || paymentTermsOptions[0])}
                   onChange={selectedOption => {
                     if (selectedOption?.value === 'Other') {
-                      setBillingDetails({
-                        ...billingDetails,
+                  setBillingDetails({
+                    ...billingDetails,
                         terms_details: { ...billingDetails.terms_details, standard: '', custom: '' }
                       });
                     } else {
@@ -1472,7 +1350,7 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                   isDisabled={isCustomTermsActive}
                 />
               </div>
-              <div className="flex items-center space-x-2 mt-2">
+              <div className="flex items-center space-x-2">
                 <Switch
                   id="use_custom_terms"
                   checked={isCustomTermsActive}
@@ -1509,8 +1387,7 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
               )}
             </div>
 
-            {/* Features Section */}
-            <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-2">
               <div className="flex items-center space-x-2">
                 <Switch
                   id="automated_time_capture"
@@ -1520,7 +1397,7 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                     features: { ...billingDetails.features, automated_time_capture: checked }
                   })}
                 />
-                <Label htmlFor="automated_time_capture">Enable Automated Time Capture</Label>
+                <Label htmlFor="automated_time_capture" className="text-sm">Automated Time Capture</Label>
               </div>
 
               <div className="flex items-center space-x-2">
@@ -1532,7 +1409,7 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                     features: { ...billingDetails.features, blockchain_invoicing: checked }
                   })}
                 />
-                <Label htmlFor="blockchain_invoicing">Enable Blockchain-Secured Invoicing</Label>
+                <Label htmlFor="blockchain_invoicing" className="text-sm">Blockchain Invoicing</Label>
               </div>
 
               <div className="flex items-center space-x-2">
@@ -1544,11 +1421,10 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                     features: { ...billingDetails.features, send_invoice_on_approval: checked }
                   })}
                 />
-                <Label htmlFor="send_invoice_on_approval">Send Invoice on Client Approval</Label>
+                <Label htmlFor="send_invoice_on_approval" className="text-sm">Auto-Invoice</Label>
               </div>
             </div>
 
-            {/* Notes Section */}
             <div className="space-y-1">
               <Label htmlFor="notes">Billing Notes</Label>
               <Textarea
@@ -1567,10 +1443,10 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
 
       case 4:
         return (
-          <div style={{ minHeight: FORM_MIN_HEIGHT }} className="space-y-6">
-            <div className="border rounded-lg p-4 shadow-sm">
-              <h3 className="text-lg font-semibold mb-3 text-gray-800">Client Information</h3>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+          <div style={{ minHeight: FORM_MIN_HEIGHT }} className="space-y-4">
+            <div className="border rounded-lg p-3 shadow-sm">
+              <h3 className="text-lg font-semibold mb-2 text-gray-800">Client Information</h3>
+              <div className="grid grid-cols-2 gap-2 text-sm">
                 <div className="font-medium text-gray-600">Name:</div>
                 <div className="text-gray-900">{clientDetails.first_name} {clientDetails.last_name}</div>
                 
@@ -1585,28 +1461,29 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
               </div>
             </div>
             
-            <div className="border rounded-lg p-4 shadow-sm">
-              <h3 className="text-lg font-semibold mb-3 text-gray-800">Matter Details</h3>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="border rounded-lg p-3 shadow-sm">
+              <h3 className="text-lg font-semibold mb-2 text-gray-800">Matter Details</h3>
+              <div className="grid grid-cols-2 gap-2 text-sm">
                 <div className="font-medium text-gray-600">Title:</div>
                 <div className="text-gray-900">{matterDetails.title}</div>
                 
                 <div className="font-medium text-gray-600">Type:</div>
                 <div className="text-gray-900">
-                  {matterTypes.find(type => type.id === matterDetails.matter_type_id)?.label || 'Not selected'}
-                </div>
-                
-                <div className="font-medium text-gray-600">Sub-Type:</div>
-                <div className="text-gray-900">
-                  {matterTypes
-                    .find(type => type.id === matterDetails.matter_type_id)
-                    ?.subTypes.find(subType => subType.id === matterDetails.sub_type_id)?.label || 'Not selected'}
+                  {Array.isArray(matterTypeOptions)
+                    ? (() => {
+                        const type = matterTypeOptions.find(type => String(type.value) === String(matterDetails.matter_type_id));
+                        if (type && Array.isArray(type.subTypes)) {
+                          const sub = type.subTypes.find(subType => String(subType.value) === String(matterDetails.sub_type_id));
+                          return sub ? sub.label : 'Not selected';
+                        }
+                        return 'Not selected';
+                      })()
+                    : 'Not selected'}
                 </div>
                 
                 <div className="font-medium text-gray-600">Jurisdiction:</div>
                 <div className="text-gray-900">
                   {matterDetails.jurisdiction_country}
-                  {matterDetails.jurisdiction_state ? `, ${matterDetails.jurisdiction_state}` : ''}
                 </div>
                 
                 <div className="font-medium text-gray-600">Start Date:</div>
@@ -1625,9 +1502,9 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
               </div>
             </div>
             
-            <div className="border rounded-lg p-4 shadow-sm">
-              <h3 className="text-lg font-semibold mb-3 text-gray-800">Billing Details</h3>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="border rounded-lg p-3 shadow-sm">
+              <h3 className="text-lg font-semibold mb-2 text-gray-800">Billing Details</h3>
+              <div className="grid grid-cols-2 gap-2 text-sm">
                 <div className="font-medium text-gray-600">Method:</div>
                 <div className="text-gray-900">{selectedBillingMethodValue}</div>
                 
@@ -1640,17 +1517,19 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                 
                 <div className="font-medium text-gray-600">Features:</div>
                 <div className="text-gray-900">
-                  {billingDetails.features.automated_time_capture && 'Automated Time Capture'}
-                  {billingDetails.features.blockchain_invoicing && ', Blockchain Invoicing'}
-                  {billingDetails.features.send_invoice_on_approval && ', Auto-Invoice'}
+                  {[
+                    billingDetails.features.automated_time_capture && 'Automated Time Capture',
+                    billingDetails.features.blockchain_invoicing && 'Blockchain Invoicing',
+                    billingDetails.features.send_invoice_on_approval && 'Auto-Invoice'
+                  ].filter(Boolean).join(', ')}
                 </div>
               </div>
             </div>
             
             {sendEForm && (
-              <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 mt-2">
+              <div className="bg-blue-50 border border-blue-100 rounded-lg p-2 mt-2">
                 <p className="text-sm text-blue-700 flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                   </svg>
                   Intake form will be sent to {clientDetails.email}
@@ -1670,11 +1549,11 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
       {submissionResult === 'success' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 animate-fade-in">
           <div className="bg-white rounded-lg shadow-lg p-8 flex flex-col items-center">
-            <CheckCircle className="w-16 h-16 text-green-500 animate-bounce-in" />
-            <h2 className="text-2xl font-bold mt-4 mb-2 text-green-700">Success!</h2>
-            <p className="text-gray-700 mb-4">Matter created successfully.</p>
-            <Button onClick={() => { setSubmissionResult(null); router.push('/matters'); }}>
-              Go to Matters
+            <CheckCircle className="w-20 h-20 text-green-500 animate-bounce" />
+            <h2 className="text-3xl font-bold mt-4 mb-2 text-green-700 animate-fade-in">Success!</h2>
+            <p className="text-gray-700 mb-4 animate-fade-in">Matter created successfully.</p>
+            <Button onClick={() => { setSubmissionResult(null); if (typeof onComplete === 'function') onComplete(); }} className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md mt-2">
+              Close
             </Button>
           </div>
         </div>
@@ -1691,86 +1570,86 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
           </div>
         </div>
       )}
-      <div className="grid grid-cols-[280px_1fr] overflow-hidden rounded-xl shadow-xl">
-        {/* Left sidebar */}
-        <div className="bg-gradient-to-b from-blue-600 via-blue-700 to-blue-900 text-white p-6 min-h-[500px] rounded-l-xl flex flex-col justify-between shadow-inner overflow-hidden relative before:absolute before:inset-0 before:bg-gradient-to-tr before:from-transparent before:via-blue-400/10 before:to-yellow-200/20">
-          <div>
-            <h2 className="text-2xl font-black mb-8 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]">LawMate</h2>
-            <h3 className="text-xl font-extrabold mb-2 text-white">New Matter Intake</h3>
-            
-            <div className="mb-8">
-              <div className="uppercase text-xs mb-3 font-black tracking-wider text-white">PROGRESS</div>
-              <div className="relative w-full bg-blue-800/70 h-4 rounded-full mb-2 shadow-inner">
-                <div className="absolute left-0 top-0 h-4 bg-white rounded-full transition-all shadow-sm" style={{ width: `${25 * currentStep}%` }}></div>
-              </div>
-              <div className="text-sm font-extrabold mt-4 text-white">Step {currentStep} of 4</div>
-            </div>
-          </div>
+    <div className="grid grid-cols-[280px_1fr] overflow-hidden rounded-xl shadow-xl">
+      {/* Left sidebar */}
+      <div className="bg-gradient-to-b from-blue-600 via-blue-700 to-blue-900 text-white p-6 min-h-[500px] rounded-l-xl flex flex-col justify-between shadow-inner overflow-hidden relative before:absolute before:inset-0 before:bg-gradient-to-tr before:from-transparent before:via-blue-400/10 before:to-yellow-200/20">
+        <div>
+          <h2 className="text-2xl font-black mb-8 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]">LawMate</h2>
+          <h3 className="text-xl font-extrabold mb-2 text-white">New Matter Intake</h3>
           
-          <div className="text-xs text-white mt-auto">
-            © {new Date().getFullYear()} LawMate
+          <div className="mb-8">
+            <div className="uppercase text-xs mb-3 font-black tracking-wider text-white">PROGRESS</div>
+            <div className="relative w-full bg-blue-800/70 h-4 rounded-full mb-2 shadow-inner">
+              <div className="absolute left-0 top-0 h-4 bg-white rounded-full transition-all shadow-sm" style={{ width: `${25 * currentStep}%` }}></div>
+            </div>
+            <div className="text-sm font-extrabold mt-4 text-white">Step {currentStep} of 4</div>
           </div>
         </div>
         
-        {/* Right content */}
-        <div className="p-6 bg-white rounded-r-xl">
-          <Card className="border-0 shadow-lg rounded-xl w-full">
-            <CardContent className="p-8 min-h-[600px] flex flex-col">
-              <div className="mb-5">
-                <h2 className="text-xl font-bold mb-1">
-                  {currentStep === 1 && 'Client Information'}
-                  {currentStep === 2 && 'Matter Details'}
-                  {currentStep === 3 && 'Billing Setup'}
-                  {currentStep === 4 && 'Review & Submit'}
-                </h2>
-                <p className="text-gray-500 text-sm">
-                  {currentStep === 1 && 'Please fill out all required fields to create a new matter.'}
-                  {currentStep === 2 && 'Provide details about the legal matter.'}
-                  {currentStep === 3 && 'Set up billing preferences for this matter.'}
-                  {currentStep === 4 && 'Review all information before submitting.'}
-                </p>
-              </div>
-              
-              <div className="flex-grow overflow-y-auto">
-                {renderStep()}
-              </div>
-              
-              <div className="mt-6 flex justify-between">
-                {currentStep > 1 ? (
-                  <Button
-                    variant="outline"
-                    onClick={handleBack}
-                    className="border-gray-300 text-gray-600 hover:bg-gray-50"
-                  >
-                    Back
-                  </Button>
-                ) : (
-                  <div></div> // Empty div for spacing
-                )}
-                
-                {currentStep < 4 ? (
-                  <Button 
-                    onClick={handleNext} 
-                    className="bg-black hover:bg-gray-800 text-white rounded-md px-4 py-2"
-                  >
-                    Next
-                    <ChevronRight className="ml-1 h-4 w-4" />
-                  </Button>
-                ) : (
-                  <Button 
-                    onClick={handleSubmit} 
-                    disabled={loading}
-                    className="bg-black hover:bg-gray-800 text-white rounded-md px-4 py-2"
-                  >
-                    {loading ? 'Creating...' : 'Submit'}
-                    <Check className="ml-2 h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+        <div className="text-xs text-white mt-auto">
+          © {new Date().getFullYear()} LawMate
         </div>
       </div>
+      
+      {/* Right content */}
+      <div className="p-6 bg-white rounded-r-xl">
+        <Card className="border-0 shadow-lg rounded-xl w-full">
+            <CardContent className="px-8 py-10 min-h-[600px] flex flex-col">
+            <div className="mb-5">
+              <h2 className="text-xl font-bold mb-1">
+                {currentStep === 1 && 'Client Information'}
+                {currentStep === 2 && 'Matter Details'}
+                {currentStep === 3 && 'Billing Setup'}
+                {currentStep === 4 && 'Review & Submit'}
+              </h2>
+              <p className="text-gray-500 text-sm">
+                {currentStep === 1 && 'Please fill out all required fields to create a new matter.'}
+                {currentStep === 2 && 'Provide details about the legal matter.'}
+                {currentStep === 3 && 'Set up billing preferences for this matter.'}
+                {currentStep === 4 && 'Review all information before submitting.'}
+              </p>
+            </div>
+            
+            <div className="flex-grow overflow-y-auto">
+              {renderStep()}
+            </div>
+            
+            <div className="mt-6 flex justify-between">
+              {currentStep > 1 ? (
+                <Button
+                  variant="outline"
+                  onClick={handleBack}
+                  className="border-gray-300 text-gray-600 hover:bg-gray-50"
+                >
+                  Back
+                </Button>
+              ) : (
+                <div></div> // Empty div for spacing
+              )}
+              
+              {currentStep < 4 ? (
+                <Button 
+                  onClick={handleNext} 
+                  className="bg-black hover:bg-gray-800 text-white rounded-md px-4 py-2"
+                >
+                  Next
+                  <ChevronRight className="ml-1 h-4 w-4" />
+                </Button>
+              ) : (
+                <Button 
+                  onClick={handleSubmit} 
+                  disabled={loading}
+                  className="bg-black hover:bg-gray-800 text-white rounded-md px-4 py-2"
+                >
+                  {loading ? 'Creating...' : 'Submit'}
+                  <Check className="ml-2 h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
     </>
   );
 } 
