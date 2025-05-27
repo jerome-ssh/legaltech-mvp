@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
@@ -127,7 +127,7 @@ interface BillingDetails {
   payment_pattern_id: string | null;
   currency_id: string | null;
   payment_medium_id: string | null;
-  rate_value: number;
+  rate_value: string;
   terms_details: {
     standard: string;
     custom?: string;
@@ -339,10 +339,10 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
         payment_pattern_id: null,
         currency_id: null,
         payment_medium_id: null,
-        rate_value: 0,
+        rate_value: '',
         terms_details: {
-          standard: '',
-          custom: ''
+          standard: 'Net 30',
+          custom: undefined
         },
         billing_frequency_id: null,
         features: {
@@ -358,10 +358,10 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
       payment_pattern_id: null,
       currency_id: null,
       payment_medium_id: null,
-      rate_value: 0,
+      rate_value: '',
       terms_details: {
-        standard: '',
-        custom: ''
+        standard: 'Net 30',
+        custom: undefined
       },
       billing_frequency_id: null,
       features: {
@@ -479,7 +479,8 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
 
     // Rate required for all except Pro Bono/Other
     if (!['Pro Bono', 'Other'].includes(method)) {
-      if (!billingDetails.rate_value || billingDetails.rate_value <= 0) {
+      const rateNum = Number(billingDetails.rate_value);
+      if (!billingDetails.rate_value || isNaN(rateNum) || rateNum <= 0) {
         errors.rate = 'Rate is required';
       }
     }
@@ -528,30 +529,34 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
       setCurrentStep(currentStep + 1);
       setProgress(progress + 25);
     } else if (!isValid) {
-      // Get error fields
-      const errorFields = Object.entries(currentErrors)
-        .filter(([_, value]) => value && value !== '')
-        .map(([key, _]) => key.replace(/_/g, ' '));
-      
-      // Create error message
-      const errorMessage = errorFields.length > 1 
-        ? `Please complete the required fields: ${errorFields.join(', ')}` 
-        : `Please complete the required field: ${errorFields[0]}`;
-      
-      // Show toast notification
-      toast({
-        title: `${formName} Incomplete`,
-        description: errorMessage,
-        variant: 'destructive'
-      });
-      
-      // Focus on the first input with an error
-      setTimeout(() => {
-        const firstErrorElement = document.querySelector('.border-red-500');
-        if (firstErrorElement) {
-          firstErrorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }, 100);
+      // Only show toast for step 1, not for steps 2 or 3
+      if (currentStep === 1) {
+        // Get error fields
+        const errorFields = Object.entries(currentErrors)
+          .filter(([_, value]) => value && value !== '')
+          .map(([key, _]) => key.replace(/_/g, ' '));
+        
+        // Create error message
+        const errorMessage = errorFields.length > 1 
+          ? `Please complete the required fields: ${errorFields.join(', ')}` 
+          : `Please complete the required field: ${errorFields[0]}`;
+        
+        // Show toast notification
+        toast({
+          title: `${formName} Incomplete`,
+          description: errorMessage,
+          variant: 'destructive'
+        });
+        
+        // Focus on the first input with an error
+        setTimeout(() => {
+          const firstErrorElement = document.querySelector('.border-red-500');
+          if (firstErrorElement) {
+            firstErrorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
+      }
+      // For steps 2 and 3, do not show toast, just highlight fields
     }
   };
 
@@ -588,6 +593,17 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
     return value;
   }
 
+  const getTypeId = (typeValue: string | number | null) => {
+    const type = matterTypeOptions.find(t => String(t.id) === String(typeValue) || t.value === typeValue);
+    return type && type.id ? type.id : null;
+  };
+  const getSubTypeId = (typeId: string | number | null, subTypeValue: string | number | null) => {
+    const type = matterTypeOptions.find(t => String(t.id) === String(typeId));
+    if (!type || !type.subTypes) return null;
+    const sub = type.subTypes.find(s => String(s.id) === String(subTypeValue) || s.value === subTypeValue);
+    return sub && sub.id ? sub.id : null;
+  };
+
   const handleSubmit = async () => {
     try {
       setLoading(true);
@@ -620,16 +636,14 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
       const { id: clientId } = await clientResponse.json();
 
       // Validate matter_type_id and sub_type_id are valid numbers and exist in dropdowns
-      const validMatterType = matterTypeOptions.find(type => String(type.value) === String(matterDetails.matter_type_id));
-      if (!validMatterType) {
+      let validMatterTypeId = getTypeId(matterDetails.matter_type_id);
+      if (!validMatterTypeId || isNaN(Number(validMatterTypeId))) {
         toast({ title: 'Error', description: 'Invalid matter type selected.', variant: 'destructive' });
         setLoading(false);
         return;
       }
-      const validSubType = Array.isArray(validMatterType.subTypes)
-        ? validMatterType.subTypes.find(sub => String(sub.value) === String(matterDetails.sub_type_id))
-        : undefined;
-      if (!validSubType) {
+      let validSubTypeId = getSubTypeId(validMatterTypeId, matterDetails.sub_type_id);
+      if (!validSubTypeId || isNaN(Number(validSubTypeId))) {
         toast({ title: 'Error', description: 'Invalid sub-type selected.', variant: 'destructive' });
         setLoading(false);
         return;
@@ -643,13 +657,13 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
         jurisdiction: matterDetails.jurisdiction_country,
         estimated_value: normalizeNull(matterDetails.estimated_value),
         matter_date: matterDetails.start_date ? matterDetails.start_date.toISOString().split('T')[0] : null,
-        type_id: Number(matterDetails.matter_type_id),
-        sub_type_id: Number(matterDetails.sub_type_id),
+        type_id: Number(validMatterTypeId),
+        sub_type_id: Number(validSubTypeId),
         priority: matterDetails.priority,
         intake_data: { send_eform: sendEForm },
         billing_method_id: billingDetails.billing_method_id,
         payment_pattern_id: normalizeNull(billingDetails.payment_pattern_id),
-        rate: normalizeNull(billingDetails.rate_value),
+        rate: normalizeNull(billingDetails.rate_value === '' ? null : Number(billingDetails.rate_value)),
         currency: normalizeNull(billingDetails.currency_id),
         payment_terms: normalizeNull(billingDetails.terms_details.standard),
         payment_medium_id: normalizeNull(billingDetails.payment_medium_id),
@@ -662,6 +676,9 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
       const cleanedMatterPayload = Object.fromEntries(
         Object.entries(matterPayload).filter(([_, value]) => value !== undefined && value !== null)
       );
+
+      // Debug log
+      console.log('Submitting matter payload:', cleanedMatterPayload);
 
       const matterResponse = await fetch('/api/matters', {
           method: 'POST',
@@ -679,7 +696,7 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
           title: '', matter_type_id: null, sub_type_id: null, description: '', jurisdiction_country: '', start_date: null, priority: 'Medium', status: 'Active', estimated_value: undefined
         });
         setBillingDetails({
-          billing_method_id: null, payment_pattern_id: null, currency_id: null, payment_medium_id: null, rate_value: 0, terms_details: { standard: '', custom: '' }, billing_frequency_id: null, features: { automated_time_capture: true, blockchain_invoicing: false, send_invoice_on_approval: false }, notes: null
+          billing_method_id: null, payment_pattern_id: null, currency_id: null, payment_medium_id: null, rate_value: '', terms_details: { standard: '', custom: undefined }, billing_frequency_id: null, features: { automated_time_capture: true, blockchain_invoicing: false, send_invoice_on_approval: false }, notes: null
         });
         setSubmissionResult('success');
         toast({ title: 'Success', description: 'Matter created successfully' });
@@ -716,12 +733,12 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
   };
 
   const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newFirstName = e.target.value;
+    const newFirstName = e.target.value.replace(/[^a-zA-Z\s'-]/g, '');
     setClientDetails(prev => ({ ...prev, first_name: newFirstName }));
   };
 
   const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newLastName = e.target.value;
+    const newLastName = e.target.value.replace(/[^a-zA-Z\s'-]/g, '');
     setClientDetails(prev => ({ ...prev, last_name: newLastName }));
   };
 
@@ -738,199 +755,216 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
       case 1:
         return (
           <div style={{ minHeight: FORM_MIN_HEIGHT }} className="grid gap-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="title">
-                  Title <span className="text-red-500">*</span>
-                </Label>
+            <div className="px-8 py-10">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="title">
+                    Title <span className="text-red-500">*</span>
+                  </Label>
+                  <UISelect
+                    value={clientDetails.title ? clientDetails.title.toString() : ''}
+                    onValueChange={handleTitleChange}
+                  >
+                    <SelectTrigger id="title" className="w-full">
+                      <SelectValue placeholder="Select title" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {titleOptions.map((option) => (
+                        <SelectItem key={option.id?.toString() ?? option.value} value={option.id?.toString() ?? option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </UISelect>
+                  {clientErrors.title && (
+                    <div className="text-red-500 text-sm mt-1">{clientErrors.title}</div>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="client_type">Client Type <span className="text-red-500">*</span></Label>
+                  <UISelect
+                    value={clientDetails.client_type ? clientDetails.client_type.toString() : ''}
+                    onValueChange={handleClientTypeChange}
+                    required
+                  >
+                    <SelectTrigger id="client_type" className="w-full">
+                      <SelectValue placeholder="Select client type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clientTypeOptions.map((option) => (
+                        <SelectItem key={option.id?.toString() ?? option.value} value={option.id?.toString() ?? option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </UISelect>
+                  {clientErrors.client_type && (
+                    <p className="text-sm text-red-500 flex items-center">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      {clientErrors.client_type}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label htmlFor="first_name">First Name<span className="text-red-500 ml-1">*</span></Label>
+                  <Input
+                    id="first_name"
+                    type="text"
+                    value={clientDetails.first_name}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^a-zA-Z\s'-]/g, '');
+                      setClientDetails(prev => ({ ...prev, first_name: value }));
+                    }}
+                    onPaste={(e) => {
+                      const paste = e.clipboardData.getData('text');
+                      if (/[^a-zA-Z\s'-]/.test(paste)) e.preventDefault();
+                    }}
+                    placeholder="John"
+                    className={clientErrors.first_name ? 'border-red-500' : ''}
+                  />
+                  {clientErrors.first_name && (
+                    <p className="text-sm text-red-500 flex items-center">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      {clientErrors.first_name}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="last_name">Last Name<span className="text-red-500 ml-1">*</span></Label>
+                  <Input
+                    id="last_name"
+                    type="text"
+                    value={clientDetails.last_name}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^a-zA-Z\s'-]/g, '');
+                      setClientDetails(prev => ({ ...prev, last_name: value }));
+                    }}
+                    onPaste={(e) => {
+                      const paste = e.clipboardData.getData('text');
+                      if (/[^a-zA-Z\s'-]/.test(paste)) e.preventDefault();
+                    }}
+                    placeholder="Smith"
+                    className={clientErrors.last_name ? 'border-red-500' : ''}
+                  />
+                  {clientErrors.last_name && (
+                    <p className="text-sm text-red-500 flex items-center">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      {clientErrors.last_name}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={clientDetails.email}
+                  onChange={(e) => setClientDetails({ ...clientDetails, email: e.target.value })}
+                  placeholder="john.smith@email.com"
+                  className={clientErrors.email ? 'border-red-500' : ''}
+                />
+                {clientErrors.email && (
+                  <p className="text-sm text-red-500 flex items-center">
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    {clientErrors.email}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="phone">Client Phone Number <span className="text-red-500">*</span></Label>
+                <div className={`rounded-md border ${clientErrors.phone ? 'border-red-500' : 'border-input'} focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2`}>
+                  <PhoneInput
+                    international
+                    defaultCountry="US"
+                    id="phone"
+                    value={clientDetails.phone}
+                    onChange={(value: string | undefined) => {
+                      if (value) {
+                        const plus = value.startsWith('+') ? '+' : '';
+                        const digits = value.replace(/\D/g, '');
+                        const truncated = digits.slice(0, 15);
+                        setClientDetails({ ...clientDetails, phone: plus + truncated });
+                      } else {
+                        setClientDetails({ ...clientDetails, phone: '' });
+                      }
+                    }}
+                    placeholder="Enter phone number"
+                    className="phone-input"
+                    disabled={clientDetails.phone.replace(/\D/g, '').length >= 15}
+                  />
+                </div>
+                {/* Show warning if max length reached */}
+                {(() => {
+                  const digits = clientDetails.phone.replace(/\D/g, '');
+                  return digits.length === 15 ? (
+                    <p className="text-xs text-yellow-600 mt-1">Maximum phone number length reached (15 digits).</p>
+                  ) : null;
+                })()}
+                {clientErrors.phone && (
+                  <p className="text-sm text-red-500 flex items-center">
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    {clientErrors.phone}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="preferred_language">Preferred Language <span className="text-red-500">*</span></Label>
                 <UISelect
-                  value={clientDetails.title ? clientDetails.title.toString() : ''}
-                  onValueChange={handleTitleChange}
+                  value={clientDetails.preferred_language ? clientDetails.preferred_language.toString() : ''}
+                  onValueChange={handleLanguageChange}
                 >
-                  <SelectTrigger id="title" className="w-full">
-                    <SelectValue placeholder="Select title" />
+                  <SelectTrigger id="preferred_language" className="w-full">
+                    <SelectValue placeholder="Select language" />
                   </SelectTrigger>
-                  <SelectContent>
-                    {titleOptions.map((option) => (
+                  <SelectContent className="max-h-[200px] overflow-y-auto">
+                    {languageOptions.map((option) => (
                       <SelectItem key={option.id?.toString() ?? option.value} value={option.id?.toString() ?? option.value}>
                         {option.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </UISelect>
-                {clientErrors.title && (
-                  <div className="text-red-500 text-sm mt-1">{clientErrors.title}</div>
-                )}
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="client_type">Client Type <span className="text-red-500">*</span></Label>
-                <UISelect
-                  value={clientDetails.client_type ? clientDetails.client_type.toString() : ''}
-                  onValueChange={handleClientTypeChange}
-                  required
-                >
-                  <SelectTrigger id="client_type" className="w-full">
-                    <SelectValue placeholder="Select client type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clientTypeOptions.map((option) => (
-                      <SelectItem key={option.id?.toString() ?? option.value} value={option.id?.toString() ?? option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </UISelect>
-                {clientErrors.client_type && (
+                {clientErrors.preferred_language && (
                   <p className="text-sm text-red-500 flex items-center">
                     <AlertCircle className="h-3 w-3 mr-1" />
-                    {clientErrors.client_type}
+                    {clientErrors.preferred_language}
                   </p>
                 )}
               </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <Label htmlFor="first_name">First Name<span className="text-red-500 ml-1">*</span></Label>
-                <Input
-                  id="first_name"
-                  value={clientDetails.first_name}
-                  onChange={handleFirstNameChange}
-                  placeholder="John"
-                  className={clientErrors.first_name ? 'border-red-500' : ''}
+                <Label htmlFor="address">Address (Optional, but required for court filings or physical correspondence)</Label>
+                <Textarea
+                  id="address"
+                  value={clientDetails.address}
+                  onChange={(e) => setClientDetails({ ...clientDetails, address: e.target.value })}
+                  placeholder="123 Main St, City, State, ZIP"
+                  className={clientErrors.address ? 'border-red-500' : ''}
                 />
-                {clientErrors.first_name && (
+                {clientErrors.address && (
                   <p className="text-sm text-red-500 flex items-center">
                     <AlertCircle className="h-3 w-3 mr-1" />
-                    {clientErrors.first_name}
+                    {clientErrors.address}
                   </p>
                 )}
               </div>
-              <div className="space-y-1">
-                <Label htmlFor="last_name">Last Name<span className="text-red-500 ml-1">*</span></Label>
-                <Input
-                  id="last_name"
-                  value={clientDetails.last_name}
-                  onChange={handleLastNameChange}
-                  placeholder="Smith"
-                  className={clientErrors.last_name ? 'border-red-500' : ''}
-                />
-                {clientErrors.last_name && (
-                  <p className="text-sm text-red-500 flex items-center">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    {clientErrors.last_name}
-                  </p>
-                )}
-              </div>
-            </div>
 
-            <div className="space-y-1">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={clientDetails.email}
-                onChange={(e) => setClientDetails({ ...clientDetails, email: e.target.value })}
-                placeholder="john.smith@email.com"
-                className={clientErrors.email ? 'border-red-500' : ''}
-              />
-              {clientErrors.email && (
-                <p className="text-sm text-red-500 flex items-center">
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  {clientErrors.email}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-1">
-              <Label htmlFor="phone">Client Phone Number <span className="text-red-500">*</span></Label>
-              <div className={`rounded-md border ${clientErrors.phone ? 'border-red-500' : 'border-input'} focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2`}>
-                <PhoneInput
-                  international
-                  defaultCountry="US"
-                  id="phone"
-                  value={clientDetails.phone}
-                  onChange={(value: string | undefined) => {
-                    if (value) {
-                      // Remove all non-digit characters except leading +
-                      const plus = value.startsWith('+') ? '+' : '';
-                      const digits = value.replace(/\D/g, '');
-                      const truncated = digits.slice(0, 15); // E.164 max
-                      setClientDetails({ ...clientDetails, phone: plus + truncated });
-                    } else {
-                      setClientDetails({ ...clientDetails, phone: '' });
-                    }
-                  }}
-                  placeholder="Enter phone number"
-                  className="phone-input"
-                  disabled={clientDetails.phone.replace(/\D/g, '').length >= 15}
-                />
-              </div>
-              {/* Show warning if max length reached */}
-              {(() => {
-                const digits = clientDetails.phone.replace(/\D/g, '');
-                return digits.length === 15 ? (
-                  <p className="text-xs text-yellow-600 mt-1">Maximum phone number length reached (15 digits).</p>
-                ) : null;
-              })()}
-              {clientErrors.phone && (
-                <p className="text-sm text-red-500 flex items-center">
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  {clientErrors.phone}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-1">
-              <Label htmlFor="preferred_language">Preferred Language <span className="text-red-500">*</span></Label>
-              <UISelect
-                value={clientDetails.preferred_language ? clientDetails.preferred_language.toString() : ''}
-                onValueChange={handleLanguageChange}
-              >
-                <SelectTrigger id="preferred_language" className="w-full">
-                  <SelectValue placeholder="Select language" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[200px] overflow-y-auto">
-                  {languageOptions.map((option) => (
-                    <SelectItem key={option.id?.toString() ?? option.value} value={option.id?.toString() ?? option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </UISelect>
-              {clientErrors.preferred_language && (
-                <p className="text-sm text-red-500 flex items-center">
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  {clientErrors.preferred_language}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-1">
-              <Label htmlFor="address">Address (Optional, but required for court filings or physical correspondence)</Label>
-              <Textarea
-                id="address"
-                value={clientDetails.address}
-                onChange={(e) => setClientDetails({ ...clientDetails, address: e.target.value })}
-                placeholder="123 Main St, City, State, ZIP"
-                className={clientErrors.address ? 'border-red-500' : ''}
-              />
-              {clientErrors.address && (
-                <p className="text-sm text-red-500 flex items-center">
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  {clientErrors.address}
-                </p>
-              )}
-            </div>
-
-            <div className="mt-4">
-              <div className="flex items-center space-x-3">
-                <Switch
-                  id="send_eform"
-                  checked={sendEForm}
-                  onCheckedChange={setSendEForm}
-                />
-                <Label htmlFor="send_eform" className="cursor-pointer text-sm">Send intake form to client's email</Label>
+              <div className="mt-4">
+                <div className="flex items-center space-x-3">
+                  <Switch
+                    id="send_eform"
+                    checked={sendEForm}
+                    onCheckedChange={setSendEForm}
+                  />
+                  <Label htmlFor="send_eform" className="cursor-pointer text-sm">Send intake form to client's email</Label>
+                </div>
               </div>
             </div>
           </div>
@@ -938,273 +972,330 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
 
       case 2:
         return (
-          <div style={{ minHeight: FORM_MIN_HEIGHT }} className="space-y-4">
-            <div className="space-y-1">
-              <Label htmlFor="title">Matter Title <span className="text-red-500">*</span></Label>
-              <Input
-                id="title"
-                value={matterDetails.title}
-                onChange={(e) => setMatterDetails(prev => ({
-                  ...prev,
-                  title: e.target.value
-                }))}
-                className={matterErrors.title ? 'border-red-500' : ''}
-                placeholder="Enter matter title"
-                required
-              />
-              {matterErrors.title && (
-                <p className="text-sm text-red-500 flex items-center mt-1">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  {matterErrors.title}
-                </p>
-              )}
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="matter_type">Matter Type <span className="text-red-500">*</span></Label>
-              <div id="matter_type_id-wrapper" className="relative">
-              <Select
-                  inputId="matter_type_id"
-                  className={`react-select ${matterErrors.matter_type_id ? 'border-red-500' : ''}`}
-                classNamePrefix="react-select"
-                  options={matterTypeOptions}
-                  value={matterTypeOptions.find(option => String(option.value) === String(matterDetails.matter_type_id))}
-                onChange={(selectedOption) => {
-                  setMatterDetails({
-                    ...matterDetails,
-                      matter_type_id: selectedOption ? selectedOption.value : null,
-                      sub_type_id: null,
-                  });
-                }}
-                placeholder="Select matter type"
-                isClearable
-                isSearchable
-                  menuPlacement="auto"
-                  styles={{
-                    menuList: (base) => ({
-                      ...base,
-                      maxHeight: '500px',
-                      minHeight: '300px',
-                      overflowY: 'auto',
-                      overflowX: 'hidden'
-                    })
-                  }}
-                />
-              </div>
-              {matterErrors.matter_type_id && (
-                <p className="text-sm text-red-500 flex items-center">
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  {matterErrors.matter_type_id}
-                </p>
-              )}
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="sub_type">Sub-Type <span className="text-red-500">*</span></Label>
-              <div id="sub_type_id-wrapper" className="relative">
-              <Select
-                  inputId="sub_type_id"
-                  className={`react-select ${matterErrors.sub_type_id ? 'border-red-500' : ''}`}
-                classNamePrefix="react-select"
-                  options={(() => {
-                    const type = matterTypeOptions.find(type => String(type.value) === String(matterDetails.matter_type_id));
-                    return type && Array.isArray(type.subTypes)
-                      ? type.subTypes.map(subType => ({
-                          value: subType.value,
-                          label: subType.label
-                        }))
-                      : [];
-                  })()}
-                  value={(() => {
-                    const type = matterTypeOptions.find(type => String(type.value) === String(matterDetails.matter_type_id));
-                    if (type && Array.isArray(type.subTypes)) {
-                      const sub = type.subTypes.find(subType => String(subType.value) === String(matterDetails.sub_type_id));
-                      return sub ? { value: sub.value, label: sub.label } : null;
-                    }
-                    return null;
-                  })()}
-                onChange={(selectedOption) => {
-                  setMatterDetails({
-                    ...matterDetails,
-                      sub_type_id: selectedOption ? selectedOption.value : null
-                  });
-                }}
-                placeholder="Select sub-type"
-                isClearable
-                isSearchable
-                  menuPlacement="auto"
-                  styles={{
-                    menuList: (base) => ({
-                      ...base,
-                      maxHeight: '500px',
-                      minHeight: '300px',
-                      overflowY: 'auto',
-                      overflowX: 'hidden'
-                    })
-                  }}
-                />
-              </div>
-              {matterErrors.sub_type_id && (
-                <p className="text-sm text-red-500 flex items-center">
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  {matterErrors.sub_type_id}
-                </p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1 flex flex-col justify-end">
-                <div className="h-10 flex items-end">
-              <DatePicker
-                label="Matter Start Date"
-                value={matterDetails.start_date}
-                onChange={(date) => setMatterDetails({ ...matterDetails, start_date: date })}
-                placeholder="Select start date"
-                error={matterErrors.start_date}
-                    required
-                    minDate={new Date()}
-                  />
+          <div style={{ minHeight: FORM_MIN_HEIGHT }} className="grid gap-6">
+            <div className="px-8 py-10">
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="title">Matter Title <span className="text-red-500">*</span></Label>
+                    <Input
+                      id="title"
+                      value={matterDetails.title}
+                      onChange={(e) => setMatterDetails(prev => ({
+                        ...prev,
+                        title: e.target.value
+                      }))}
+                      className={matterErrors.title ? 'border-red-500' : ''}
+                      placeholder="Enter matter title"
+                      required
+                    />
+                    {matterErrors.title && (
+                      <p className="text-sm text-red-500 flex items-center mt-1">
+                        <AlertCircle className="h-4 w-4 mr-1" />
+                        {matterErrors.title}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="matter_type">Matter Type <span className="text-red-500">*</span></Label>
+                    <div id="matter_type_id-wrapper" className="relative">
+                      <Select
+                        inputId="matter_type_id"
+                        className={`react-select ${matterErrors.matter_type_id ? 'border-red-500' : ''}`}
+                        classNamePrefix="react-select"
+                        options={matterTypeOptions}
+                        value={matterTypeOptions.find(option => String(option.id) === String(matterDetails.matter_type_id))}
+                        onChange={(selectedOption) => {
+                          setMatterDetails({
+                            ...matterDetails,
+                            matter_type_id: selectedOption ? selectedOption.id : null,
+                            sub_type_id: null,
+                          });
+                        }}
+                        placeholder="Select matter type"
+                        isClearable
+                        isSearchable
+                        menuPlacement="auto"
+                        styles={{
+                          menuList: (base) => ({
+                            ...base,
+                            maxHeight: '350px',
+                            overflowY: 'auto',
+                            overflowX: 'hidden',
+                            fontSize: '1rem',
+                            paddingTop: 0,
+                            paddingBottom: 0,
+                          }),
+                          menu: (base) => ({
+                            ...base,
+                            marginTop: 0,
+                            borderTopLeftRadius: 0,
+                            borderTopRightRadius: 0,
+                            width: '100%',
+                          }),
+                          control: (base) => ({
+                            ...base,
+                            borderBottomLeftRadius: 0,
+                            borderBottomRightRadius: 0,
+                            fontSize: '1rem',
+                          })
+                        }}
+                      />
+                    </div>
+                    {matterErrors.matter_type_id && (
+                      <p className="text-sm text-red-500 flex items-center">
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        {matterErrors.matter_type_id}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-1 flex flex-col justify-end">
-                <Label htmlFor="estimated_value">Estimated Value (Optional)</Label>
-                <Input
-                  id="estimated_value"
-                  type="number"
-                  value={typeof matterDetails.estimated_value === 'number' ? matterDetails.estimated_value : ''}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setMatterDetails({
-                      ...matterDetails,
-                      estimated_value: val ? Number(val) : undefined
-                    });
-                  }}
-                  placeholder="e.g., 100000"
-                  className={matterErrors.estimated_value ? 'border-red-500 h-10' : 'h-10'}
-                />
-                {matterErrors.estimated_value && (
-                  <p className="text-sm text-red-500 flex items-center">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    {matterErrors.estimated_value}
-                  </p>
-                )}
-              </div>
-            </div>
 
-            <div className="space-y-1">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={matterDetails.description}
-                onChange={(e) => setMatterDetails({ ...matterDetails, description: e.target.value })}
-                placeholder="Provide a brief description of the matter"
-                className={matterErrors.description ? 'border-red-500' : ''}
-              />
-              {matterErrors.description && (
-                <p className="text-sm text-red-500 flex items-center">
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  {matterErrors.description}
-                </p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label htmlFor="jurisdiction_country">Country <span className="text-red-500">*</span></Label>
-                <div id="jurisdiction_country-wrapper" className="relative">
-                  <Select
-                    inputId="jurisdiction_country"
-                    className={`react-select ${matterErrors.jurisdiction_country ? 'border-red-500' : ''}`}
-                    classNamePrefix="react-select"
-                    options={countries}
-                    value={countries.find(option => option.value === matterDetails.jurisdiction_country)}
-                    onChange={(selectedOption) => {
-                      setMatterDetails({
-                        ...matterDetails,
-                        jurisdiction_country: selectedOption?.value || '',
-                      });
-                    }}
-                    placeholder="Select country"
-                    isClearable
-                    isSearchable
-                    menuPlacement="auto"
-                    styles={{
-                      menuList: (base) => ({
-                        ...base,
-                        maxHeight: '200px',
-                        overflowY: 'auto'
-                      })
-                    }}
-                  />
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="sub_type">Sub-Type <span className="text-red-500">*</span></Label>
+                    <div id="sub_type_id-wrapper" className="relative">
+                      <Select
+                        inputId="sub_type_id"
+                        className={`react-select ${matterErrors.sub_type_id ? 'border-red-500' : ''}`}
+                        classNamePrefix="react-select"
+                        options={(() => {
+                          const type = matterTypeOptions.find(type => String(type.id) === String(matterDetails.matter_type_id));
+                          return type && Array.isArray(type.subTypes)
+                            ? type.subTypes.map(subType => ({
+                                id: subType.id,
+                                value: subType.value,
+                                label: subType.label
+                              }))
+                            : [];
+                        })()}
+                        value={(() => {
+                          const type = matterTypeOptions.find(type => String(type.id) === String(matterDetails.matter_type_id));
+                          if (type && Array.isArray(type.subTypes)) {
+                            const sub = type.subTypes.find(subType => String(subType.id) === String(matterDetails.sub_type_id));
+                            return sub ? { id: sub.id, value: sub.value, label: sub.label } : null;
+                          }
+                          return null;
+                        })()}
+                        onChange={(selectedOption) => {
+                          setMatterDetails({
+                            ...matterDetails,
+                            sub_type_id: selectedOption ? selectedOption.id : null,
+                          });
+                        }}
+                        placeholder="Select sub-type"
+                        isClearable
+                        isSearchable
+                        menuPlacement="auto"
+                        styles={{
+                          menuList: (base) => ({
+                            ...base,
+                            maxHeight: '200px',
+                            overflowY: 'auto',
+                            overflowX: 'hidden'
+                          })
+                        }}
+                      />
+                    </div>
+                    {matterErrors.sub_type_id && (
+                      <p className="text-sm text-red-500 flex items-center">
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        {matterErrors.sub_type_id}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                {matterErrors.jurisdiction_country && (
-                  <p className="text-sm text-red-500 flex items-center">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    {matterErrors.jurisdiction_country}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="priority">Priority <span className="text-red-500">*</span></Label>
-                <div id="priority-wrapper" className="relative">
-                  <Select
-                    inputId="priority"
-                    className="react-select"
-                    classNamePrefix="react-select"
-                    options={[
-                      { value: 'High', label: 'High' },
-                      { value: 'Medium', label: 'Medium' },
-                      { value: 'Low', label: 'Low' },
-                    ]}
-                    value={{ value: matterDetails.priority, label: matterDetails.priority }}
-                    onChange={(selectedOption) => {
-                      setMatterDetails({
-                        ...matterDetails,
-                        priority: selectedOption?.value as 'High' | 'Medium' | 'Low',
-                      });
-                    }}
-                    placeholder="Select priority"
-                    menuPlacement="auto"
-                    styles={{
-                      menuList: (base) => ({
-                        ...base,
-                        maxHeight: '200px',
-                        overflowY: 'auto'
-                      })
-                    }}
-                  />
+                {/* Move Country field to its own row below Sub-Type */}
+                <div className="space-y-1 mt-2">
+                  <Label htmlFor="jurisdiction_country">Country <span className="text-red-500">*</span></Label>
+                  <div id="jurisdiction_country-wrapper" className="relative">
+                    <Select
+                      inputId="jurisdiction_country"
+                      className={`react-select ${matterErrors.jurisdiction_country ? 'border-red-500' : ''}`}
+                      classNamePrefix="react-select"
+                      options={countries}
+                      value={countries.find(option => option.value === matterDetails.jurisdiction_country)}
+                      onChange={(selectedOption) => {
+                        setMatterDetails({
+                          ...matterDetails,
+                          jurisdiction_country: selectedOption?.value || '',
+                        });
+                      }}
+                      placeholder="Select country"
+                      isClearable
+                      isSearchable
+                      menuPlacement="auto"
+                      styles={{
+                        menuList: (base) => ({
+                          ...base,
+                          maxHeight: '350px',
+                          overflowY: 'auto',
+                          overflowX: 'hidden',
+                          fontSize: '1rem',
+                          paddingTop: 0,
+                          paddingBottom: 0,
+                        }),
+                        menu: (base) => ({
+                          ...base,
+                          marginTop: 0,
+                          borderTopLeftRadius: 0,
+                          borderTopRightRadius: 0,
+                          width: '100%',
+                        }),
+                        control: (base) => ({
+                          ...base,
+                          borderBottomLeftRadius: 0,
+                          borderBottomRightRadius: 0,
+                          fontSize: '1rem',
+                        })
+                      }}
+                    />
+                  </div>
+                  {matterErrors.jurisdiction_country && (
+                    <p className="text-sm text-red-500 flex items-center">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      {matterErrors.jurisdiction_country}
+                    </p>
+                  )}
                 </div>
-              </div>
-            </div>
 
-            <div className="space-y-1">
-              <Label htmlFor="status">Status <span className="text-red-500">*</span></Label>
-              <div id="status-wrapper" className="relative">
-                <Select
-                  inputId="status"
-                  className="react-select"
-                  classNamePrefix="react-select"
-                  options={[
-                    { value: 'Active', label: 'Active' },
-                    { value: 'Closed', label: 'Closed' },
-                    { value: 'On Hold', label: 'On Hold' },
-                    { value: 'Pending', label: 'Pending' },
-                  ]}
-                  value={{ value: matterDetails.status, label: matterDetails.status }}
-                  onChange={(selectedOption) => {
-                    setMatterDetails({
-                      ...matterDetails,
-                      status: selectedOption?.value as 'Active' | 'Closed' | 'On Hold' | 'Pending',
-                    });
-                  }}
-                  placeholder="Select status"
-                  menuPlacement="auto"
-                  styles={{
-                    menuList: (base) => ({
-                      ...base,
-                      maxHeight: '200px',
-                      overflowY: 'auto'
-                    })
-                  }}
-                />
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="start_date">Start Date <span className="text-red-500">*</span></Label>
+                    <div className="h-10">
+                      <DatePicker
+                        value={matterDetails.start_date}
+                        onChange={(date) => setMatterDetails({ ...matterDetails, start_date: date })}
+                        placeholder="Select start date"
+                        error={matterErrors.start_date}
+                        required
+                        minDate={new Date()}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="estimated_value">Estimated Value (Optional)</Label>
+                    <Input
+                      id="estimated_value"
+                      type="number"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={typeof matterDetails.estimated_value === 'number' ? matterDetails.estimated_value : ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        // Only allow valid numbers or empty
+                        if (/^\d*$/.test(val)) {
+                          setMatterDetails({
+                            ...matterDetails,
+                            estimated_value: val ? Number(val) : undefined
+                          });
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        // Allow navigation, backspace, delete, tab, etc.
+                        if (["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete"].includes(e.key)) return;
+                        // Block non-numeric keys
+                        if (!/\d/.test(e.key)) e.preventDefault();
+                      }}
+                      onPaste={(e) => {
+                        const paste = e.clipboardData.getData('text');
+                        if (!/^\d+$/.test(paste)) e.preventDefault();
+                      }}
+                      placeholder="e.g., 100000"
+                      className={matterErrors.estimated_value ? 'border-red-500 h-10' : 'h-10'}
+                    />
+                    {matterErrors.estimated_value && (
+                      <p className="text-sm text-red-500 flex items-center">
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        {matterErrors.estimated_value}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="priority">Priority <span className="text-red-500">*</span></Label>
+                    <div id="priority-wrapper" className="relative">
+                      <Select
+                        inputId="priority"
+                        className="react-select"
+                        classNamePrefix="react-select"
+                        options={[
+                          { value: 'High', label: 'High' },
+                          { value: 'Medium', label: 'Medium' },
+                          { value: 'Low', label: 'Low' },
+                        ]}
+                        value={{ value: matterDetails.priority, label: matterDetails.priority }}
+                        onChange={(selectedOption) => {
+                          setMatterDetails({
+                            ...matterDetails,
+                            priority: selectedOption?.value as 'High' | 'Medium' | 'Low',
+                          });
+                        }}
+                        placeholder="Select priority"
+                        menuPlacement="auto"
+                        styles={{
+                          menuList: (base) => ({
+                            ...base,
+                            maxHeight: '350px',
+                            overflowY: 'auto'
+                          })
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="status">Status <span className="text-red-500">*</span></Label>
+                    <div id="status-wrapper" className="relative">
+                      <Select
+                        inputId="status"
+                        className="react-select"
+                        classNamePrefix="react-select"
+                        options={[
+                          { value: 'Active', label: 'Active' },
+                          { value: 'Closed', label: 'Closed' },
+                          { value: 'On Hold', label: 'On Hold' },
+                          { value: 'Pending', label: 'Pending' },
+                        ]}
+                        value={{ value: matterDetails.status, label: matterDetails.status }}
+                        onChange={(selectedOption) => {
+                          setMatterDetails({
+                            ...matterDetails,
+                            status: selectedOption?.value as 'Active' | 'Closed' | 'On Hold' | 'Pending',
+                          });
+                        }}
+                        placeholder="Select status"
+                        menuPlacement="auto"
+                        styles={{
+                          menuList: (base) => ({
+                            ...base,
+                            maxHeight: '350px',
+                            overflowY: 'auto'
+                          })
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={matterDetails.description}
+                    onChange={(e) => setMatterDetails({ ...matterDetails, description: e.target.value })}
+                    placeholder="Provide a brief description of the matter"
+                    className={matterErrors.description ? 'border-red-500' : ''}
+                  />
+                  {matterErrors.description && (
+                    <p className="text-sm text-red-500 flex items-center">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      {matterErrors.description}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -1229,6 +1320,9 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                 placeholder="Select billing method"
                   styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.8rem' }) }}
                 />
+                {billingErrors.billing_method && (
+                  <p className="text-xs text-red-500 mt-1">{billingErrors.billing_method}</p>
+                )}
             </div>
 
               <div className="space-y-1">
@@ -1246,6 +1340,9 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                   placeholder="Select payment pattern"
                   styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.8rem' }) }}
                 />
+                {billingErrors.payment_pattern_id && (
+                  <p className="text-xs text-red-500 mt-1">{billingErrors.payment_pattern_id}</p>
+                )}
               </div>
             </div>
 
@@ -1266,6 +1363,9 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                     placeholder="Select payment medium"
                     styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.8rem' }) }}
                   />
+                  {billingErrors.payment_medium && (
+                    <p className="text-xs text-red-500 mt-1">{billingErrors.payment_medium}</p>
+                  )}
               </div>
 
                 {billingMethodRequirements[selectedBillingMethodValue]?.requiresFrequency && (
@@ -1273,7 +1373,7 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                     <Label htmlFor="billing_frequency">Billing Frequency <span className="text-red-500">*</span></Label>
                     <Select
                       inputId="billing_frequency"
-                      className={`react-select ${billingErrors.billing_frequency ? 'border-red-500' : ''}`}
+                      className={`react-select ${billingErrors.billing_frequency_id ? 'border-red-500' : ''}`}
                       classNamePrefix="react-select"
                       options={billingFrequencyOptions}
                       value={billingFrequencyOptions.find(option => option.value === billingDetails.billing_frequency_id)}
@@ -1284,6 +1384,9 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                       placeholder="Select billing frequency"
                       styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.8rem' }) }}
                     />
+                    {billingErrors.billing_frequency_id && (
+                      <p className="text-xs text-red-500 mt-1">{billingErrors.billing_frequency_id}</p>
+                    )}
                   </div>
                 )}
               </div>
@@ -1296,14 +1399,36 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                 <Input
                     id="rate"
                   type="number"
+                    inputMode="decimal"
+                    pattern="[0-9.]*"
                     value={billingDetails.rate_value}
-                    onChange={(e) => setBillingDetails({
-                      ...billingDetails,
-                      rate_value: Number(e.target.value)
-                    })}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      // Only allow valid decimal numbers or empty
+                      if (/^\d*\.?\d*$/.test(val)) {
+                        setBillingDetails({
+                          ...billingDetails,
+                          rate_value: val
+                        });
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      // Allow navigation, backspace, delete, tab, period (for decimal)
+                      if (["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete", "."].includes(e.key)) return;
+                      // Block non-numeric keys
+                      if (!/\d/.test(e.key)) e.preventDefault();
+                    }}
+                    onPaste={(e) => {
+                      const paste = e.clipboardData.getData('text');
+                      if (!/^\d*\.?\d*$/.test(paste)) e.preventDefault();
+                    }}
                     placeholder={`Enter ${selectedBillingMethodValue} rate`}
                     style={{ fontSize: '0.8rem', height: '32px' }}
+                    className={billingErrors.rate ? 'border-red-500' : ''}
                   />
+                  {billingErrors.rate && (
+                    <p className="text-xs text-red-500 mt-1">{billingErrors.rate}</p>
+                  )}
               </div>
             <div className="space-y-1">
               <Label htmlFor="currency">Currency <span className="text-red-500">*</span></Label>
@@ -1320,6 +1445,9 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                     placeholder="Select currency"
                     styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.8rem' }) }}
                   />
+                  {billingErrors.currency && (
+                    <p className="text-xs text-red-500 mt-1">{billingErrors.currency}</p>
+                  )}
                 </div>
               </div>
             )}
@@ -1330,6 +1458,7 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                 <Select
                   inputId="terms"
                   classNamePrefix="react-select"
+                  className={billingErrors.terms ? 'border-red-500' : ''}
                   options={paymentTermsOptions}
                   value={isCustomTermsActive ? null : (paymentTermsOptions.find(option => option.value === (billingDetails.terms_details.standard || '')) || paymentTermsOptions[0])}
                   onChange={selectedOption => {
@@ -1349,6 +1478,9 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                   styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.8rem' }) }}
                   isDisabled={isCustomTermsActive}
                 />
+                {billingErrors.terms && (
+                  <p className="text-xs text-red-500 mt-1">{billingErrors.terms}</p>
+                )}
               </div>
               <div className="flex items-center space-x-2">
                 <Switch
@@ -1382,7 +1514,11 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                     })}
                     placeholder="Enter custom payment terms"
                     style={{ fontSize: '0.8rem', minHeight: '48px' }}
+                    className={billingErrors.custom_terms ? 'border-red-500' : ''}
                   />
+                  {billingErrors.custom_terms && (
+                    <p className="text-xs text-red-500 mt-1">{billingErrors.custom_terms}</p>
+                  )}
                 </div>
               )}
             </div>
@@ -1448,7 +1584,10 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
               <h3 className="text-lg font-semibold mb-2 text-gray-800">Client Information</h3>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div className="font-medium text-gray-600">Name:</div>
-                <div className="text-gray-900">{clientDetails.first_name} {clientDetails.last_name}</div>
+                <div className="text-gray-900">{(() => {
+                  const titleLabel = titleOptions.find(option => String(option.id) === String(clientDetails.title))?.label;
+                  return [titleLabel, clientDetails.first_name, clientDetails.last_name].filter(Boolean).join(' ');
+                })()}</div>
                 
                 <div className="font-medium text-gray-600">Email:</div>
                 <div className="text-gray-900">{clientDetails.email}</div>
@@ -1457,7 +1596,9 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                 <div className="text-gray-900">{clientDetails.phone}</div>
                 
                 <div className="font-medium text-gray-600">Preferred Language:</div>
-                <div className="text-gray-900">{languageOptions.find(option => option.id === clientDetails.preferred_language)?.label || clientDetails.preferred_language}</div>
+                <div className="text-gray-900">
+                  {languageOptions.find(option => String(option.id) === String(clientDetails.preferred_language))?.label || clientDetails.preferred_language}
+                </div>
               </div>
             </div>
             
@@ -1471,9 +1612,19 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                 <div className="text-gray-900">
                   {Array.isArray(matterTypeOptions)
                     ? (() => {
-                        const type = matterTypeOptions.find(type => String(type.value) === String(matterDetails.matter_type_id));
+                        const type = matterTypeOptions.find(type => String(type.id) === String(matterDetails.matter_type_id));
+                        return type ? type.label : 'Not selected';
+                      })()
+                    : 'Not selected'}
+                </div>
+                
+                <div className="font-medium text-gray-600">Sub-Type:</div>
+                <div className="text-gray-900">
+                  {Array.isArray(matterTypeOptions)
+                    ? (() => {
+                        const type = matterTypeOptions.find(type => String(type.id) === String(matterDetails.matter_type_id));
                         if (type && Array.isArray(type.subTypes)) {
-                          const sub = type.subTypes.find(subType => String(subType.value) === String(matterDetails.sub_type_id));
+                          const sub = type.subTypes.find(subType => String(subType.id) === String(matterDetails.sub_type_id));
                           return sub ? sub.label : 'Not selected';
                         }
                         return 'Not selected';
@@ -1481,9 +1632,9 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                     : 'Not selected'}
                 </div>
                 
-                <div className="font-medium text-gray-600">Jurisdiction:</div>
+                <div className="font-medium text-gray-600">Country:</div>
                 <div className="text-gray-900">
-                  {matterDetails.jurisdiction_country}
+                  {countries.find(option => option.value === matterDetails.jurisdiction_country)?.label || matterDetails.jurisdiction_country}
                 </div>
                 
                 <div className="font-medium text-gray-600">Start Date:</div>
@@ -1497,8 +1648,8 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                 <div className="font-medium text-gray-600">Status:</div>
                 <div className="text-gray-900">{matterDetails.status}</div>
                 
-                <div className="font-medium text-gray-600 col-span-2">Description:</div>
-                <div className="text-gray-900 col-span-2">{matterDetails.description}</div>
+                <div className="font-medium text-gray-600">Description:</div>
+                <div className="text-gray-900">{matterDetails.description}</div>
               </div>
             </div>
             
