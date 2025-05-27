@@ -16,10 +16,29 @@ const VALID_SORT_DIRECTIONS = ['asc', 'desc'];
 const VALID_PAYMENT_PATTERNS = ['Standard', 'Block', 'Subscription', 'Contingency', 'Hybrid'];
 
 // Valid status values
-const VALID_STATUS_VALUES = ['active', 'pending', 'closed', 'archived'];
+const VALID_STATUS_VALUES = ['active', 'pending', 'closed', 'archived', 'completed'];
 
 // Valid priority values
 const VALID_PRIORITY_VALUES = ['high', 'medium', 'low'];
+
+// Type definitions
+interface MatterResponse {
+  id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+  status: string;
+  priority: string | null;
+  client_name: string;
+  client_avatar_url: string;
+  matter_type: string;
+  sub_type: string;
+  tags: string[];
+  progress: number;
+  billing_method: string;
+  rate: number | undefined;
+  currency: string;
+}
 
 // GET /api/matters/search - Search and filter matters
 export async function GET(request: Request) {
@@ -51,17 +70,29 @@ export async function GET(request: Request) {
     // Get query parameters
     const url = new URL(request.url);
     const searchQuery = url.searchParams.get('q') || '';
-    const status = url.searchParams.get('status');
-    const priority = url.searchParams.get('priority');
+    const status = url.searchParams.get('status')?.toLowerCase() || 'all';
+    const statuses = status !== 'all' ? status.split(',') : [];
+    const priority = url.searchParams.get('priority')?.toLowerCase() || 'all';
+    const priorities = priority !== 'all' ? priority.split(',') : [];
     const sortBy = url.searchParams.get('sortBy') || 'created_at';
     const sortDirection = url.searchParams.get('sortDirection') || 'desc';
     const page = parseInt(url.searchParams.get('page') || '1');
     const pageSize = parseInt(url.searchParams.get('pageSize') || '10');
 
+    // Validate pagination parameters
+    if (page < 1 || pageSize < 1 || pageSize > 100) {
+      return NextResponse.json(
+        { error: 'Invalid pagination parameters. Page must be positive and pageSize must be between 1 and 100.' },
+        { status: 400 }
+      );
+    }
+
     console.log('Query parameters:', {
       searchQuery,
       status,
+      statuses,
       priority,
+      priorities,
       sortBy,
       sortDirection,
       page,
@@ -85,22 +116,28 @@ export async function GET(request: Request) {
       );
     }
 
-    // Validate status if provided
-    if (status && status !== 'all' && !VALID_STATUS_VALUES.includes(status)) {
-      console.error('Invalid status value:', status);
-      return NextResponse.json(
-        { error: `Invalid status. Must be one of: ${VALID_STATUS_VALUES.join(', ')}` },
-        { status: 400 }
-      );
+    // Validate statuses if provided
+    if (statuses.length > 0) {
+      const invalidStatuses = statuses.filter(s => !VALID_STATUS_VALUES.includes(s));
+      if (invalidStatuses.length > 0) {
+        console.error('Invalid status values:', invalidStatuses);
+        return NextResponse.json(
+          { error: `Invalid statuses. Must be one or more of: ${VALID_STATUS_VALUES.join(', ')}` },
+          { status: 400 }
+        );
+      }
     }
 
-    // Validate priority if provided
-    if (priority && priority !== 'all' && !VALID_PRIORITY_VALUES.includes(priority)) {
-      console.error('Invalid priority value:', priority);
-      return NextResponse.json(
-        { error: `Invalid priority. Must be one of: ${VALID_PRIORITY_VALUES.join(', ')}` },
-        { status: 400 }
-      );
+    // Validate priorities if provided
+    if (priorities.length > 0) {
+      const invalidPriorities = priorities.filter(p => !VALID_PRIORITY_VALUES.includes(p));
+      if (invalidPriorities.length > 0) {
+        console.error('Invalid priority values:', invalidPriorities);
+        return NextResponse.json(
+          { error: `Invalid priorities. Must be one or more of: ${VALID_PRIORITY_VALUES.join(', ')}` },
+          { status: 400 }
+        );
+      }
     }
 
     console.log('Building query...');
@@ -112,7 +149,7 @@ export async function GET(request: Request) {
 
     // Execute the query
     console.log('Executing query...');
-    const { data: matters, error, count } = await supabase
+    let query = supabase
       .from('matters')
       .select(`
         id,
@@ -150,6 +187,7 @@ export async function GET(request: Request) {
           status
         ),
         priority:priorities!matters_priority_id_fkey (
+          id,
           name
         ),
         matter_billing (
@@ -175,16 +213,43 @@ export async function GET(request: Request) {
           tag
         )
       `, { count: 'exact' })
-      .eq('profile_id', profile.id)
-      .order(
-        sortBy === 'matter_status.status'
-          ? 'matter_status(status)'
-          : sortBy === 'client_name'
-            ? 'client.last_name'
-            : sortBy,
-        { ascending: sortDirection === 'asc' }
-      )
-      .range(from, to);
+      .eq('profile_id', profile.id);
+
+    // Add priority filter if specified
+    if (priorities.length > 0) {
+      query = query.in('priority.name', priorities);
+    }
+
+    // Add status filter if specified
+    if (statuses.length > 0) {
+      query = query.in('matter_status!inner.status', statuses);
+    }
+
+    // Add search query if specified
+    if (searchQuery) {
+      query = query.or(`
+        title.ilike.%${searchQuery}%,
+        client(first_name).ilike.%${searchQuery}%,
+        client(last_name).ilike.%${searchQuery}%,
+        matter_type(label).ilike.%${searchQuery}%,
+        sub_type(label).ilike.%${searchQuery}%
+      `);
+    }
+
+    // Add sorting
+    query = query.order(
+      sortBy === 'matter_status.status'
+        ? 'matter_status!inner.status'
+        : sortBy === 'client_name'
+          ? 'client(last_name)'
+          : sortBy,
+      { ascending: sortDirection === 'asc' }
+    );
+
+    // Add pagination
+    query = query.range(from, to);
+
+    const { data: matters, error, count } = await query;
 
     // Debug log for raw matters
     console.log('Raw matters:', JSON.stringify(matters, null, 2));
@@ -198,10 +263,14 @@ export async function GET(request: Request) {
     const transformedMatters = matters?.map(matter => {
       let priorityName: string | null = null;
       const priority = matter.priority as any;
-      if (Array.isArray(priority)) {
-        priorityName = priority[0]?.name ?? null;
-      } else if (priority && typeof priority === 'object' && 'name' in priority) {
-        priorityName = priority.name ?? null;
+      if (priority) {
+        if (Array.isArray(priority)) {
+          priorityName = priority[0]?.name ?? 'unspecified';
+        } else if (typeof priority === 'object' && priority !== null) {
+          priorityName = priority.name ?? 'unspecified';
+        }
+      } else {
+        priorityName = 'unspecified';
       }
       // Matter type and sub-type
       let matterType = '';
@@ -293,7 +362,7 @@ export async function GET(request: Request) {
         billing_method: billingMethod,
         rate,
         currency,
-      };
+      } as MatterResponse;
     }) || [];
 
     // Return empty array if no matters found
@@ -306,6 +375,10 @@ export async function GET(request: Request) {
           pageSize,
           totalPages: 0
         }
+      }, {
+        headers: {
+          'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=59',
+        },
       });
     }
 
@@ -319,6 +392,10 @@ export async function GET(request: Request) {
         pageSize,
         totalPages: Math.ceil((count || 0) / pageSize)
       }
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=59',
+      },
     });
   } catch (error) {
     console.error('Unexpected error in matter search:', error);
