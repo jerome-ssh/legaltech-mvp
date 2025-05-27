@@ -1,18 +1,20 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@clerk/nextjs";
 import { useRouter, useSearchParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, FileText, Calendar, User, Tag } from "lucide-react";
+import { Plus, FileText, LayoutGrid, List } from "lucide-react";
 import dynamic from 'next/dynamic';
 import { MatterSearch } from '@/components/matters/MatterSearch';
 import { MatterCard } from '@/components/matters/MatterCard';
 import { useToast } from '@/components/ui/use-toast';
 import { MatterIntakeWizard } from '@/components/matters/MatterIntakeWizard';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { useFormOptions } from '@/hooks/useFormOptions';
+import { MatterList } from '@/components/matters/MatterList';
+import { Input } from '@/components/ui/input';
 
 const LayoutWithSidebar = dynamic(() => import('@/components/LayoutWithSidebar'), {
   ssr: false,
@@ -27,19 +29,16 @@ interface Matter {
   title: string;
   status: string;
   priority: string;
-  description?: string;
-  client_name: string;
   created_at: string;
-  updated_at: string;
-  matter_status: {
-    status: string;
-    changed_at: string;
-  }[];
-  matter_billing: {
-    billing_type: string;
-    rate: number;
-    currency: string;
-  } | null;
+  profile_id: string;
+  client_name?: string;
+}
+
+interface PaginationInfo {
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }
 
 export default function Matters() {
@@ -52,6 +51,26 @@ export default function Matters() {
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [showWizard, setShowWizard] = useState(false);
+  const [isHoveringNewMatter, setIsHoveringNewMatter] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [filters, setFilters] = useState({
+    q: '',
+    status: 'all',
+    priority: 'all',
+    sortBy: 'created_at',
+    sortDirection: 'desc',
+    page: 1,
+  });
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    total: 0,
+    page: 1,
+    pageSize: 10,
+    totalPages: 0
+  });
+
+  const { } = useFormOptions({ 
+    shouldFetch: isHoveringNewMatter 
+  });
 
   // Clerk authentication check
   useEffect(() => {
@@ -60,81 +79,17 @@ export default function Matters() {
     }
   }, [isLoaded, isSignedIn, router]);
 
-  useEffect(() => {
-    async function fetchMatters() {
-      try {
-        // Get the current user's profile_id
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('clerk_id', user?.id)
-          .single();
-
-        if (profileError) throw profileError;
-        if (!profile) throw new Error('Profile not found');
-        const profileId = profile.id;
-
-        // Fetch matters for this profile
-        const { data, error } = await supabase
-          .from('matters')
-          .select('*')
-          .eq('profile_id', profileId)
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        setMatters(data || []);
-      } catch (error) {
-        console.error('Error fetching matters:', error);
-        // Only set error for actual errors, not for empty results
-        if (error instanceof Error && !error.message.includes('No rows found')) {
-          toast({
-            title: 'Error',
-            description: 'Failed to fetch matters. Please try again.',
-            variant: 'destructive'
-          });
-        }
-        setMatters([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (user?.id) {
-      fetchMatters();
-    }
-  }, [user?.id]);
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "High":
-        return "text-red-500";
-      case "Medium":
-        return "text-yellow-500";
-      case "Low":
-        return "text-green-500";
-      default:
-        return "text-blue-500";
-    }
-  };
-
-  const fetchMatters = async (params: {
-    q: string;
-    status: string;
-    priority: string;
-    sortBy: string;
-    sortDirection: string;
-    page: number;
-  }) => {
+  const fetchMatters = useCallback(async (newFilters = filters) => {
     try {
       setLoading(true);
       const queryParams = new URLSearchParams();
       
-      if (params.q) queryParams.set('q', params.q);
-      if (params.status) queryParams.set('status', params.status);
-      if (params.priority) queryParams.set('priority', params.priority);
-      queryParams.set('sortBy', params.sortBy);
-      queryParams.set('sortDirection', params.sortDirection);
-      queryParams.set('page', params.page.toString());
+      if (newFilters.q) queryParams.set('q', newFilters.q);
+      if (newFilters.status) queryParams.set('status', newFilters.status);
+      if (newFilters.priority) queryParams.set('priority', newFilters.priority);
+      queryParams.set('sortBy', newFilters.sortBy);
+      queryParams.set('sortDirection', newFilters.sortDirection);
+      queryParams.set('page', newFilters.page.toString());
       queryParams.set('pageSize', '10');
 
       const response = await fetch(`/api/matters/search?${queryParams.toString()}`);
@@ -144,6 +99,7 @@ export default function Matters() {
       setMatters(data.matters);
       setTotalPages(data.pagination.totalPages);
       setCurrentPage(data.pagination.page);
+      setPagination(data.pagination);
 
       // Update URL with search params
       router.push(`/matters?${queryParams.toString()}`, { scroll: false });
@@ -157,7 +113,7 @@ export default function Matters() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, router, toast]);
 
   useEffect(() => {
     // Initialize with URL params or defaults
@@ -169,10 +125,15 @@ export default function Matters() {
       sortDirection: searchParams?.get('sortDirection') ?? 'desc',
       page: parseInt(searchParams?.get('page') ?? '1')
     };
+    setFilters(params);
     fetchMatters(params);
   }, []);
 
-  const handleSearch = (params: {
+  useEffect(() => {
+    fetchMatters(filters);
+  }, [filters, fetchMatters]);
+
+  const handleFilterChange = (params: {
     q: string;
     status: string;
     priority: string;
@@ -180,7 +141,16 @@ export default function Matters() {
     sortDirection: string;
     page: number;
   }) => {
-    fetchMatters(params);
+    setFilters({
+      ...params,
+    });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setFilters((prev) => ({
+      ...prev,
+      page: newPage,
+    }));
   };
 
   if (!isLoaded || !isSignedIn) {
@@ -196,6 +166,7 @@ export default function Matters() {
           <Button 
             className="bg-blue-600 text-white hover:bg-blue-700"
             onClick={() => setShowWizard(true)}
+            onMouseEnter={() => setIsHoveringNewMatter(true)}
           >
             <Plus className="w-4 h-4 mr-2" />
             New Matter
@@ -205,48 +176,105 @@ export default function Matters() {
         <MatterSearch
           totalPages={totalPages}
           currentPage={currentPage}
-          onSearch={handleSearch}
+          filters={filters}
+          onChange={handleFilterChange}
+          sortOptions={[
+            { value: 'created_at', label: 'Created Date' },
+            { value: 'title', label: 'Title' },
+            { value: 'client_name', label: 'Client Name' },
+          ]}
         />
 
-        {/* Matters Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {loading ? (
-            // Loading skeletons
-            Array.from({ length: 6 }).map((_, i) => (
-              <Card key={i} className="shadow-md">
-                <CardContent className="p-6">
-                  <Skeleton className="h-6 w-3/4 mb-4" />
-                  <Skeleton className="h-4 w-1/2 mb-2" />
-                  <Skeleton className="h-4 w-2/3 mb-2" />
-                  <Skeleton className="h-4 w-1/3" />
-                </CardContent>
-              </Card>
-            ))
-          ) : matters.length === 0 ? (
-            // Empty state
-            <div className="col-span-full text-center py-12">
-              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No matters yet</h3>
-              <p className="text-gray-500 mb-4">Create your first matter to get started</p>
-              <Button 
-                className="bg-blue-600 text-white hover:bg-blue-700"
-                onClick={() => setShowWizard(true)}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                New Matter
-              </Button>
-            </div>
-          ) : (
-            // Matter cards
-            matters.map((matter) => (
-              <MatterCard key={matter.id} matter={matter} />
-            ))
-          )}
+        <div className="flex justify-end mb-4">
+          <div className="flex gap-2">
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'outline'}
+              size="icon"
+              onClick={() => setViewMode('grid')}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'outline'}
+              size="icon"
+              onClick={() => setViewMode('list')}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
-        <Dialog open={showWizard} onOpenChange={setShowWizard}>
+        {/* Matters Grid */}
+        {loading ? (
+          // Loading skeletons
+          Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="shadow-md">
+              <CardContent className="p-6">
+                <Skeleton className="h-6 w-3/4 mb-4" />
+                <Skeleton className="h-4 w-1/2 mb-2" />
+                <Skeleton className="h-4 w-2/3 mb-2" />
+                <Skeleton className="h-4 w-1/3" />
+              </CardContent>
+            </Card>
+          ))
+        ) : matters.length === 0 ? (
+          // Empty state
+          <div className="col-span-full text-center py-12">
+            <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No matters yet</h3>
+            <p className="text-gray-500 mb-4">Create your first matter to get started</p>
+            <Button 
+              className="bg-blue-600 text-white hover:bg-blue-700"
+              onClick={() => setShowWizard(true)}
+              onMouseEnter={() => setIsHoveringNewMatter(true)}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              New Matter
+            </Button>
+          </div>
+        ) : viewMode === 'grid' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {matters.map((matter) => (
+              <MatterCard key={matter.id} matter={matter} />
+            ))}
+          </div>
+        ) : (
+          <MatterList matters={matters} />
+        )}
+
+        {pagination.totalPages > 1 && (
+          <div className="flex justify-center gap-2 mt-8">
+            <Button
+              variant="outline"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === pagination.totalPages}
+            >
+              Next
+            </Button>
+          </div>
+        )}
+
+        <Dialog 
+          open={showWizard} 
+          onOpenChange={(open) => {
+            setShowWizard(open);
+            if (!open) {
+              setIsHoveringNewMatter(false);
+            }
+          }}
+        >
           <DialogContent className="max-w-5xl p-0 overflow-hidden rounded-xl border-0 shadow-2xl">
-            <MatterIntakeWizard onComplete={() => setShowWizard(false)} />
+            <MatterIntakeWizard onComplete={() => {
+              setShowWizard(false);
+              setIsHoveringNewMatter(false);
+            }} />
           </DialogContent>
         </Dialog>
       </div>

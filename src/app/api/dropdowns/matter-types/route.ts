@@ -21,14 +21,29 @@ export async function GET() {
   if (cache[CACHE_KEY] && now - cache[CACHE_KEY].ts < CACHE_TTL) {
     return NextResponse.json({ options: cache[CACHE_KEY].data });
   }
-  const { data, error } = await supabase
+  // Fetch matter types
+  const { data: types, error: typeError } = await supabase
     .from('matter_types')
     .select('id, value, label')
     .order('label', { ascending: true });
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (typeError) {
+    return NextResponse.json({ error: typeError.message }, { status: 500 });
   }
-  cache[CACHE_KEY] = { data, ts: now };
-  return NextResponse.json({ options: data });
+  // Fetch sub-types
+  const { data: subTypes, error: subTypeError } = await supabase
+    .from('matter_sub_types')
+    .select('id, matter_type_id, value, label')
+    .order('label', { ascending: true });
+
+  if (subTypeError) {
+    return NextResponse.json({ error: subTypeError.message }, { status: 500 });
+  }
+  // Attach subTypes to each type
+  const options = types.map(type => ({
+    ...type,
+    subTypes: subTypes.filter(sub => sub.matter_type_id === type.id)
+  }));
+  cache[CACHE_KEY] = { data: options, ts: now };
+  return NextResponse.json({ options });
 } 

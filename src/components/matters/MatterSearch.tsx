@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,10 +10,23 @@ import {
 } from '@/components/ui/select';
 import { Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 
+interface SortOption {
+  value: string;
+  label: string;
+}
+
 interface MatterSearchProps {
   totalPages: number;
   currentPage: number;
-  onSearch: (params: {
+  filters: {
+    q: string;
+    status: string;
+    priority: string;
+    sortBy: string;
+    sortDirection: string;
+    page: number;
+  };
+  onChange: (filters: {
     q: string;
     status: string;
     priority: string;
@@ -22,43 +34,32 @@ interface MatterSearchProps {
     sortDirection: string;
     page: number;
   }) => void;
+  sortOptions: SortOption[];
 }
 
-export function MatterSearch({ totalPages, currentPage, onSearch }: MatterSearchProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  
-  // Initialize state with default values if searchParams is null
-  const [searchQuery, setSearchQuery] = useState(searchParams?.get('q') ?? '');
-  const [status, setStatus] = useState(searchParams?.get('status') ?? 'all');
-  const [priority, setPriority] = useState(searchParams?.get('priority') ?? 'all');
-  const [sortBy, setSortBy] = useState(searchParams?.get('sortBy') ?? 'created_at');
-  const [sortDirection, setSortDirection] = useState(searchParams?.get('sortDirection') ?? 'desc');
+export function MatterSearch({ totalPages, currentPage, filters, onChange, sortOptions }: MatterSearchProps) {
+  // Controlled state from parent
+  const { q, status, priority, sortBy, sortDirection, page } = filters;
 
-  const handleSearch = () => {
-    const params = {
-      q: searchQuery,
-      status: status === 'all' ? '' : status,
-      priority: priority === 'all' ? '' : priority,
-      sortBy,
-      sortDirection,
-      page: 1
-    };
-    onSearch(params);
+  // Keep currentPage in sync with filters.page
+  useEffect(() => {
+    if (currentPage !== page) {
+      onChange({ ...filters, page: currentPage });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage]);
+
+  const handleInputChange = (field: keyof typeof filters, value: string) => {
+    onChange({ ...filters, [field]: value, page: 1 });
+  };
+
+  const handleSortDirection = () => {
+    onChange({ ...filters, sortDirection: sortDirection === 'asc' ? 'desc' : 'asc', page: 1 });
   };
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > totalPages) return;
-    
-    const params = {
-      q: searchQuery,
-      status: status === 'all' ? '' : status,
-      priority: priority === 'all' ? '' : priority,
-      sortBy,
-      sortDirection,
-      page: newPage
-    };
-    onSearch(params);
+    onChange({ ...filters, page: newPage });
   };
 
   return (
@@ -68,14 +69,14 @@ export function MatterSearch({ totalPages, currentPage, onSearch }: MatterSearch
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search matters..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            value={q}
+            onChange={(e) => handleInputChange('q', e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && onChange({ ...filters, page: 1 })}
             className="pl-8"
           />
         </div>
         <div className="flex gap-2">
-          <Select value={status} onValueChange={setStatus}>
+          <Select value={status} onValueChange={(val) => handleInputChange('status', val)}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
@@ -87,7 +88,7 @@ export function MatterSearch({ totalPages, currentPage, onSearch }: MatterSearch
               <SelectItem value="archived">Archived</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={priority} onValueChange={setPriority}>
+          <Select value={priority} onValueChange={(val) => handleInputChange('priority', val)}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Priority" />
             </SelectTrigger>
@@ -98,7 +99,7 @@ export function MatterSearch({ totalPages, currentPage, onSearch }: MatterSearch
               <SelectItem value="low">Low</SelectItem>
             </SelectContent>
           </Select>
-          <Button onClick={handleSearch}>
+          <Button onClick={() => onChange({ ...filters, page: 1 })}>
             <Filter className="mr-2 h-4 w-4" />
             Apply Filters
           </Button>
@@ -108,22 +109,20 @@ export function MatterSearch({ totalPages, currentPage, onSearch }: MatterSearch
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Sort by:</span>
-          <Select value={sortBy} onValueChange={setSortBy}>
+          <Select value={sortBy} onValueChange={(val) => handleInputChange('sortBy', val)}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="created_at">Created Date</SelectItem>
-              <SelectItem value="updated_at">Updated Date</SelectItem>
-              <SelectItem value="title">Title</SelectItem>
-              <SelectItem value="status">Status</SelectItem>
-              <SelectItem value="priority">Priority</SelectItem>
+              {sortOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
+            onClick={handleSortDirection}
           >
             {sortDirection === 'asc' ? '↑' : '↓'}
           </Button>

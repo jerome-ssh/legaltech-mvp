@@ -75,3 +75,16 @@
         @apply bg-background text-foreground;
     }
 }
+
+.country-select__menu-list {
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f1f1f1;
+}
+.country-select__menu-list::-webkit-scrollbar {
+  width: 8px;
+  background: #f1f1f1;
+}
+.country-select__menu-list::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}

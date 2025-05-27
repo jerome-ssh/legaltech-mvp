@@ -27,6 +27,7 @@ const matterSchema = z.object({
   rate: z.number().optional(),
   currency: z.string().optional(),
   payment_terms: z.string().optional(),
+  payment_medium_id: z.string().uuid().optional(),
   retainer_amount: z.number().optional(),
   retainer_balance: z.number().optional(),
   billing_frequency_id: z.string().nullable().optional(),
@@ -129,8 +130,6 @@ export async function POST(request: Request) {
       'rate',
       'currency',
       'payment_terms',
-      'retainer_amount',
-      'retainer_balance',
       'billing_frequency_id',
       'notes',
       'features'
@@ -178,6 +177,7 @@ export async function POST(request: Request) {
       payment_pattern_id: matterData.payment_pattern_id ?? null,
       rate_value: matterData.rate ?? 0,
       currency_id: matterData.currency ?? null,
+      payment_medium_id: matterData.payment_medium_id ?? null,
       retainer_amount: matterData.retainer_amount ?? 0,
       retainer_balance: matterData.retainer_balance ?? 0,
       billing_frequency_id: matterData.billing_frequency_id ?? null,
@@ -227,7 +227,8 @@ export async function POST(request: Request) {
           matter_date: matterData.matter_date,
           type_id: matterData.type_id,
           sub_type_id: matterData.sub_type_id,
-          priority_id: priorityId
+          priority_id: priorityId,
+          assigned_to: profile.id
         }
       ])
       .select()
@@ -252,6 +253,25 @@ export async function POST(request: Request) {
 
     if (statusError) {
       console.error('Error creating matter status:', statusError);
+      // Continue anyway as this is not critical
+    }
+
+    // Create initial matter progress
+    const { error: progressError } = await supabase
+      .from('matter_progress')
+      .insert([
+        {
+          matter_id: matter.id,
+          profile_id: profile.id,
+          status: 'Not Started',
+          notes: 'Initial progress entry',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      ]);
+
+    if (progressError) {
+      console.error('Error creating matter progress:', progressError);
       // Continue anyway as this is not critical
     }
 

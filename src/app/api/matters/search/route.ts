@@ -9,7 +9,7 @@ const supabase = createClient(
 );
 
 // Valid sort fields and directions
-const VALID_SORT_FIELDS = ['created_at', 'updated_at', 'title', 'status', 'priority'];
+const VALID_SORT_FIELDS = ['created_at', 'updated_at', 'title', 'matter_status.status', 'priority', 'client_name'];
 const VALID_SORT_DIRECTIONS = ['asc', 'desc'];
 
 // Valid payment patterns
@@ -105,81 +105,196 @@ export async function GET(request: Request) {
 
     console.log('Building query...');
 
-    // Build the query
-    let query = supabase
-      .from('matters')
-      .select(`
-        *,
-        priority:priorities (
-          id,
-          name
-        ),
-        matter_status (
-          status,
-          changed_at,
-          notes
-        ),
-        matter_billing (
-          payment_pattern:payment_patterns (
-            value,
-            label
-          ),
-          rate_value,
-          currency:currencies (
-            id,
-            value,
-            label
-          ),
-          terms_details,
-          retainer_amount,
-          retainer_balance,
-          notes,
-          features,
-          priority:priorities (
-            id,
-            name
-          )
-        ),
-        matter_intake_links (
-          token,
-          status,
-          used_at,
-          completed_at,
-          expires_at
-        )
-      `, { count: 'exact' })
-      .eq('profile_id', profile.id);
-
-    // Apply search filter
-    if (searchQuery) {
-      console.log('Applying search filter:', searchQuery);
-      query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
-    }
-
-    // Apply status filter
-    if (status && status !== 'all') {
-      console.log('Applying status filter:', status);
-      query = query.eq('status', status);
-    }
-
-    // Apply sorting
-    console.log('Applying sorting:', { sortBy, sortDirection });
-    query = query.order(sortBy, { ascending: sortDirection === 'asc' });
-
     // Apply pagination
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
     console.log('Applying pagination:', { from, to });
-    query = query.range(from, to);
 
     // Execute the query
     console.log('Executing query...');
-    const { data: matters, error, count } = await query;
+    const { data: matters, error, count } = await supabase
+      .from('matters')
+      .select(`
+        id,
+        title,
+        created_at,
+        updated_at,
+        priority_id,
+        profile_id,
+        jurisdiction,
+        deadline,
+        tags,
+        matter_progress (
+          id,
+          status,
+          notes,
+          completed_at
+        ),
+        estimated_value,
+        type_id,
+        sub_type_id,
+        matter_type:matter_types!fk_matters_type (
+          id,
+          label
+        ),
+        sub_type:matter_sub_types!fk_matters_sub_type (
+          id,
+          label
+        ),
+        client:clients (
+          first_name,
+          last_name,
+          avatar_url
+        ),
+        matter_status!inner (
+          status
+        ),
+        priority:priorities!matters_priority_id_fkey (
+          name
+        ),
+        matter_billing (
+          rate_value,
+          currency:currencies (
+            id,
+            label,
+            value
+          ),
+          billing_method:billing_methods (
+            id,
+            value,
+            label
+          )
+        ),
+        matter_notes:matter_notes (
+          id,
+          author_id,
+          content,
+          created_at
+        ),
+        matter_tags:matter_tags (
+          tag
+        )
+      `, { count: 'exact' })
+      .eq('profile_id', profile.id)
+      .order(
+        sortBy === 'matter_status.status'
+          ? 'matter_status(status)'
+          : sortBy === 'client_name'
+            ? 'client.last_name'
+            : sortBy,
+        { ascending: sortDirection === 'asc' }
+      )
+      .range(from, to);
+
+    // Debug log for raw matters
+    console.log('Raw matters:', JSON.stringify(matters, null, 2));
 
     if (error) {
       console.error('Query error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    // Transform the data to flatten the matter_status, priority, client_name, and new fields
+    const transformedMatters = matters?.map(matter => {
+      let priorityName: string | null = null;
+      const priority = matter.priority as any;
+      if (Array.isArray(priority)) {
+        priorityName = priority[0]?.name ?? null;
+      } else if (priority && typeof priority === 'object' && 'name' in priority) {
+        priorityName = priority.name ?? null;
+      }
+      // Matter type and sub-type
+      let matterType = '';
+      let subType = '';
+      const type = matter.matter_type as any;
+      const sub = matter.sub_type as any;
+      if (type) {
+        if (Array.isArray(type)) {
+          matterType = type[0]?.label || '';
+        } else if (typeof type === 'object' && type !== null) {
+          matterType = type.label || '';
+        }
+      }
+      if (sub) {
+        if (Array.isArray(sub)) {
+          subType = sub[0]?.label || '';
+        } else if (typeof sub === 'object' && sub !== null) {
+          subType = sub.label || '';
+        }
+      }
+      // Tags
+      let tags: string[] = [];
+      const matterTags = matter.matter_tags as any[];
+      if (Array.isArray(matterTags)) {
+        tags = matterTags.map((t: any) => t.tag).filter(Boolean);
+      }
+      // Client avatar
+      let clientAvatar = '';
+      const client = matter.client as any;
+      if (client) {
+        if (Array.isArray(client)) {
+          clientAvatar = client[0]?.avatar_url || '';
+        } else if (typeof client === 'object' && client !== null) {
+          clientAvatar = client.avatar_url || '';
+        }
+      }
+      // Progress
+      let progress = 0;
+      if (matter.matter_progress) {
+        if (Array.isArray(matter.matter_progress) && matter.matter_progress.length > 0) {
+          const latestProgress = matter.matter_progress[0];
+          progress = latestProgress.status === 'Completed' ? 100 : 
+                    latestProgress.status === 'In Progress' ? 50 : 0;
+        }
+      }
+      // Billing method, rate, and currency
+      let billingMethod = '';
+      let rate = undefined;
+      let currency = '';
+      if (matter.matter_billing && typeof matter.matter_billing === 'object') {
+        const mb = Array.isArray(matter.matter_billing) ? matter.matter_billing[0] : matter.matter_billing;
+        if (mb) {
+          let bm = mb.billing_method;
+          if (bm) {
+            if (Array.isArray(bm)) {
+              if (bm.length > 0 && typeof bm[0] === 'object') {
+                billingMethod = (bm[0] as any).label || (bm[0] as any).value || '';
+              }
+            } else if (typeof bm === 'object') {
+              billingMethod = (bm as any).label || (bm as any).value || '';
+            }
+          }
+          rate = mb.rate_value;
+          // Extract currency label or value
+          let curr = mb.currency;
+          if (curr) {
+            if (Array.isArray(curr)) {
+              if (curr.length > 0 && typeof curr[0] === 'object') {
+                currency = (curr[0] as any).label || (curr[0] as any).value || '';
+              }
+            } else if (typeof curr === 'object') {
+              currency = (curr as any).label || (curr as any).value || '';
+            }
+          }
+        }
+      }
+      return {
+        ...matter,
+        status: matter.matter_status[0]?.status || 'active',
+        priority: priorityName,
+        client_name: Array.isArray(client)
+          ? (client[0] ? `${client[0].first_name} ${client[0].last_name}`.trim() : '')
+          : (client?.first_name ? `${client.first_name} ${client.last_name}`.trim() : ''),
+        client_avatar_url: clientAvatar,
+        matter_type: matterType,
+        sub_type: subType,
+        tags,
+        progress,
+        billing_method: billingMethod,
+        rate,
+        currency,
+      };
+    }) || [];
 
     // Return empty array if no matters found
     if (!matters) {
@@ -194,28 +309,10 @@ export async function GET(request: Request) {
       });
     }
 
-    // Validate the response data
-    console.log('Validating response data...');
-    matters.forEach((matter, index) => {
-      // Log any missing or invalid fields
-      if (!matter.matter_status) {
-        console.warn(`Matter ${index} missing matter_status`);
-      }
-      if (!matter.matter_billing) {
-        console.warn(`Matter ${index} missing matter_billing`);
-      }
-      if (matter.matter_billing) {
-        // Only validate rate_value if rate_value is set
-        if (matter.matter_billing.rate_value && !matter.matter_billing.currency) {
-          console.warn(`Matter ${index} missing currency for rate_value ${matter.matter_billing.rate_value}`);
-        }
-      }
-    });
-
     console.log('Query successful. Found', count, 'matters');
     
     return NextResponse.json({
-      matters,
+      matters: transformedMatters,
       pagination: {
         total: count || 0,
         page,

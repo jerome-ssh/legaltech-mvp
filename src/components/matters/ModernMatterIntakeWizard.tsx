@@ -404,7 +404,7 @@ export function ModernMatterIntakeWizard({ onComplete }: ModernMatterIntakeWizar
           <SelectTrigger>
             <SelectValue placeholder="Select matter type" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-[400px] overflow-y-auto">
             {matterTypeOptions.map((option) => (
               <SelectItem key={option.id} value={option.value}>
                 {option.label}
@@ -422,7 +422,7 @@ export function ModernMatterIntakeWizard({ onComplete }: ModernMatterIntakeWizar
           <SelectTrigger>
             <SelectValue placeholder="Select sub-type" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-[400px] overflow-y-auto">
             {matterSubTypeOptions.map((option) => (
               <SelectItem key={option.id} value={option.value}>
                 {option.label}
