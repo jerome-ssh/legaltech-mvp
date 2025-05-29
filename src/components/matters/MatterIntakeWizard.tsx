@@ -482,7 +482,7 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
       const rateNum = Number(billingDetails.rate_value);
       if (!billingDetails.rate_value || isNaN(rateNum) || rateNum <= 0) {
         errors.rate = 'Rate is required';
-      }
+    }
     }
 
     // Payment Medium required for all except Pro Bono
@@ -1040,7 +1040,7 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                             fontSize: '1rem',
                           })
                         }}
-                      />
+              />
                     </div>
                     {matterErrors.matter_type_id && (
                 <p className="text-sm text-red-500 flex items-center">
@@ -1074,7 +1074,7 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                           if (type && Array.isArray(type.subTypes)) {
                             const sub = type.subTypes.find(subType => String(subType.id) === String(matterDetails.sub_type_id));
                             return sub ? { id: sub.id, value: sub.value, label: sub.label } : null;
-                          }
+                }
                           return null;
                         })()}
                 onChange={(selectedOption) => {
@@ -1095,7 +1095,7 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                             overflowX: 'hidden'
                           })
                         }}
-                      />
+              />
                     </div>
                     {matterErrors.sub_type_id && (
                 <p className="text-sm text-red-500 flex items-center">
@@ -1203,7 +1203,7 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                       }}
                       placeholder="e.g., 100000"
                       className={matterErrors.estimated_value ? 'border-red-500 h-10' : 'h-10'}
-                    />
+              />
                     {matterErrors.estimated_value && (
                 <p className="text-sm text-red-500 flex items-center">
                   <AlertCircle className="h-3 w-3 mr-1" />
@@ -1288,7 +1288,7 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                     onChange={(e) => setMatterDetails({ ...matterDetails, description: e.target.value })}
                     placeholder="Provide a brief description of the matter"
                     className={matterErrors.description ? 'border-red-500' : ''}
-                  />
+              />
                   {matterErrors.description && (
                 <p className="text-sm text-red-500 flex items-center">
                   <AlertCircle className="h-3 w-3 mr-1" />
@@ -1362,7 +1362,7 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                     })}
                     placeholder="Select payment medium"
                     styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.8rem' }) }}
-                  />
+                />
                   {billingErrors.payment_medium && (
                     <p className="text-xs text-red-500 mt-1">{billingErrors.payment_medium}</p>
                 )}
@@ -1383,7 +1383,7 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                       })}
                       placeholder="Select billing frequency"
                       styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.8rem' }) }}
-                    />
+                />
                     {billingErrors.billing_frequency_id && (
                       <p className="text-xs text-red-500 mt-1">{billingErrors.billing_frequency_id}</p>
                 )}
@@ -1425,7 +1425,7 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                     placeholder={`Enter ${selectedBillingMethodValue} rate`}
                     style={{ fontSize: '0.8rem', height: '32px' }}
                     className={billingErrors.rate ? 'border-red-500' : ''}
-                  />
+                />
                   {billingErrors.rate && (
                     <p className="text-xs text-red-500 mt-1">{billingErrors.rate}</p>
                 )}
@@ -1471,13 +1471,13 @@ export function MatterIntakeWizard({ onComplete }: MatterIntakeWizardProps) {
                       setBillingDetails({
                         ...billingDetails,
                         terms_details: { ...billingDetails.terms_details, standard: selectedOption?.value || '', custom: undefined }
-                      });
+                  });
                     }
-                  }}
+                }}
                   placeholder="Select payment terms"
                   styles={{ control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.8rem' }) }}
                   isDisabled={isCustomTermsActive}
-                />
+              />
                 {billingErrors.terms && (
                   <p className="text-xs text-red-500 mt-1">{billingErrors.terms}</p>
               )}

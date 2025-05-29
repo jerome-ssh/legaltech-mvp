@@ -2,6 +2,8 @@ import { useRouter } from 'next/navigation';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ProgressBar } from './ProgressBar';
 
 interface Matter {
   id: string;
@@ -10,6 +12,7 @@ interface Matter {
   priority: string;
   created_at: string;
   client_name?: string;
+  progress?: number;
 }
 
 interface MatterListProps {
@@ -46,8 +49,24 @@ const getStatusColor = (status: string) => {
   }
 };
 
-export function MatterList({ matters }: MatterListProps) {
+export function MatterList({ matters: initialMatters }: MatterListProps) {
   const router = useRouter();
+  const [matters, setMatters] = useState(initialMatters);
+
+  useEffect(() => {
+    const fetchMatters = async () => {
+      try {
+        const res = await fetch('/api/matters/search');
+        if (!res.ok) throw new Error('Failed to fetch matters');
+        const data = await res.json();
+        setMatters(data.matters || []);
+      } catch (e) {
+        // Optionally handle error
+      }
+    };
+    const interval = setInterval(fetchMatters, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="rounded-md border">
@@ -76,8 +95,8 @@ export function MatterList({ matters }: MatterListProps) {
                 </Badge>
               </TableCell>
               <TableCell>
-                <Badge className={getPriorityColor(matter.priority)}>
-                  {matter.priority || 'Unknown'}
+                <Badge className={getPriorityColor((typeof matter.priority === 'object' && matter.priority !== null && 'name' in matter.priority) ? matter.priority.name : matter.priority)}>
+                  {(typeof matter.priority === 'object' && matter.priority !== null && 'name' in matter.priority) ? matter.priority.name : matter.priority || 'Unknown'}
                 </Badge>
               </TableCell>
               <TableCell>
@@ -85,6 +104,11 @@ export function MatterList({ matters }: MatterListProps) {
                   <Calendar className="w-4 h-4" />
                   {new Date(matter.created_at).toLocaleDateString()}
                 </div>
+                {matter.progress && (
+                  <div className="mt-2">
+                    <ProgressBar progress={matter.progress} />
+                  </div>
+                )}
               </TableCell>
             </TableRow>
           ))}

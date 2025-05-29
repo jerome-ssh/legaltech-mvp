@@ -53,9 +53,9 @@ interface BillingDetails {
   };
   billing_frequency_id?: string;
   features: {
-    automated_time_capture: boolean;
-    blockchain_invoicing: boolean;
-    send_invoice_on_approval: boolean;
+  automated_time_capture: boolean;
+  blockchain_invoicing: boolean;
+  send_invoice_on_approval: boolean;
   };
   retainer_amount: number | null;
   retainer_balance: number | null;
@@ -64,7 +64,7 @@ interface BillingDetails {
 
 // Types for dropdown options
 interface Option { id: string; value: string; label: string; }
-interface SubTypeOption extends Option { matter_type_id: string; }
+interface SubTypeOption extends Option { type_id: string; }
 
 export function ModernMatterIntakeWizard({ onComplete }: ModernMatterIntakeWizardProps) {
   const router = useRouter();
@@ -127,9 +127,9 @@ export function ModernMatterIntakeWizard({ onComplete }: ModernMatterIntakeWizar
       },
       billing_frequency_id: '',
       features: {
-        automated_time_capture: true,
-        blockchain_invoicing: false,
-        send_invoice_on_approval: false
+    automated_time_capture: true,
+    blockchain_invoicing: false,
+    send_invoice_on_approval: false
       },
       retainer_amount: null,
       retainer_balance: null,
@@ -488,7 +488,7 @@ export function ModernMatterIntakeWizard({ onComplete }: ModernMatterIntakeWizar
         </Select>
       </div>
 
-      <div>
+        <div>
         <Label htmlFor="payment_pattern">Payment Pattern</Label>
         <Select
           value={billingDetails.payment_pattern_id}
@@ -508,7 +508,7 @@ export function ModernMatterIntakeWizard({ onComplete }: ModernMatterIntakeWizar
             ))}
           </SelectContent>
         </Select>
-      </div>
+        </div>
 
       <div>
         <Label htmlFor="currency">Currency</Label>

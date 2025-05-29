@@ -33,7 +33,7 @@ export async function GET() {
   // Fetch sub-types
   const { data: subTypes, error: subTypeError } = await supabase
     .from('matter_sub_types')
-    .select('id, matter_type_id, value, label')
+    .select('id, type_id, value, label')
     .order('label', { ascending: true });
 
   if (subTypeError) {
@@ -42,7 +42,7 @@ export async function GET() {
   // Attach subTypes to each type
   const options = types.map(type => ({
     ...type,
-    subTypes: subTypes.filter(sub => sub.matter_type_id === type.id)
+    subTypes: subTypes.filter(sub => sub.type_id === type.id)
   }));
   cache[CACHE_KEY] = { data: options, ts: now };
   return NextResponse.json({ options });

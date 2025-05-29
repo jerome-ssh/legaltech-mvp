@@ -35,25 +35,77 @@ export async function GET(
       .from('matters')
       .select(`
         *,
+        type:matter_types!fk_matters_type (
+          id,
+          label
+        ),
+        sub_type:matter_sub_types!fk_matters_sub_type (
+          id,
+          label
+        ),
+        client:clients (
+          id,
+          first_name,
+          last_name,
+          avatar_url,
+          email,
+          phone_number,
+          address,
+          tags,
+          date_of_birth,
+          title:titles!clients_title_id_fkey (id, label),
+          client_type:client_types!clients_client_type_id_fkey (id, label),
+          preferred_language:languages!clients_preferred_language_id_fkey (id, label)
+        ),
+        priority:priorities (
+          id,
+          name
+        ),
         matter_status (
           status,
           changed_at,
           notes
         ),
         matter_billing (
-          billing_type,
-          rate,
-          currency,
-          payment_terms,
+          id,
+          rate_value,
+          terms_details,
           retainer_amount,
-          retainer_balance
+          retainer_balance,
+          features,
+          notes,
+          billing_method:billing_methods (
+            id,
+            value,
+            label
+          ),
+          currency:currencies (
+            id,
+            value,
+            label
+          ),
+          payment_pattern:payment_patterns (
+            value,
+            label,
+            description,
+            icon
+          ),
+          billing_frequency_id,
+          payment_medium:payment_mediums (
+            id,
+            value,
+            label,
+            icon
+          )
         ),
         matter_intake_links (
           token,
           status,
-          sent_at,
+          created_at,
+          used_at,
           completed_at,
-          expires_at
+          expires_at,
+          form_data
         )
       `)
       .eq('id', params.id)
@@ -68,9 +120,17 @@ export async function GET(
       return NextResponse.json({ error: 'Matter not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ matter });
+    // Flatten type and sub_type for frontend compatibility (like search API)
+    const matter_type = matter.type && typeof matter.type === 'object' ? matter.type.label : '';
+    const matter_sub_type = matter.sub_type && typeof matter.sub_type === 'object' ? matter.sub_type.label : '';
+    const responseMatter = {
+      ...matter,
+      matter_type,
+      matter_sub_type,
+    };
+
+    return NextResponse.json({ matter: responseMatter });
   } catch (error) {
-    console.error('Error fetching matter:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

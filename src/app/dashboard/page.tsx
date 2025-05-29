@@ -43,6 +43,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import MuiButton from '@mui/material/Button';
 import MuiCard from '@mui/material/Card';
 import MuiCardContent from '@mui/material/CardContent';
+import { ProgressBar } from '@/components/matters/ProgressBar';
+import { MatterProgress } from '@/types/matter';
 
 const TopBar = dynamic(() => import('@/components/TopBar'), {
   ssr: false,
@@ -84,12 +86,13 @@ interface HistoryEntry {
 
 interface MatterStage {
   id: string;
-  stage: string;
-  due: string;
+  title: string;
+  status: string;
+  due_date: string;
   priority: string;
   client_name: string;
-  client_img: string;
-  progress: number;
+  client_avatar_url: string;
+  progress: MatterProgress | null;
 }
 
 interface Client {
@@ -112,10 +115,8 @@ interface MatterWithClient {
   status: string;
   priority: string;
   due_date: string;
-  clients: {
-    name: string;
-    avatar_url: string;
-  };
+  clients: { name: string; avatar_url: string } | { name: string; avatar_url: string }[];
+  progress: MatterProgress | null;
 }
 
 const useMatters = [
@@ -176,24 +177,23 @@ export default function Dashboard() {
   }, [isLoaded, isSignedIn, router]);
 
   useEffect(() => {
+    if (!isLoaded || !isSignedIn) return;
+
     async function fetchDashboardData() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           throw new Error('No authenticated user');
         }
-
         const { data: profile } = await supabase
           .from('profiles')
           .select('id')
           .eq('clerk_id', user.id)
           .single();
 
+        const profileId = profile ? profile.id : 'default';
         if (!profile) {
-          throw new Error('Profile not found');
+          console.warn('Profile not found, using default profile ID');
         }
-
-        const profileId = profile.id;
 
         const [{ count: openMatters }, { count: deadlines }, { count: unreadMessages }, { data: billingData }, { data: activityData }, { data: tasksData }] = await Promise.all([
           supabase.from("matters").select("id", { count: "exact", head: true }).eq("status", "open").eq("profile_id", profileId),
@@ -213,8 +213,15 @@ export default function Dashboard() {
           tasks: tasksData || [],
         });
       } catch (err) {
-        console.error('Error fetching dashboard data:', err);
-        setError('Failed to load dashboard data');
+        // Enhanced debugging: log error to server terminal via API and UI
+        const errorMsg = '[Dashboard Summary] ' + (err instanceof Error ? err.message : String(err));
+        // Send error to server terminal
+        fetch('/api/log-client-error', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ error: errorMsg, stack: err instanceof Error ? err.stack : '' }),
+        });
+        setError(errorMsg);
         setDashboardData({
           openMatters: 0,
           deadlines: 0,
@@ -233,68 +240,29 @@ export default function Dashboard() {
 
     async function fetchMatterStages() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          throw new Error('No authenticated user');
-        }
-
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('clerk_id', user.id)
-          .single();
-
-        if (!profile) {
-          throw new Error('Profile not found');
-        }
-
-        const profileId = profile.id;
-
-        const { data, error } = await supabase
-          .from('matters')
-          .select(`
-            id,
-            title,
-            status,
-            priority,
-            due_date,
-            clients (
-              name,
-              avatar_url
-            )
-          `)
-          .eq('profile_id', profileId)
-          .order('created_at', { ascending: false })
-          .limit(5);
-
-        if (error) {
-          throw error;
-        }
-
-        if (!data) {
+        setLoading(true);
+        setError(null);
+        const res = await fetch('/api/dashboard/matters-tracker');
+        if (!res.ok) {
+          const errData = await res.json();
+          setError(errData.error || 'Failed to fetch matters');
           setMatterStages([]);
+          setLoading(false);
           return;
         }
-
-        const typedData = data as unknown as MatterWithClient[];
-        setMatterStages(typedData.map(matter => ({
-          id: matter.id,
-          stage: matter.status,
-          due: matter.due_date,
-          priority: matter.priority,
-          client_name: matter.clients?.name || 'Unknown Client',
-          client_img: matter.clients?.avatar_url || '',
-          progress: 0, // You might want to calculate this based on some criteria
-        })));
-      } catch (err) {
-        console.error('Error fetching matter stages:', err);
+        const data = await res.json();
+        setMatterStages(data.matters || []);
+        setLoading(false);
+      } catch (err: any) {
+        setError(err?.message || 'Failed to fetch matters');
         setMatterStages([]);
+        setLoading(false);
       }
     }
 
     fetchDashboardData();
     fetchMatterStages();
-  }, []);
+  }, [isLoaded, isSignedIn]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -570,50 +538,66 @@ export default function Dashboard() {
         {/* Case Tracker Timeline */}
         <div className="bg-white p-6 rounded-lg shadow-md border border-blue-100 mt-4 animate-fade-in">
           <h2 className="text-xl font-semibold text-blue-700 mb-4">Matter Status Tracker</h2>
-          <div className="space-y-6 max-h-[33vh] overflow-y-auto pr-2">
+          <div className="space-y-4 max-h-[33vh] overflow-y-auto pr-2">
             {loading ? (
               <div className="flex justify-center items-center h-32">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
               </div>
             ) : error ? (
-              <div className="text-center text-red-500 py-8">{error}</div>
+              <div className="text-center text-red-500 py-8">
+                <div>Failed to load tracker data:</div>
+                <div className="font-mono text-xs break-all whitespace-pre-wrap">{typeof error === 'string' ? error : JSON.stringify(error, null, 2)}</div>
+              </div>
             ) : matterStages.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">No matters found</div>
+              <div className="text-center text-gray-500 py-8">No matters found. (If you see a demo matter below, this is for visual confirmation only.)</div>
             ) : (
-              matterStages.map(({ id, stage, due, priority, client_name, client_img, progress }, index) => (
+              matterStages.map(({ id, title, status, due_date, priority, client_name, client_avatar_url, progress }, index) => (
                 <div
                   key={id}
-                  className="relative flex items-center gap-4 p-4 rounded-lg bg-gradient-to-r from-white to-blue-50 border hover:shadow-lg transition duration-200"
+                  className="relative flex items-center gap-4 p-4 mb-4 rounded-lg bg-gradient-to-r from-white to-blue-50 border hover:shadow-lg transition duration-200"
                 >
-                  <img
-                    src={client_img}
-                    alt={client_name}
-                    className="w-12 h-12 rounded-full border-2 border-blue-200 shadow-sm"
-                  />
                   <div className="flex-1">
-                    <p className="text-base font-medium text-gray-900">{stage}</p>
-                    <p className="text-sm text-gray-500">
-                      Due: {new Date(due).toLocaleDateString()} • Priority: {" "}
+                    <div className="flex items-center gap-2 min-w-0 mb-1">
+                      {client_avatar_url ? (
+                        <img
+                          src={client_avatar_url}
+                          alt={client_name}
+                          className="w-12 h-12 rounded-full border-2 border-blue-200 shadow-sm flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full border-2 border-blue-200 shadow-sm flex-shrink-0 bg-gray-100 flex items-center justify-center text-gray-400 font-bold text-lg uppercase">
+                          {client_name
+                            .split(' ')
+                            .map(word => word[0])
+                            .join('')
+                            .slice(0, 2)}
+                        </div>
+                      )}
+                      <div className="ml-2 flex items-center gap-2 min-w-0 w-full">
+                        <span className="text-base font-medium text-gray-900 truncate max-w-[120px]" title={client_name}>{client_name}</span>
+                        <span className="mx-2 text-gray-300">|</span>
+                        <span className="text-sm text-gray-500 whitespace-nowrap">Matter Title:</span>
+                        <span className="text-base font-semibold text-gray-800 truncate ml-1" title={title}>{title}</span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-500 mb-2">
+                      Status: <span className="font-semibold">{status}</span> • Due: {due_date ? new Date(due_date).toLocaleDateString() : 'N/A'} • Priority:{" "}
                       <span
                         className={`font-semibold ${priority === "High"
                           ? "text-red-500"
                           : priority === "Medium"
                             ? "text-yellow-500"
-                            : "text-green-500"
+                            : priority === "Low"
+                              ? "text-green-500"
+                              : "text-blue-500"
                           }`}
                       >
                         {priority}
                       </span>
                     </p>
-                    <div className="h-2 mt-2 rounded bg-gray-200">
-                      <div
-                        className={`h-2 rounded ${getProgressColor(priority)} transition-all duration-500`}
-                        style={{ width: `${progress}%` }}
-                      />
+                    <div className="my-2">
+                      <ProgressBar compact progress={progress || { overall: 0, by_stage: {}, completed_tasks: 0, total_tasks: 0, completed_weight: 0, total_weight: 0 }} />
                     </div>
-                  </div>
-                  <div className="text-sm text-gray-400 flex items-center gap-1">
-                    <Info className="w-4 h-4" /> Tip: Hover for more info
                   </div>
                 </div>
               ))

@@ -47,7 +47,7 @@ export interface Database {
           priority: string
           client_id: string
           profile_id: string | null
-          matter_type_id: number | null
+          type_id: number | null
           sub_type_id: number | null
           jurisdiction: string | null
           estimated_value: number | null
@@ -63,7 +63,7 @@ export interface Database {
           priority?: string
           client_id: string
           profile_id?: string | null
-          matter_type_id?: number | null
+          type_id?: number | null
           sub_type_id?: number | null
           jurisdiction?: string | null
           estimated_value?: number | null
@@ -79,7 +79,7 @@ export interface Database {
           priority?: string
           client_id?: string
           profile_id?: string | null
-          matter_type_id?: number | null
+          type_id?: number | null
           sub_type_id?: number | null
           jurisdiction?: string | null
           estimated_value?: number | null

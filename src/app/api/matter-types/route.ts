@@ -36,7 +36,7 @@ export async function GET() {
       value: type.value,
       label: type.label,
       subTypes: matterSubTypes
-        .filter(subType => subType.matter_type_id === type.id)
+        .filter(subType => subType.type_id === type.id)
         .map(subType => ({
           id: subType.id,
           value: subType.value,

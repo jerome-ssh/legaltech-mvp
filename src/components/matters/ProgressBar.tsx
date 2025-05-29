@@ -4,9 +4,10 @@ import { FileText, Briefcase, CheckCircle } from 'lucide-react';
 interface ProgressBarProps {
   progress: MatterProgress;
   showDetails?: boolean;
+  compact?: boolean;
 }
 
-export function ProgressBar({ progress, showDetails = false }: ProgressBarProps) {
+export function ProgressBar({ progress, showDetails = false, compact = false }: ProgressBarProps) {
   const getStageColor = (stage: string) => {
     switch (stage) {
       case 'Intake':
@@ -93,42 +94,52 @@ export function ProgressBar({ progress, showDetails = false }: ProgressBarProps)
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex gap-3 items-center mb-1">
-        {stageLegend.map((s, i) => (
-          <div key={i} className="flex items-center gap-1 text-xs" aria-label={s.label} title={s.label}>
-            {s.icon}
-            <span className="hidden sm:inline" style={{ color: s.color }}>{s.label}</span>
-          </div>
-        ))}
-      </div>
-      <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <h3 className="text-xs font-medium text-blue-700">Overall Progress</h3>
-          <span className="text-xs text-gray-500 font-mono">{overall}%</span>
+    <div className={compact ? 'space-y-2' : 'space-y-4'}>
+      {!compact && (
+        <div className="flex gap-3 items-center mb-1">
+          {stageLegend.map((s, i) => (
+            <div key={i} className="flex items-center gap-1 text-xs" aria-label={s.label} title={s.label}>
+              {s.icon}
+              <span className="hidden sm:inline" style={{ color: s.color }}>{s.label}</span>
+            </div>
+          ))}
         </div>
-        <div className="h-3 bg-gray-300 rounded-full overflow-hidden shadow-sm flex" style={{ background: '#e5e7eb' }}>
+      )}
+      <div className="space-y-1">
+        <div className="flex justify-between items-center">
+          <h3 className={compact ? "text-[11px] font-medium text-blue-600 opacity-70" : "text-xs font-medium text-blue-700"}>Overall Progress</h3>
+          <span className={compact ? "text-[11px] text-gray-400 font-mono" : "text-xs text-gray-500 font-mono"}>{overall}%</span>
+        </div>
+        <div
+          className={compact ? "h-2 rounded-full overflow-hidden shadow bg-gray-200 flex" : "h-3 bg-gray-300 rounded-full overflow-hidden shadow-sm flex"}
+          style={{
+            background: '#e5e7eb',
+            boxShadow: compact ? '0 1px 6px 0 rgba(60, 120, 200, 0.10)' : undefined,
+          }}
+        >
           <div
-            className={`h-full ${barAnim}`}
+            className={compact ? `h-full transition-all duration-700 ease-in-out` : `h-full ${barAnim}`}
             style={{
               width: `${overall}%`,
               ...backgroundStyle,
-              borderTopLeftRadius: 8,
-              borderBottomLeftRadius: 8,
-              borderTopRightRadius: overall === 100 ? 8 : 0,
-              borderBottomRightRadius: overall === 100 ? 8 : 0
+              borderTopLeftRadius: 999,
+              borderBottomLeftRadius: 999,
+              borderTopRightRadius: overall === 100 ? 999 : 0,
+              borderBottomRightRadius: overall === 100 ? 999 : 0,
+              transition: 'width 0.7s cubic-bezier(0.4,0,0.2,1)',
             }}
             aria-label={`Completed progress: ${overall}%`}
           >
             <span className="sr-only">Completed {overall}%</span>
           </div>
           <div
-            className={`h-full ${barAnim}`}
+            className={compact ? `h-full transition-all duration-700 ease-in-out` : `h-full ${barAnim}`}
             style={{
               width: `${100 - overall}%`,
               background: '#e5e7eb',
-              borderTopRightRadius: 8,
-              borderBottomRightRadius: 8
+              borderTopRightRadius: 999,
+              borderBottomRightRadius: 999,
+              transition: 'width 0.7s cubic-bezier(0.4,0,0.2,1)',
             }}
             aria-label={`Remaining progress: ${100 - overall}%`}
           >

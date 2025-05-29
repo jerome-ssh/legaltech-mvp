@@ -1028,5 +1028,240 @@
       { "label": "Report to Regulators", "stage": "Closure", "default_weight": 1 },
       { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
     ]
+  },
+  {
+    "matter_type_id": 19,
+    "matter_type_label": "Administrative & Regulatory",
+    "sub_type_id": 167,
+    "sub_type_label": "Administrative Appeals",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Appeal Record", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Appeal Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "Draft Appeal Brief", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File Appeal", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Oral Argument Preparation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Attend Oral Argument", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Receive Decision", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Decision/Next Steps", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 19,
+    "matter_type_label": "Administrative & Regulatory",
+    "sub_type_id": 170,
+    "sub_type_label": "Administrative Hearings",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Hearing Notice", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Hearing Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Evidence & Witnesses", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Attend Hearing", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Submit Post-Hearing Brief", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Receive Decision", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Decision/Appeal if Needed", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 19,
+    "matter_type_label": "Administrative & Regulatory",
+    "sub_type_id": 171,
+    "sub_type_label": "Agency Rulemaking",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Proposed Rule", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Comment Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "Draft & Submit Comments", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Attend Public Hearings", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Monitor Rulemaking Process", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Receive Final Rule", "stage": "Closure", "default_weight": 1 },
+      { "label": "Advise Client on Compliance", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 19,
+    "matter_type_label": "Administrative & Regulatory",
+    "sub_type_id": 165,
+    "sub_type_label": "Regulatory Investigations",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Investigation Notice", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Response Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "Gather Evidence & Documents", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Prepare Written Responses", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Attend Interviews/Depositions", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Negotiate Resolution", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Receive Outcome", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Remedial Actions", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 13,
+    "matter_type_label": "Bankruptcy & Insolvency",
+    "sub_type_id": 116,
+    "sub_type_label": "Bankruptcy Litigation",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Petition and Schedules", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Claims and Creditors", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare and File Motions", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Attend 341 Meeting of Creditors", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Discovery and Evidence Gathering", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Draft and File Objections", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Attend Hearings and Court Dates", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Negotiate Settlements", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Prepare for Trial", "stage": "Planning", "default_weight": 2 },
+      { "label": "Post-Trial Motions and Orders", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 13,
+    "matter_type_label": "Bankruptcy & Insolvency",
+    "sub_type_id": 110,
+    "sub_type_label": "Chapter 11 Bankruptcy",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Petition & Schedules", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Reorganization Plan", "stage": "Planning", "default_weight": 2 },
+      { "label": "File Chapter 11 Petition", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Attend 341 Meeting of Creditors", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Negotiate with Creditors", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Court Hearings & Motions", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Plan Confirmation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Implement Plan", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 13,
+    "matter_type_label": "Bankruptcy & Insolvency",
+    "sub_type_id": 111,
+    "sub_type_label": "Chapter 13 Bankruptcy",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Petition & Schedules", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Repayment Plan", "stage": "Planning", "default_weight": 2 },
+      { "label": "File Chapter 13 Petition", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Attend 341 Meeting of Creditors", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Negotiate with Creditors", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Court Hearings & Motions", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Plan Confirmation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Implement Plan", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 13,
+    "matter_type_label": "Bankruptcy & Insolvency",
+    "sub_type_id": 109,
+    "sub_type_label": "Chapter 7 Bankruptcy",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Petition & Schedules", "stage": "Planning", "default_weight": 2 },
+      { "label": "File Chapter 7 Petition", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Attend 341 Meeting of Creditors", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Trustee Review", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Asset Liquidation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Discharge of Debts", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 13,
+    "matter_type_label": "Bankruptcy & Insolvency",
+    "sub_type_id": 112,
+    "sub_type_label": "Creditor Rights",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Debtor Information", "stage": "Planning", "default_weight": 2 },
+      { "label": "File Proof of Claim", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Attend Hearings", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Negotiate Settlements", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Monitor Payments", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Enforce Judgments", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 13,
+    "matter_type_label": "Bankruptcy & Insolvency",
+    "sub_type_id": 117,
+    "sub_type_label": "Foreclosure Defense",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Foreclosure Notice", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Defense Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "File Responsive Pleadings", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Attend Hearings", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Negotiate Settlements", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Monitor Foreclosure Process", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 13,
+    "matter_type_label": "Bankruptcy & Insolvency",
+    "sub_type_id": 114,
+    "sub_type_label": "Insolvency Proceedings",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Insolvency Petition", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Resolution Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "File Court Documents", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Attend Hearings", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Negotiate with Creditors", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Implement Resolution", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 13,
+    "matter_type_label": "Bankruptcy & Insolvency",
+    "sub_type_id": 115,
+    "sub_type_label": "Liquidation",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Liquidation Petition", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Liquidation Plan", "stage": "Planning", "default_weight": 2 },
+      { "label": "File Court Documents", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Attend Hearings", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Asset Liquidation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Distribute Proceeds", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 13,
+    "matter_type_label": "Bankruptcy & Insolvency",
+    "sub_type_id": 113,
+    "sub_type_label": "Restructuring",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Restructuring Plan", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Restructuring Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "File Court Documents", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Attend Hearings", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Negotiate with Creditors", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Implement Restructuring", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
   }
 ] 

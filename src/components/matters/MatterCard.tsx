@@ -4,7 +4,7 @@ import { User, Calendar, Tag, Briefcase, MapPin, Clock, Users, Zap, FileText, Sc
 import { Matter } from '@/types/matter';
 import { ProgressBar } from './ProgressBar';
 import { TaskList } from './TaskList';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getCountryNameByCode } from '@/lib/geo-data';
 
 interface MatterCardProps {
@@ -12,11 +12,30 @@ interface MatterCardProps {
   onStatusChange?: (matterId: string, newStatus: string) => void;
 }
 
-export function MatterCard({ matter, onStatusChange }: MatterCardProps) {
+export function MatterCard({ matter: initialMatter, onStatusChange }: MatterCardProps) {
   const router = useRouter();
+  const [matter, setMatter] = useState(initialMatter);
   const [showTasks, setShowTasks] = useState(false);
 
+  useEffect(() => {
+    const fetchMatter = async () => {
+      try {
+        const res = await fetch(`/api/matters/${matter.id}`);
+        if (!res.ok) throw new Error('Failed to fetch matter');
+        const data = await res.json();
+        setMatter(data.matter);
+      } catch (e) {
+        // Optionally handle error
+      }
+    };
+    const interval = setInterval(fetchMatter, 5000);
+    return () => clearInterval(interval);
+  }, [matter.id]);
+
   const getStatusColor = (status: string) => {
+    if (!status || typeof status !== 'string') {
+      return 'bg-gray-100 text-gray-800';
+    }
     switch (status.toLowerCase()) {
       case 'active':
         return 'bg-green-100 text-green-800';
@@ -29,7 +48,10 @@ export function MatterCard({ matter, onStatusChange }: MatterCardProps) {
     }
   };
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityColor = (priority?: string) => {
+    if (!priority || typeof priority !== 'string') {
+      return 'bg-gray-100 text-gray-800';
+    }
     switch (priority.toLowerCase()) {
       case 'high':
         return 'bg-red-100 text-red-800';
@@ -71,7 +93,7 @@ export function MatterCard({ matter, onStatusChange }: MatterCardProps) {
       <CardContent className="p-4 sm:p-5 space-y-3">
         {/* Top: Client avatar, status, priority */}
         <div className="flex justify-between items-start gap-2">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0">
             {/* Client avatar or fallback icon */}
             {matter.client_avatar_url ? (
               <img src={matter.client_avatar_url} alt="Client Avatar" className="w-10 h-10 rounded-full border border-blue-200 shadow-sm object-cover" />
@@ -85,7 +107,7 @@ export function MatterCard({ matter, onStatusChange }: MatterCardProps) {
           </div>
           <div className="flex flex-col items-end gap-1">
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${getStatusColor(matter.status)}`}>{matter.status}</span>
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${getPriorityColor(matter.priority)}`}>{matter.priority}</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${getPriorityColor((typeof matter.priority === 'object' && matter.priority !== null && 'name' in matter.priority) ? matter.priority.name : matter.priority)}`}>{(typeof matter.priority === 'object' && matter.priority !== null && 'name' in matter.priority) ? matter.priority.name : matter.priority || 'Unspecified'}</span>
           </div>
         </div>
 

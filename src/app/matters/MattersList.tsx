@@ -1,10 +1,28 @@
 "use client";
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ProgressBar } from '@/components/matters/ProgressBar';
 
-export default function MattersList({ matters }: { matters: any[] }) {
+export default function MattersList({ matters: initialMatters }: { matters: any[] }) {
   const router = useRouter();
+  const [matters, setMatters] = useState(initialMatters);
+
+  useEffect(() => {
+    const fetchMatters = async () => {
+      try {
+        const res = await fetch('/api/matters/search');
+        if (!res.ok) throw new Error('Failed to fetch matters');
+        const data = await res.json();
+        setMatters(data.matters || []);
+      } catch (e) {
+        // Optionally handle error
+      }
+    };
+    const interval = setInterval(fetchMatters, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       <h1 className="text-2xl font-bold mb-4">Matters</h1>
@@ -25,6 +43,11 @@ export default function MattersList({ matters }: { matters: any[] }) {
                 </CardHeader>
                 <CardContent>
                   <span className="text-sm text-gray-600">Status: {matter.status}</span>
+                  {matter.progress && (
+                    <div className="mt-2">
+                      <ProgressBar progress={matter.progress} />
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

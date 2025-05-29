@@ -1,0 +1,602 @@
+[
+  {
+    "matter_type_id": 19,
+    "matter_type_label": "Administrative & Regulatory",
+    "sub_type_id": 167,
+    "sub_type_label": "Administrative Appeals"
+  },
+  {
+    "matter_type_id": 19,
+    "matter_type_label": "Administrative & Regulatory",
+    "sub_type_id": 170,
+    "sub_type_label": "Administrative Hearings"
+  },
+  {
+    "matter_type_id": 19,
+    "matter_type_label": "Administrative & Regulatory",
+    "sub_type_id": 163,
+    "sub_type_label": "Administrative Proceedings"
+  },
+  {
+    "matter_type_id": 19,
+    "matter_type_label": "Administrative & Regulatory",
+    "sub_type_id": 171,
+    "sub_type_label": "Agency Rulemaking"
+  },
+  {
+    "matter_type_id": 19,
+    "matter_type_label": "Administrative & Regulatory",
+    "sub_type_id": 168,
+    "sub_type_label": "Government Relations"
+  },
+  {
+    "matter_type_id": 19,
+    "matter_type_label": "Administrative & Regulatory",
+    "sub_type_id": 166,
+    "sub_type_label": "Licensing"
+  },
+  {
+    "matter_type_id": 19,
+    "matter_type_label": "Administrative & Regulatory",
+    "sub_type_id": 169,
+    "sub_type_label": "Lobbying"
+  },
+  {
+    "matter_type_id": 19,
+    "matter_type_label": "Administrative & Regulatory",
+    "sub_type_id": 165,
+    "sub_type_label": "Regulatory Investigations"
+  },
+  {
+    "matter_type_id": 13,
+    "matter_type_label": "Bankruptcy & Insolvency",
+    "sub_type_id": 116,
+    "sub_type_label": "Bankruptcy Litigation"
+  },
+  {
+    "matter_type_id": 13,
+    "matter_type_label": "Bankruptcy & Insolvency",
+    "sub_type_id": 110,
+    "sub_type_label": "Chapter 11 Bankruptcy"
+  },
+  {
+    "matter_type_id": 13,
+    "matter_type_label": "Bankruptcy & Insolvency",
+    "sub_type_id": 111,
+    "sub_type_label": "Chapter 13 Bankruptcy"
+  },
+  {
+    "matter_type_id": 13,
+    "matter_type_label": "Bankruptcy & Insolvency",
+    "sub_type_id": 109,
+    "sub_type_label": "Chapter 7 Bankruptcy"
+  },
+  {
+    "matter_type_id": 13,
+    "matter_type_label": "Bankruptcy & Insolvency",
+    "sub_type_id": 112,
+    "sub_type_label": "Creditor Rights"
+  },
+  {
+    "matter_type_id": 13,
+    "matter_type_label": "Bankruptcy & Insolvency",
+    "sub_type_id": 117,
+    "sub_type_label": "Foreclosure Defense"
+  },
+  {
+    "matter_type_id": 13,
+    "matter_type_label": "Bankruptcy & Insolvency",
+    "sub_type_id": 114,
+    "sub_type_label": "Insolvency Proceedings"
+  },
+  {
+    "matter_type_id": 13,
+    "matter_type_label": "Bankruptcy & Insolvency",
+    "sub_type_id": 115,
+    "sub_type_label": "Liquidation"
+  },
+  {
+    "matter_type_id": 13,
+    "matter_type_label": "Bankruptcy & Insolvency",
+    "sub_type_id": 113,
+    "sub_type_label": "Restructuring"
+  },
+  {
+    "matter_type_id": 2,
+    "matter_type_label": "Contract Law",
+    "sub_type_id": 13,
+    "sub_type_label": "Breach of Contract"
+  },
+  {
+    "matter_type_id": 2,
+    "matter_type_label": "Contract Law",
+    "sub_type_id": 14,
+    "sub_type_label": "Commercial Agreements"
+  },
+  {
+    "matter_type_id": 2,
+    "matter_type_label": "Contract Law",
+    "sub_type_id": 10,
+    "sub_type_label": "Contract Drafting"
+  },
+  {
+    "matter_type_id": 2,
+    "matter_type_label": "Contract Law",
+    "sub_type_id": 12,
+    "sub_type_label": "Contract Negotiation"
+  },
+  {
+    "matter_type_id": 2,
+    "matter_type_label": "Contract Law",
+    "sub_type_id": 11,
+    "sub_type_label": "Contract Review"
+  },
+  {
+    "matter_type_id": 2,
+    "matter_type_label": "Contract Law",
+    "sub_type_id": 16,
+    "sub_type_label": "Distribution Agreements"
+  },
+  {
+    "matter_type_id": 2,
+    "matter_type_label": "Contract Law",
+    "sub_type_id": 18,
+    "sub_type_label": "Employment Contracts"
+  },
+  {
+    "matter_type_id": 2,
+    "matter_type_label": "Contract Law",
+    "sub_type_id": 15,
+    "sub_type_label": "Licensing Agreements"
+  },
+  {
+    "matter_type_id": 2,
+    "matter_type_label": "Contract Law",
+    "sub_type_id": 17,
+    "sub_type_label": "Service Agreements"
+  },
+  {
+    "matter_type_id": 1,
+    "matter_type_label": "Corporate Law",
+    "sub_type_id": 1,
+    "sub_type_label": "Business Formation"
+  },
+  {
+    "matter_type_id": 1,
+    "matter_type_label": "Corporate Law",
+    "sub_type_id": 9,
+    "sub_type_label": "Corporate Dissolution"
+  },
+  {
+    "matter_type_id": 1,
+    "matter_type_label": "Corporate Law",
+    "sub_type_id": 5,
+    "sub_type_label": "Corporate Finance"
+  },
+  {
+    "matter_type_id": 1,
+    "matter_type_label": "Corporate Law",
+    "sub_type_id": 3,
+    "sub_type_label": "Corporate Governance"
+  },
+  {
+    "matter_type_id": 1,
+    "matter_type_label": "Corporate Law",
+    "sub_type_id": 6,
+    "sub_type_label": "Corporate Restructuring"
+  },
+  {
+    "matter_type_id": 1,
+    "matter_type_label": "Corporate Law",
+    "sub_type_id": 7,
+    "sub_type_label": "Joint Ventures"
+  },
+  {
+    "matter_type_id": 1,
+    "matter_type_label": "Corporate Law",
+    "sub_type_id": 2,
+    "sub_type_label": "Mergers & Acquisitions"
+  },
+  {
+    "matter_type_id": 1,
+    "matter_type_label": "Corporate Law",
+    "sub_type_id": 4,
+    "sub_type_label": "Securities Compliance"
+  },
+  {
+    "matter_type_id": 1,
+    "matter_type_label": "Corporate Law",
+    "sub_type_id": 8,
+    "sub_type_label": "Shareholder Disputes"
+  },
+  {
+    "matter_type_id": 11,
+    "matter_type_label": "Criminal Law",
+    "sub_type_id": 98,
+    "sub_type_label": "Criminal Appeals"
+  },
+  {
+    "matter_type_id": 11,
+    "matter_type_label": "Criminal Law",
+    "sub_type_id": 91,
+    "sub_type_label": "Criminal Defense"
+  },
+  {
+    "matter_type_id": 11,
+    "matter_type_label": "Criminal Law",
+    "sub_type_id": 93,
+    "sub_type_label": "Drug Offenses"
+  },
+  {
+    "matter_type_id": 11,
+    "matter_type_label": "Criminal Law",
+    "sub_type_id": 94,
+    "sub_type_label": "DUI/DWI"
+  },
+  {
+    "matter_type_id": 11,
+    "matter_type_label": "Criminal Law",
+    "sub_type_id": 99,
+    "sub_type_label": "Expungement"
+  },
+  {
+    "matter_type_id": 11,
+    "matter_type_label": "Criminal Law",
+    "sub_type_id": 95,
+    "sub_type_label": "Felonies"
+  },
+  {
+    "matter_type_id": 11,
+    "matter_type_label": "Criminal Law",
+    "sub_type_id": 97,
+    "sub_type_label": "Juvenile Crime"
+  },
+  {
+    "matter_type_id": 11,
+    "matter_type_label": "Criminal Law",
+    "sub_type_id": 96,
+    "sub_type_label": "Misdemeanors"
+  },
+  {
+    "matter_type_id": 11,
+    "matter_type_label": "Criminal Law",
+    "sub_type_id": 92,
+    "sub_type_label": "White Collar Crime"
+  },
+  {
+    "matter_type_id": 6,
+    "matter_type_label": "Employment Law",
+    "sub_type_id": 46,
+    "sub_type_label": "Discrimination"
+  },
+  {
+    "matter_type_id": 6,
+    "matter_type_label": "Employment Law",
+    "sub_type_id": 52,
+    "sub_type_label": "EEOC Compliance"
+  },
+  {
+    "matter_type_id": 6,
+    "matter_type_label": "Employment Law",
+    "sub_type_id": 51,
+    "sub_type_label": "Employee Benefits"
+  },
+  {
+    "matter_type_id": 6,
+    "matter_type_label": "Employment Law",
+    "sub_type_id": 54,
+    "sub_type_label": "Employment Policy Development"
+  },
+  {
+    "matter_type_id": 6,
+    "matter_type_label": "Employment Law",
+    "sub_type_id": 47,
+    "sub_type_label": "Harassment"
+  },
+  {
+    "matter_type_id": 6,
+    "matter_type_label": "Employment Law",
+    "sub_type_id": 50,
+    "sub_type_label": "Labor Relations"
+  },
+  {
+    "matter_type_id": 6,
+    "matter_type_label": "Employment Law",
+    "sub_type_id": 53,
+    "sub_type_label": "Workplace Safety"
+  },
+  {
+    "matter_type_id": 6,
+    "matter_type_label": "Employment Law",
+    "sub_type_id": 48,
+    "sub_type_label": "Wrongful Termination"
+  },
+  {
+    "matter_type_id": 18,
+    "matter_type_label": "Entertainment & Media Law",
+    "sub_type_id": 157,
+    "sub_type_label": "Digital Media"
+  },
+  {
+    "matter_type_id": 18,
+    "matter_type_label": "Entertainment & Media Law",
+    "sub_type_id": 154,
+    "sub_type_label": "Entertainment Contracts"
+  },
+  {
+    "matter_type_id": 18,
+    "matter_type_label": "Entertainment & Media Law",
+    "sub_type_id": 162,
+    "sub_type_label": "Entertainment Litigation"
+  },
+  {
+    "matter_type_id": 18,
+    "matter_type_label": "Entertainment & Media Law",
+    "sub_type_id": 155,
+    "sub_type_label": "Film & Television"
+  },
+  {
+    "matter_type_id": 18,
+    "matter_type_label": "Entertainment & Media Law",
+    "sub_type_id": 160,
+    "sub_type_label": "Gaming"
+  },
+  {
+    "matter_type_id": 18,
+    "matter_type_label": "Entertainment & Media Law",
+    "sub_type_id": 156,
+    "sub_type_label": "Music"
+  },
+  {
+    "matter_type_id": 18,
+    "matter_type_label": "Entertainment & Media Law",
+    "sub_type_id": 158,
+    "sub_type_label": "Publishing"
+  },
+  {
+    "matter_type_id": 18,
+    "matter_type_label": "Entertainment & Media Law",
+    "sub_type_id": 159,
+    "sub_type_label": "Sports Law"
+  },
+  {
+    "matter_type_id": 18,
+    "matter_type_label": "Entertainment & Media Law",
+    "sub_type_id": 161,
+    "sub_type_label": "Talent Representation"
+  },
+  {
+    "matter_type_id": 9,
+    "matter_type_label": "Environmental Law",
+    "sub_type_id": 78,
+    "sub_type_label": "Climate Change"
+  },
+  {
+    "matter_type_id": 9,
+    "matter_type_label": "Environmental Law",
+    "sub_type_id": 73,
+    "sub_type_label": "Environmental Compliance"
+  },
+  {
+    "matter_type_id": 9,
+    "matter_type_label": "Environmental Law",
+    "sub_type_id": 76,
+    "sub_type_label": "Environmental Due Diligence"
+  },
+  {
+    "matter_type_id": 9,
+    "matter_type_label": "Environmental Law",
+    "sub_type_id": 75,
+    "sub_type_label": "Environmental Litigation"
+  },
+  {
+    "matter_type_id": 9,
+    "matter_type_label": "Environmental Law",
+    "sub_type_id": 74,
+    "sub_type_label": "Environmental Permitting"
+  },
+  {
+    "matter_type_id": 9,
+    "matter_type_label": "Environmental Law",
+    "sub_type_id": 79,
+    "sub_type_label": "Natural Resources"
+  },
+  {
+    "matter_type_id": 9,
+    "matter_type_label": "Environmental Law",
+    "sub_type_id": 77,
+    "sub_type_label": "Remediation"
+  },
+  {
+    "matter_type_id": 9,
+    "matter_type_label": "Environmental Law",
+    "sub_type_id": 80,
+    "sub_type_label": "Waste Management"
+  },
+  {
+    "matter_type_id": 9,
+    "matter_type_label": "Environmental Law",
+    "sub_type_id": 81,
+    "sub_type_label": "Water Rights"
+  },
+  {
+    "matter_type_id": 12,
+    "matter_type_label": "Estate Planning & Probate",
+    "sub_type_id": 104,
+    "sub_type_label": "Elder Law"
+  },
+  {
+    "matter_type_id": 12,
+    "matter_type_label": "Estate Planning & Probate",
+    "sub_type_id": 103,
+    "sub_type_label": "Estate Administration"
+  },
+  {
+    "matter_type_id": 12,
+    "matter_type_label": "Estate Planning & Probate",
+    "sub_type_id": 107,
+    "sub_type_label": "Estate Litigation"
+  },
+  {
+    "matter_type_id": 12,
+    "matter_type_label": "Estate Planning & Probate",
+    "sub_type_id": 106,
+    "sub_type_label": "Healthcare Directives"
+  },
+  {
+    "matter_type_id": 12,
+    "matter_type_label": "Estate Planning & Probate",
+    "sub_type_id": 105,
+    "sub_type_label": "Powers of Attorney"
+  },
+  {
+    "matter_type_id": 12,
+    "matter_type_label": "Estate Planning & Probate",
+    "sub_type_id": 102,
+    "sub_type_label": "Probate Administration"
+  },
+  {
+    "matter_type_id": 12,
+    "matter_type_label": "Estate Planning & Probate",
+    "sub_type_id": 101,
+    "sub_type_label": "Trusts"
+  },
+  {
+    "matter_type_id": 12,
+    "matter_type_label": "Estate Planning & Probate",
+    "sub_type_id": 100,
+    "sub_type_label": "Wills"
+  },
+  {
+    "matter_type_id": 10,
+    "matter_type_label": "Family Law",
+    "sub_type_id": 87,
+    "sub_type_label": "Adoption"
+  },
+  {
+    "matter_type_id": 10,
+    "matter_type_label": "Family Law",
+    "sub_type_id": 85,
+    "sub_type_label": "Alimony"
+  },
+  {
+    "matter_type_id": 10,
+    "matter_type_label": "Family Law",
+    "sub_type_id": 83,
+    "sub_type_label": "Child Custody"
+  },
+  {
+    "matter_type_id": 10,
+    "matter_type_label": "Family Law",
+    "sub_type_id": 84,
+    "sub_type_label": "Child Support"
+  },
+  {
+    "matter_type_id": 10,
+    "matter_type_label": "Family Law",
+    "sub_type_id": 82,
+    "sub_type_label": "Divorce"
+  },
+  {
+    "matter_type_id": 10,
+    "matter_type_label": "Family Law",
+    "sub_type_id": 89,
+    "sub_type_label": "Domestic Violence"
+  },
+  {
+    "matter_type_id": 10,
+    "matter_type_label": "Family Law",
+    "sub_type_id": 88,
+    "sub_type_label": "Guardianship"
+  },
+  {
+    "matter_type_id": 10,
+    "matter_type_label": "Family Law",
+    "sub_type_id": 90,
+    "sub_type_label": "Paternity"
+  },
+  {
+    "matter_type_id": 10,
+    "matter_type_label": "Family Law",
+    "sub_type_id": 86,
+    "sub_type_label": "Prenuptial Agreements"
+  },
+  {
+    "matter_type_id": 14,
+    "matter_type_label": "Healthcare & Medical",
+    "sub_type_id": 124,
+    "sub_type_label": "Clinical Research"
+  },
+  {
+    "matter_type_id": 14,
+    "matter_type_label": "Healthcare & Medical",
+    "sub_type_id": 126,
+    "sub_type_label": "FDA Matters"
+  },
+  {
+    "matter_type_id": 14,
+    "matter_type_label": "Healthcare & Medical",
+    "sub_type_id": 125,
+    "sub_type_label": "Healthcare Licensing"
+  },
+  {
+    "matter_type_id": 14,
+    "matter_type_label": "Healthcare & Medical",
+    "sub_type_id": 120,
+    "sub_type_label": "Healthcare Transactions"
+  },
+  {
+    "matter_type_id": 14,
+    "matter_type_label": "Healthcare & Medical",
+    "sub_type_id": 121,
+    "sub_type_label": "HIPAA Compliance"
+  },
+  {
+    "matter_type_id": 14,
+    "matter_type_label": "Healthcare & Medical",
+    "sub_type_id": 123,
+    "sub_type_label": "Insurance Coverage"
+  },
+  {
+    "matter_type_id": 14,
+    "matter_type_label": "Healthcare & Medical",
+    "sub_type_id": 119,
+    "sub_type_label": "Medical Malpractice"
+  },
+  {
+    "matter_type_id": 14,
+    "matter_type_label": "Healthcare & Medical",
+    "sub_type_id": 122,
+    "sub_type_label": "Provider Issues"
+  },
+  {
+    "matter_type_id": 14,
+    "matter_type_label": "Healthcare & Medical",
+    "sub_type_id": 118,
+    "sub_type_label": "Regulatory Compliance"
+  },
+  {
+    "matter_type_id": 8,
+    "matter_type_label": "Immigration Law",
+    "sub_type_id": 66,
+    "sub_type_label": "Asylum"
+  },
+  {
+    "matter_type_id": 8,
+    "matter_type_label": "Immigration Law",
+    "sub_type_id": 64,
+    "sub_type_label": "Business Immigration"
+  },
+  {
+    "matter_type_id": 8,
+    "matter_type_label": "Immigration Law",
+    "sub_type_id": 68,
+    "sub_type_label": "Citizenship & Naturalization"
+  },
+  {
+    "matter_type_id": 8,
+    "matter_type_label": "Immigration Law",
+    "sub_type_id": 67,
+    "sub_type_label": "Deportation Defense"
+  }
+] 

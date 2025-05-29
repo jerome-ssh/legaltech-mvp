@@ -23,7 +23,7 @@ export async function GET() {
   }
   const { data, error } = await supabase
     .from('matter_sub_types')
-    .select('id, matter_type_id, value, label')
+    .select('id, type_id, value, label')
     .order('label', { ascending: true });
 
   if (error) {
