@@ -1,0 +1,202 @@
+[
+  {
+    "matter_type_id": 2,
+    "matter_type_label": "Litigation",
+    "sub_type_id": 20,
+    "sub_type_label": "Commercial Litigation",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Case Documents", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Litigation Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "Draft Pleadings", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Conduct Discovery", "stage": "Active Work", "default_weight": 3 },
+      { "label": "Prepare Motions", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Attend Hearings", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Prepare for Trial", "stage": "Active Work", "default_weight": 3 },
+      { "label": "Settlement Negotiations", "stage": "Closure", "default_weight": 2 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 2,
+    "matter_type_label": "Litigation",
+    "sub_type_id": 149,
+    "sub_type_label": "Wrongful Death",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Death Certificate", "stage": "Planning", "default_weight": 2 },
+      { "label": "Gather Medical Records", "stage": "Planning", "default_weight": 2 },
+      { "label": "Investigate Circumstances", "stage": "Active Work", "default_weight": 3 },
+      { "label": "Consult with Experts", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Draft Complaint", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File Lawsuit", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Discovery Process", "stage": "Active Work", "default_weight": 3 },
+      { "label": "Settlement Negotiations", "stage": "Closure", "default_weight": 2 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 2,
+    "matter_type_label": "Litigation",
+    "sub_type_id": 140,
+    "sub_type_label": "International Dispute Resolution",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Jurisdiction Issues", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze International Law", "stage": "Planning", "default_weight": 2 },
+      { "label": "Draft Arbitration Agreement", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Select Arbitral Institution", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Prepare Arbitration Documents", "stage": "Active Work", "default_weight": 3 },
+      { "label": "Participate in Hearings", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Enforce Award", "stage": "Closure", "default_weight": 2 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 3,
+    "matter_type_label": "Tax Law",
+    "sub_type_id": 56,
+    "sub_type_label": "Individual Tax",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Tax Documents", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Tax Situation", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Tax Returns", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File Tax Returns", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Tax Authority", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Handle Tax Disputes", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Implement Tax Planning", "stage": "Closure", "default_weight": 2 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 2,
+    "matter_type_label": "Litigation",
+    "sub_type_id": 19,
+    "sub_type_label": "Civil Litigation",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Case Facts", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Case Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "Draft Initial Pleadings", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Conduct Discovery", "stage": "Active Work", "default_weight": 3 },
+      { "label": "Prepare Motions", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Attend Court Hearings", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Settlement Negotiations", "stage": "Closure", "default_weight": 2 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 4,
+    "matter_type_label": "Estate Law",
+    "sub_type_id": 108,
+    "sub_type_label": "Estate Planning",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Assets & Liabilities", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Estate Plan", "stage": "Planning", "default_weight": 2 },
+      { "label": "Draft Will", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Prepare Trust Documents", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Draft Power of Attorney", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Prepare Healthcare Directives", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Finalize Documents", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 5,
+    "matter_type_label": "Immigration Law",
+    "sub_type_id": 65,
+    "sub_type_label": "Family Immigration",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Family Documents", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Immigration Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Visa Applications", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Gather Supporting Documents", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with USCIS", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Respond to RFEs", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Prepare for Interviews", "stage": "Closure", "default_weight": 2 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 3,
+    "matter_type_label": "Tax Law",
+    "sub_type_id": 55,
+    "sub_type_label": "Corporate Tax",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Corporate Structure", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Tax Implications", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Tax Returns", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File Tax Returns", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Handle Tax Audits", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Develop Tax Strategy", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Implement Tax Planning", "stage": "Closure", "default_weight": 2 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 6,
+    "matter_type_label": "Technology Law",
+    "sub_type_id": 129,
+    "sub_type_label": "Technology Transactions",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Technology Assets", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Transaction Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "Draft Transaction Documents", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Conduct Due Diligence", "stage": "Active Work", "default_weight": 3 },
+      { "label": "Negotiate Terms", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Prepare Closing Documents", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Close Transaction", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 7,
+    "matter_type_label": "Real Estate Law",
+    "sub_type_id": 36,
+    "sub_type_label": "Real Estate Finance",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Property Documents", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Financing Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "Draft Loan Documents", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Review Title Reports", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Prepare Closing Documents", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Coordinate Closing", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Record Documents", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 8,
+    "matter_type_label": "Employment Law",
+    "sub_type_id": 1540,
+    "sub_type_label": "Employment Compliance & Training",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Current Policies", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Compliance Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "Draft Compliance Policies", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Create Training Materials", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Conduct Training Sessions", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Implement Compliance Program", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Monitor Compliance", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  }
+] 

@@ -2447,21 +2447,1125 @@
     ]
   },
   {
-    "matter_type_id": 8,
-    "matter_type_label": "Immigration Law",
-    "sub_type_id": 64,
-    "sub_type_label": "Business Immigration",
+    "matter_type_id": 19,
+    "matter_type_label": "Administrative & Regulatory",
+    "sub_type_id": 163,
+    "sub_type_label": "Administrative Proceedings",
     "tasks": [
       { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
       { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
-      { "label": "Review Business Requirements", "stage": "Planning", "default_weight": 2 },
-      { "label": "Develop Immigration Strategy", "stage": "Planning", "default_weight": 2 },
-      { "label": "Prepare Business Plan", "stage": "Active Work", "default_weight": 2 },
-      { "label": "Draft Immigration Petitions", "stage": "Active Work", "default_weight": 2 },
-      { "label": "File with USCIS", "stage": "Active Work", "default_weight": 2 },
-      { "label": "Respond to RFEs", "stage": "Active Work", "default_weight": 2 },
-      { "label": "Attend Interviews", "stage": "Active Work", "default_weight": 2 },
-      { "label": "Obtain Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Review Notice of Proceeding", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Proceeding Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Documents & Evidence", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Attend Proceeding", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Submit Post-Proceeding Brief", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Receive Decision", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Decision/Appeal if Needed", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 19,
+    "matter_type_label": "Administrative & Regulatory",
+    "sub_type_id": 165,
+    "sub_type_label": "Regulatory Investigations",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Investigation Notice", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Response Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "Gather Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Prepare Response", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Attend Interviews/Meetings", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Negotiate Resolution", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Implement Corrective Actions", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 19,
+    "matter_type_label": "Administrative & Regulatory",
+    "sub_type_id": 166,
+    "sub_type_label": "Licensing",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review License Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Application Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Application", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Submit Application", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Agency Requests", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Attend Hearings/Interviews", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Obtain License", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 19,
+    "matter_type_label": "Administrative & Regulatory",
+    "sub_type_id": 167,
+    "sub_type_label": "Administrative Appeals",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Appeal Record", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Appeal Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "Draft Appeal Brief", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File Appeal", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Oral Argument Preparation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Attend Oral Argument", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Receive Decision", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Decision/Next Steps", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 19,
+    "matter_type_label": "Administrative & Regulatory",
+    "sub_type_id": 168,
+    "sub_type_label": "Government Relations",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Policy Objectives", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Government Relations Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Policy Materials", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Engage with Officials", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Monitor Policy Developments", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Advise on Policy Impact", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Evaluate Outcomes", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 19,
+    "matter_type_label": "Administrative & Regulatory",
+    "sub_type_id": 169,
+    "sub_type_label": "Lobbying",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Lobbying Objectives", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Lobbying Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Lobbying Materials", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Register as Lobbyist", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Engage with Officials", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Monitor Legislative Activity", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File Required Reports", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Evaluate Outcomes", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 19,
+    "matter_type_label": "Administrative & Regulatory",
+    "sub_type_id": 170,
+    "sub_type_label": "Administrative Hearings",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Hearing Notice", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Hearing Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Hearing Materials", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Conduct Pre-Hearing Briefing", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Attend Hearing", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Submit Post-Hearing Brief", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Receive Decision", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Decision/Appeal if Needed", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 19,
+    "matter_type_label": "Administrative & Regulatory",
+    "sub_type_id": 171,
+    "sub_type_label": "Agency Rulemaking",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Proposed Rules", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Comment Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "Draft Comments", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Submit Comments", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Attend Public Hearings", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Monitor Rule Development", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Evaluate Final Rule", "stage": "Closure", "default_weight": 1 },
+      { "label": "Advise on Compliance", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 20,
+    "matter_type_label": "Alternative Dispute Resolution",
+    "sub_type_id": 172,
+    "sub_type_label": "Mediation",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Dispute Details", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Mediation Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "Select Mediator", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Prepare Mediation Brief", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Attend Mediation Session", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Negotiate Settlement", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Draft Settlement Agreement", "stage": "Closure", "default_weight": 2 },
+      { "label": "Implement Settlement Terms", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 20,
+    "matter_type_label": "Alternative Dispute Resolution",
+    "sub_type_id": 173,
+    "sub_type_label": "Arbitration",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Arbitration Agreement", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Arbitration Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "Select Arbitrator", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Prepare Arbitration Brief", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Attend Arbitration Hearing", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Present Evidence & Arguments", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Receive Arbitration Award", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Award/Appeal if Needed", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 20,
+    "matter_type_label": "Alternative Dispute Resolution",
+    "sub_type_id": 174,
+    "sub_type_label": "Negotiation",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Dispute Details", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Negotiation Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Negotiation Materials", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Conduct Negotiations", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Draft Settlement Terms", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Finalize Agreement", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Agreement Terms", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 21,
+    "matter_type_label": "Antitrust & Competition",
+    "sub_type_id": 175,
+    "sub_type_label": "Merger Control",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Transaction Details", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Market Impact", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Merger Notification", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Competition Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Negotiate Remedies if Needed", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Obtain Clearance", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 21,
+    "matter_type_label": "Antitrust & Competition",
+    "sub_type_id": 176,
+    "sub_type_label": "Cartel Investigations",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Investigation Details", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Defense Strategy", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Leniency Application", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Respond to Authority Requests", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Negotiate Settlement", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Implement Compliance Program", "stage": "Closure", "default_weight": 1 },
+      { "label": "Monitor Compliance", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 21,
+    "matter_type_label": "Antitrust & Competition",
+    "sub_type_id": 177,
+    "sub_type_label": "Abuse of Dominance",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Allegations", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Market Position", "stage": "Planning", "default_weight": 2 },
+      { "label": "Develop Defense Strategy", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Prepare Response to Authority", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Negotiate Remedies", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Implement Behavioral Changes", "stage": "Closure", "default_weight": 1 },
+      { "label": "Monitor Compliance", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 22,
+    "matter_type_label": "Aviation Law",
+    "sub_type_id": 178,
+    "sub_type_label": "Aircraft Registration",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Aircraft Documentation", "stage": "Planning", "default_weight": 2 },
+      { "label": "Verify Ownership History", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Registration Application", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Aviation Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Registration Certificate", "stage": "Closure", "default_weight": 1 },
+      { "label": "Update Aircraft Records", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 22,
+    "matter_type_label": "Aviation Law",
+    "sub_type_id": 179,
+    "sub_type_label": "Airline Operations",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Operating Certificates", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Regulatory Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Compliance Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Aviation Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Operating Authority", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Program", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 22,
+    "matter_type_label": "Aviation Law",
+    "sub_type_id": 180,
+    "sub_type_label": "Aviation Accidents",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Accident Details", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Regulatory Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Investigation Response", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Coordinate with Authorities", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Develop Defense Strategy", "stage": "Active Work", "default_weight": 2 },
+      { "label": "Negotiate Settlements", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Safety Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 23,
+    "matter_type_label": "Banking & Finance",
+    "sub_type_id": 181,
+    "sub_type_label": "Banking Regulations",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Regulatory Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Compliance Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Compliance Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Regulatory Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Implement Compliance Program", "stage": "Closure", "default_weight": 1 },
+      { "label": "Monitor Regulatory Changes", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 23,
+    "matter_type_label": "Banking & Finance",
+    "sub_type_id": 182,
+    "sub_type_label": "Securities Offerings",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Offering Details", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Regulatory Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Offering Documents", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Securities Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Regulatory Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 23,
+    "matter_type_label": "Banking & Finance",
+    "sub_type_id": 183,
+    "sub_type_label": "Financial Transactions",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Transaction Details", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Regulatory Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Transaction Documents", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Regulatory Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Regulatory Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 24,
+    "matter_type_label": "Construction Law",
+    "sub_type_id": 184,
+    "sub_type_label": "Construction Contracts",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Contract Details", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Contract Documents", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Regulatory Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Regulatory Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 24,
+    "matter_type_label": "Construction Law",
+    "sub_type_id": 185,
+    "sub_type_label": "Construction Disputes",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Dispute Details", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Dispute Resolution Strategy", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Regulatory Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Regulatory Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 24,
+    "matter_type_label": "Construction Law",
+    "sub_type_id": 186,
+    "sub_type_label": "Construction Permits",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Permit Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Regulatory Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Permit Application", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Regulatory Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Regulatory Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 25,
+    "matter_type_label": "Consumer Protection",
+    "sub_type_id": 187,
+    "sub_type_label": "Consumer Complaints",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Complaint Details", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Complaint Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Regulatory Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Regulatory Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 25,
+    "matter_type_label": "Consumer Protection",
+    "sub_type_id": 188,
+    "sub_type_label": "Consumer Rights",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Rights Violation Details", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Rights Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Regulatory Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Regulatory Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 25,
+    "matter_type_label": "Consumer Protection",
+    "sub_type_id": 189,
+    "sub_type_label": "Consumer Safety",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Safety Violation Details", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Safety Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Regulatory Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Regulatory Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 26,
+    "matter_type_label": "Cybersecurity & Data Privacy",
+    "sub_type_id": 190,
+    "sub_type_label": "Data Breach Response",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Breach Details", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Breach Response Plan", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Regulatory Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Regulatory Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 26,
+    "matter_type_label": "Cybersecurity & Data Privacy",
+    "sub_type_id": 191,
+    "sub_type_label": "Data Privacy Compliance",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Privacy Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Privacy Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Regulatory Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Regulatory Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 26,
+    "matter_type_label": "Cybersecurity & Data Privacy",
+    "sub_type_id": 192,
+    "sub_type_label": "Cybersecurity Compliance",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Security Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Security Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Regulatory Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Regulatory Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 27,
+    "matter_type_label": "Education Law",
+    "sub_type_id": 193,
+    "sub_type_label": "Student Rights",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Student Rights Issue", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Rights Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Educational Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Regulatory Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 27,
+    "matter_type_label": "Education Law",
+    "sub_type_id": 194,
+    "sub_type_label": "School Compliance",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Compliance Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Compliance Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Educational Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Regulatory Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 27,
+    "matter_type_label": "Education Law",
+    "sub_type_id": 195,
+    "sub_type_label": "Educational Policy",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Policy Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Policy Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Educational Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Regulatory Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 28,
+    "matter_type_label": "Energy Law",
+    "sub_type_id": 196,
+    "sub_type_label": "Energy Regulation",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Regulatory Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Regulatory Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Energy Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Regulatory Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 28,
+    "matter_type_label": "Energy Law",
+    "sub_type_id": 197,
+    "sub_type_label": "Energy Contracts",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Contract Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Contract Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Energy Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Regulatory Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 28,
+    "matter_type_label": "Energy Law",
+    "sub_type_id": 198,
+    "sub_type_label": "Energy Compliance",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Compliance Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Compliance Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Energy Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Regulatory Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 29,
+    "matter_type_label": "Food & Drug Law",
+    "sub_type_id": 199,
+    "sub_type_label": "FDA Compliance",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review FDA Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare FDA Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with FDA", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to FDA Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain FDA Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 29,
+    "matter_type_label": "Food & Drug Law",
+    "sub_type_id": 200,
+    "sub_type_label": "Product Safety",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Safety Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Safety Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with FDA", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to FDA Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain FDA Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 29,
+    "matter_type_label": "Food & Drug Law",
+    "sub_type_id": 201,
+    "sub_type_label": "Labeling Compliance",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Labeling Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Labeling Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with FDA", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to FDA Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain FDA Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 30,
+    "matter_type_label": "Government Contracts",
+    "sub_type_id": 202,
+    "sub_type_label": "Contract Bidding",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Bidding Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Bidding Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Government Agency", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Agency Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Agency Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 30,
+    "matter_type_label": "Government Contracts",
+    "sub_type_id": 203,
+    "sub_type_label": "Contract Compliance",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Compliance Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Compliance Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Government Agency", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Agency Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Agency Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 30,
+    "matter_type_label": "Government Contracts",
+    "sub_type_id": 204,
+    "sub_type_label": "Contract Disputes",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Dispute Details", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Dispute Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Government Agency", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Agency Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Agency Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 31,
+    "matter_type_label": "International Law",
+    "sub_type_id": 205,
+    "sub_type_label": "International Trade",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Trade Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Trade Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with International Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain International Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 31,
+    "matter_type_label": "International Law",
+    "sub_type_id": 206,
+    "sub_type_label": "International Disputes",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Dispute Details", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Dispute Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with International Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain International Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 31,
+    "matter_type_label": "International Law",
+    "sub_type_id": 207,
+    "sub_type_label": "International Compliance",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Compliance Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Compliance Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with International Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain International Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 32,
+    "matter_type_label": "Maritime Law",
+    "sub_type_id": 208,
+    "sub_type_label": "Shipping Disputes",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Shipping Dispute", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Dispute Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Maritime Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Maritime Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 32,
+    "matter_type_label": "Maritime Law",
+    "sub_type_id": 209,
+    "sub_type_label": "Maritime Compliance",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Compliance Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Compliance Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Maritime Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Maritime Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 32,
+    "matter_type_label": "Maritime Law",
+    "sub_type_id": 210,
+    "sub_type_label": "Maritime Accidents",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Accident Details", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Accident Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Maritime Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Maritime Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 33,
+    "matter_type_label": "Military Law",
+    "sub_type_id": 211,
+    "sub_type_label": "Military Justice",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Justice Case Details", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Justice Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Military Court", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Court Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Court Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 33,
+    "matter_type_label": "Military Law",
+    "sub_type_id": 212,
+    "sub_type_label": "Military Benefits",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Benefits Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Benefits Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Military Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Military Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 33,
+    "matter_type_label": "Military Law",
+    "sub_type_id": 213,
+    "sub_type_label": "Military Compliance",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Compliance Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Compliance Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Military Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Military Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 34,
+    "matter_type_label": "Nonprofit Law",
+    "sub_type_id": 214,
+    "sub_type_label": "Nonprofit Formation",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Formation Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Formation Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Regulatory Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Regulatory Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 34,
+    "matter_type_label": "Nonprofit Law",
+    "sub_type_id": 215,
+    "sub_type_label": "Nonprofit Compliance",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Compliance Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Compliance Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Regulatory Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Regulatory Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 34,
+    "matter_type_label": "Nonprofit Law",
+    "sub_type_id": 216,
+    "sub_type_label": "Nonprofit Governance",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Governance Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Governance Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Regulatory Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Regulatory Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 35,
+    "matter_type_label": "Public Interest Law",
+    "sub_type_id": 217,
+    "sub_type_label": "Civil Rights",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Civil Rights Case", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Case Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Court", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Court Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Court Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 35,
+    "matter_type_label": "Public Interest Law",
+    "sub_type_id": 218,
+    "sub_type_label": "Environmental Protection",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Environmental Case", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Case Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Court", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Court Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Court Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 35,
+    "matter_type_label": "Public Interest Law",
+    "sub_type_id": 219,
+    "sub_type_label": "Public Policy",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Policy Case", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Case Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Court", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Court Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Court Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 36,
+    "matter_type_label": "Sports Law",
+    "sub_type_id": 220,
+    "sub_type_label": "Sports Contracts",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Contract Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Contract Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Sports Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Sports Authority Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 36,
+    "matter_type_label": "Sports Law",
+    "sub_type_id": 221,
+    "sub_type_label": "Sports Compliance",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Compliance Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Compliance Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Sports Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Sports Authority Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 36,
+    "matter_type_label": "Sports Law",
+    "sub_type_id": 222,
+    "sub_type_label": "Sports Disputes",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Dispute Details", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Dispute Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Sports Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Sports Authority Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 37,
+    "matter_type_label": "Technology Law",
+    "sub_type_id": 223,
+    "sub_type_label": "Technology Contracts",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Contract Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Contract Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Technology Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Technology Authority Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 37,
+    "matter_type_label": "Technology Law",
+    "sub_type_id": 224,
+    "sub_type_label": "Technology Compliance",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Compliance Requirements", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Compliance Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Technology Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Technology Authority Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
+      { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
+    ]
+  },
+  {
+    "matter_type_id": 37,
+    "matter_type_label": "Technology Law",
+    "sub_type_id": 225,
+    "sub_type_label": "Technology Disputes",
+    "tasks": [
+      { "label": "Conflict Check", "stage": "Intake", "default_weight": 1 },
+      { "label": "Client Intake & KYC", "stage": "Intake", "default_weight": 1 },
+      { "label": "Review Dispute Details", "stage": "Planning", "default_weight": 2 },
+      { "label": "Analyze Legal Framework", "stage": "Planning", "default_weight": 2 },
+      { "label": "Prepare Dispute Documentation", "stage": "Active Work", "default_weight": 2 },
+      { "label": "File with Technology Authority", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Respond to Authority Queries", "stage": "Active Work", "default_weight": 1 },
+      { "label": "Obtain Technology Authority Approval", "stage": "Closure", "default_weight": 1 },
+      { "label": "Implement Compliance Measures", "stage": "Closure", "default_weight": 1 },
       { "label": "Close & Archive Matter", "stage": "Closure", "default_weight": 1 }
     ]
   }
