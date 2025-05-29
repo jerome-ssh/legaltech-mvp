@@ -289,15 +289,15 @@ export function ScheduleEventModal({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl w-full bg-gradient-to-br from-blue-100 via-blue-50 to-pink-100/80 rounded-xl shadow-xl p-0 overflow-hidden">
+      <DialogContent className="max-w-lg w-full bg-gradient-to-br from-blue-100 via-blue-50 to-pink-100/80 rounded-xl shadow-xl p-0 overflow-hidden">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 40 }}
           transition={{ duration: 0.2 }}
         >
-          <DialogHeader className="p-6 border-b border-gray-200/20 dark:border-gray-800/20">
-            <DialogTitle className="flex items-center gap-2 text-2xl font-bold text-black dark:text-[#60a5fa]">
+          <DialogHeader className="p-5 border-b border-gray-200/20 dark:border-gray-800/20">
+            <DialogTitle className="flex items-center gap-2 text-xl font-bold text-black dark:text-[#60a5fa]">
               <CalendarIcon className="w-6 h-6 text-blue-500" />
               {mode === 'create' ? 'New Schedule' : mode === 'edit' ? 'Edit Schedule' : 'Schedule Details'}
             </DialogTitle>
@@ -306,20 +306,38 @@ export function ScheduleEventModal({
                mode === 'edit' ? 'Edit the schedule event details' : 
                'View schedule event details'}
             </DialogDescription>
+            {/* Matter metadata display */}
+            {event && (event as any).metadata?.matter_title && (
+              <div className="mt-2">
+                <span className="text-xs text-gray-500 mr-2">Matter:</span>
+                <a
+                  href={
+                    (event as any).metadata.task_id
+                      ? `/matters/${(event as any).metadata.matter_id}?tab=tasks&taskId=${(event as any).metadata.task_id}`
+                      : (event as any).metadata.matter_link || '#'
+                  }
+                  className="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded hover:underline"
+                  title={(event as any).metadata.matter_title}
+                  onClick={e => e.stopPropagation()}
+                >
+                  {(event as any).metadata.matter_title}
+                </a>
+              </div>
+            )}
           </DialogHeader>
           <form
             onSubmit={handleSave}
-            className="p-6 space-y-4"
+            className="p-5 space-y-4 text-base"
           >
-            <label className="block text-sm font-medium text-black mb-1" htmlFor="title">Title</label>
-            <Input id="title" name="title" value={form.title} onChange={handleChange} placeholder="Title" required className="bg-white/80 text-black placeholder:text-gray-500 border border-gray-300" />
-            <label className="block text-sm font-medium text-black mb-1" htmlFor="description">Description</label>
-            <Textarea id="description" name="description" value={form.description} onChange={handleChange} placeholder="Description" className="bg-white/80 text-black placeholder:text-gray-500 border border-gray-300" />
-            <div className="flex gap-4">
-              <div className="flex-1">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-black mb-1" htmlFor="title">Title</label>
+                <Input id="title" name="title" value={form.title} onChange={handleChange} placeholder="Title" required className="bg-white/80 text-black placeholder:text-gray-500 border border-gray-300 h-10 px-3 py-2 text-sm" />
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-black mb-1" htmlFor="type">Type</label>
                 <Select value={form.type} onValueChange={v => handleSelect('type', v)}>
-                  <SelectTrigger id="type" className="w-full bg-white/80 text-black placeholder:text-gray-500 border border-gray-300">
+                  <SelectTrigger id="type" className="w-full bg-white/80 text-black placeholder:text-gray-500 border border-gray-300 h-10 px-3 py-2 text-sm">
                     <SelectValue>{typeOptions.find(o => o.value === form.type)?.label}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
@@ -329,10 +347,10 @@ export function ScheduleEventModal({
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex-1">
+              <div>
                 <label className="block text-sm font-medium text-black mb-1" htmlFor="status">Status</label>
                 <Select value={form.status} onValueChange={v => handleSelect('status', v)}>
-                  <SelectTrigger id="status" className="w-full bg-white/80 text-black placeholder:text-gray-500 border border-gray-300">
+                  <SelectTrigger id="status" className="w-full bg-white/80 text-black placeholder:text-gray-500 border border-gray-300 h-10 px-3 py-2 text-sm">
                     <SelectValue>{statusOptions.find(o => o.value === form.status)?.label}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
@@ -342,14 +360,20 @@ export function ScheduleEventModal({
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-            <label className="block text-sm font-medium text-black mb-1" htmlFor="participants">Participants</label>
-            <Input id="participants" name="participants" value={form.participants} onChange={handleChange} placeholder="Participants (comma separated)" className="bg-white/80 text-black placeholder:text-gray-500 border border-gray-300" />
-            <label className="block text-sm font-medium text-black mb-1" htmlFor="location">Location</label>
-            <Input id="location" name="location" value={form.location} onChange={handleChange} placeholder="Location" className="bg-white/80 text-black placeholder:text-gray-500 border border-gray-300" />
-            <div className="flex gap-8 justify-center">
-              <div className="flex-1 max-w-xs">
-                <label className="block text-sm font-medium text-black mb-1" htmlFor="start_time">Start Time</label>
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-black mb-1" htmlFor="description">Description</label>
+                <Textarea id="description" name="description" value={form.description} onChange={handleChange} placeholder="Description" className="bg-white/80 text-black placeholder:text-gray-500 border border-gray-300 h-20 px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-black mb-1" htmlFor="participants">Participants</label>
+                <Input id="participants" name="participants" value={form.participants} onChange={handleChange} placeholder="Comma separated" className="bg-white/80 text-black placeholder:text-gray-500 border border-gray-300 h-10 px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-black mb-1" htmlFor="location">Location</label>
+                <Input id="location" name="location" value={form.location} onChange={handleChange} placeholder="Location" className="bg-white/80 text-black placeholder:text-gray-500 border border-gray-300 h-10 px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-black mb-1" htmlFor="start_time">Start</label>
                 <DatePicker
                   id="start_time"
                   selected={startDate}
@@ -358,8 +382,8 @@ export function ScheduleEventModal({
                   timeFormat="HH:mm"
                   timeIntervals={15}
                   dateFormat="yyyy/MM/dd, h:mm aa"
-                  placeholderText="Select start time"
-                  className="w-full bg-white/80 text-black placeholder:text-gray-500 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  placeholderText="Start"
+                  className="w-full bg-white/80 text-black placeholder:text-gray-500 border border-gray-300 rounded h-10 px-3 py-2 text-sm"
                   popperClassName="react-datepicker-popper"
                   calendarClassName="bg-white dark:bg-[#232f4b] text-black dark:text-white"
                   minDate={new Date()}
@@ -367,8 +391,8 @@ export function ScheduleEventModal({
                   maxTime={setHours(setMinutes(new Date(), 59), 23)}
                 />
               </div>
-              <div className="flex-1 max-w-xs">
-                <label className="block text-sm font-medium text-black mb-1" htmlFor="end_time">End Time</label>
+              <div>
+                <label className="block text-sm font-medium text-black mb-1" htmlFor="end_time">End</label>
                 <DatePicker
                   id="end_time"
                   selected={endDate}
@@ -377,8 +401,8 @@ export function ScheduleEventModal({
                   timeFormat="HH:mm"
                   timeIntervals={15}
                   dateFormat="yyyy/MM/dd, h:mm aa"
-                  placeholderText="Select end time"
-                  className="w-full bg-white/80 text-black placeholder:text-gray-500 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  placeholderText="End"
+                  className="w-full bg-white/80 text-black placeholder:text-gray-500 border border-gray-300 rounded h-10 px-3 py-2 text-sm"
                   popperClassName="react-datepicker-popper"
                   calendarClassName="bg-white dark:bg-[#232f4b] text-black dark:text-white"
                   minDate={startDate || new Date()}
@@ -386,12 +410,10 @@ export function ScheduleEventModal({
                   maxTime={setHours(setMinutes(new Date(), 59), 23)}
                 />
               </div>
-            </div>
-            <div className="flex gap-4">
-              <div className="flex-1">
+              <div>
                 <label className="block text-sm font-medium text-black mb-1" htmlFor="recurrence">Recurrence</label>
                 <Select value={recurrenceType} onValueChange={v => setRecurrenceType(v)}>
-                  <SelectTrigger id="recurrence" className="w-full bg-white/80 text-black placeholder:text-gray-500 border border-gray-300">
+                  <SelectTrigger id="recurrence" className="w-full bg-white/80 text-black placeholder:text-gray-500 border border-gray-300 h-10 px-3 py-2 text-sm">
                     <SelectValue>{recurrenceOptions.find(o => o.value === recurrenceType)?.label || 'None'}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
@@ -401,13 +423,13 @@ export function ScheduleEventModal({
                   </SelectContent>
                 </Select>
                 {recurrenceType === 'custom' && (
-                  <Input name="recurrence" value={form.recurrence} onChange={handleChange} placeholder="Custom recurrence (e.g. every 2 weeks)" className="bg-white/80 text-black placeholder:text-gray-500 border border-gray-300 mt-2" />
+                  <Input name="recurrence" value={form.recurrence} onChange={handleChange} placeholder="Custom (e.g. every 2 weeks)" className="bg-white/80 text-black placeholder:text-gray-500 border border-gray-300 h-10 px-3 py-2 text-sm mt-1" />
                 )}
               </div>
-              <div className="flex-1">
+              <div>
                 <label className="block text-sm font-medium text-black mb-1" htmlFor="reminder">Reminder</label>
                 <Select value={reminderType} onValueChange={v => setReminderType(v)}>
-                  <SelectTrigger id="reminder" className="w-full bg-white/80 text-black placeholder:text-gray-500 border border-gray-300">
+                  <SelectTrigger id="reminder" className="w-full bg-white/80 text-black placeholder:text-gray-500 border border-gray-300 h-10 px-3 py-2 text-sm">
                     <SelectValue>{reminderOptions.find(o => o.value === reminderType)?.label || 'None'}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
@@ -417,18 +439,16 @@ export function ScheduleEventModal({
                   </SelectContent>
                 </Select>
                 {reminderType === 'custom' && (
-                  <Input name="reminder" value={form.reminder} onChange={handleChange} placeholder="Custom reminder (e.g. 2h before)" className="bg-white/80 text-black placeholder:text-gray-500 border border-gray-300 mt-2" />
+                  <Input name="reminder" value={form.reminder} onChange={handleChange} placeholder="Custom (e.g. 2h before)" className="bg-white/80 text-black placeholder:text-gray-500 border border-gray-300 h-10 px-3 py-2 text-sm mt-1" />
                 )}
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Reminder Settings</Label>
-              <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-black mb-1">Reminder Settings</label>
                 <Select
                   value={form.reminder_time}
                   onValueChange={value => handleSelect('reminder_time', value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full bg-white/80 text-black placeholder:text-gray-500 border border-gray-300 h-10 px-3 py-2 text-sm">
                     <SelectValue placeholder="Select reminder time" />
                   </SelectTrigger>
                   <SelectContent>
@@ -439,48 +459,46 @@ export function ScheduleEventModal({
                     ))}
                   </SelectContent>
                 </Select>
-
-                <div className="space-y-2">
-                  <Label>Notification Methods</Label>
-                  <div className="space-y-2">
-                    {NOTIFICATION_TYPES.map(type => (
-                      <div key={type.value} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={type.value}
-                          checked={form.reminder_type?.includes(type.value)}
-                          onCheckedChange={() => handleReminderTypeChange(type.value)}
-                        />
-                        <Label htmlFor={type.value}>{type.label}</Label>
-                      </div>
-                    ))}
-                  </div>
+                <div className="flex gap-3 mt-2">
+                  {NOTIFICATION_TYPES.map(type => (
+                    <div key={type.value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={type.value}
+                        checked={form.reminder_type?.includes(type.value)}
+                        onCheckedChange={() => handleReminderTypeChange(type.value)}
+                        className="h-5 w-5"
+                      />
+                      <Label htmlFor={type.value} className="text-sm">{type.label}</Label>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
-            <div className="flex justify-between items-center pt-4 border-t border-gray-200/20 dark:border-gray-800/20">
+            <div className="flex justify-between items-center pt-4 border-t border-gray-200/20 dark:border-gray-800/20 mt-3">
               {mode !== 'create' && onDelete && (
                 <Button 
                   type="button" 
                   variant="destructive" 
                   onClick={handleDelete} 
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 h-10 px-4 text-sm"
                   disabled={isSubmitting || isLoading}
                 >
-                  <Trash2 className="w-4 h-4" /> Delete
+                  <Trash2 className="w-5 h-5" /> Delete
                 </Button>
               )}
-              <div className="flex gap-2 ml-auto">
+              <div className="flex gap-3 ml-auto">
                 <Button 
                   type="button" 
                   variant="ghost" 
                   onClick={onClose} 
                   disabled={isSubmitting || isLoading}
+                  className="h-10 px-4 text-sm"
                 >
                   Cancel
                 </Button>
                 <Button 
                   type="submit" 
-                  className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white"
+                  className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white h-10 px-6 text-sm"
                   disabled={isSubmitting || isLoading}
                 >
                   {isSubmitting || isLoading ? 'Saving...' : mode === 'create' ? 'Create' : 'Save'}

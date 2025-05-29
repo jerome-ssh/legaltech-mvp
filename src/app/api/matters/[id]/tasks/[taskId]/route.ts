@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { auth } from '@clerk/nextjs';
 import { NextResponse } from 'next/server';
-import { Task, TaskStatus } from '@/types/matter';
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -9,172 +8,106 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY!
 );
 
-// GET /api/matters/[id]/tasks - Get all tasks for a matter
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const { userId } = auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Get the user's profile_id
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('clerk_id', userId)
-      .single();
-
-    if (profileError) {
-      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
-    }
-
-    // Verify the matter exists and user has access
-    const { data: matter, error: matterError } = await supabase
-      .from('matters')
-      .select('id')
-      .eq('id', params.id)
-      .eq('profile_id', profile.id)
-      .single();
-
-    if (matterError || !matter) {
-      return NextResponse.json({ error: 'Matter not found' }, { status: 404 });
-    }
-
-    const { data: tasks, error } = await supabase
-      .from('matter_tasks')
-      .select('*')
-      .eq('matter_id', params.id)
-      .order('created_at', { ascending: true });
-
-    if (error) throw error;
-
-    return NextResponse.json({ tasks });
-  } catch (error) {
-    console.error('Error fetching tasks:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch tasks' },
-      { status: 500 }
-    );
-  }
-}
-
-// POST /api/matters/[id]/tasks - Create a new task
-export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const { userId } = auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Get the user's profile_id
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('clerk_id', userId)
-      .single();
-
-    if (profileError) {
-      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
-    }
-
-    // Verify the matter exists and user has access
-    const { data: matter, error: matterError } = await supabase
-      .from('matters')
-      .select('id')
-      .eq('id', params.id)
-      .eq('profile_id', profile.id)
-      .single();
-
-    if (matterError || !matter) {
-      return NextResponse.json({ error: 'Matter not found' }, { status: 404 });
-    }
-
-    const body = await request.json();
-    const { label, stage, weight = 1, status = 'Not Started' } = body;
-
-    // Validate required fields
-    if (!label || !stage) {
-      return NextResponse.json(
-        { error: 'Label and stage are required' },
-        { status: 400 }
-      );
-    }
-
-    const { data: task, error } = await supabase
-      .from('matter_tasks')
-      .insert({
-        matter_id: params.id,
-        label,
-        stage,
-        weight,
-        status,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating task:', error);
-      return NextResponse.json(
-        { error: 'Failed to create task' },
-        { status: 500 }
-      );
-    }
-
-    // Update matter progress
-    await updateMatterProgress(params.id);
-
-    return NextResponse.json(task);
-  } catch (error) {
-    console.error('Error creating task:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
-
 // PATCH /api/matters/[id]/tasks/[taskId] - Update a task
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string; taskId: string } }
 ) {
+  console.log('[Task API] PATCH request received:', { matterId: params.id, taskId: params.taskId });
+  
   try {
-    const body = await request.json();
-    const { status } = body;
+    const { userId } = auth();
+    if (!userId) {
+      console.log('[Task API] Unauthorized: No userId');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    if (!status) {
+    // Get the user's profile_id
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('clerk_id', userId)
+      .single();
+
+    if (profileError) {
+      console.log('[Task API] Profile not found:', profileError);
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
+
+    // Verify the matter exists and user has access
+    const { data: matter, error: matterError } = await supabase
+      .from('matters')
+      .select('id')
+      .eq('id', params.id)
+      .eq('profile_id', profile.id)
+      .single();
+
+    if (matterError || !matter) {
+      console.log('[Task API] Matter not found:', matterError);
+      return NextResponse.json({ error: 'Matter not found' }, { status: 404 });
+    }
+
+    const body = await request.json();
+    const { status, stage } = body;
+    console.log('[Task API] Request body:', { status, stage });
+
+    if (!status && !stage) {
+      console.log('[Task API] Missing required fields');
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Either status or stage must be provided' },
         { status: 400 }
       );
     }
 
-    const { data: task, error } = await supabase
+    // Get current task to verify the update
+    const { data: currentTask, error: currentTaskError } = await supabase
       .from('matter_tasks')
-      .update({ status })
+      .select('*')
+      .eq('id', params.taskId)
+      .eq('matter_id', params.id)
+      .single();
+
+    if (currentTaskError) {
+      console.log('[Task API] Current task not found:', currentTaskError);
+      return NextResponse.json(
+        { error: 'Task not found' },
+        { status: 404 }
+      );
+    }
+
+    console.log('[Task API] Current task:', currentTask);
+
+    // Update the task
+    const { data: task, error: updateError } = await supabase
+      .from('matter_tasks')
+      .update({
+        ...(status && { status }),
+        ...(stage && { stage }),
+        updated_at: new Date().toISOString()
+      })
       .eq('id', params.taskId)
       .eq('matter_id', params.id)
       .select()
       .single();
 
-    if (error) throw error;
+    if (updateError) {
+      console.error('[Task API] Error updating task:', updateError);
+      return NextResponse.json(
+        { error: 'Failed to update task' },
+        { status: 500 }
+      );
+    }
+
+    console.log('[Task API] Task updated successfully:', task);
 
     // Update matter progress
     await updateMatterProgress(params.id);
 
     return NextResponse.json(task);
   } catch (error) {
-    console.error('Error updating task:', error);
+    console.error('[Task API] Error in PATCH handler:', error);
     return NextResponse.json(
-      { error: 'Failed to update task' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -186,13 +119,48 @@ export async function DELETE(
   { params }: { params: { id: string; taskId: string } }
 ) {
   try {
-    const { error } = await supabase
+    const { userId } = auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get the user's profile_id
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('clerk_id', userId)
+      .single();
+
+    if (profileError) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
+
+    // Verify the matter exists and user has access
+    const { data: matter, error: matterError } = await supabase
+      .from('matters')
+      .select('id')
+      .eq('id', params.id)
+      .eq('profile_id', profile.id)
+      .single();
+
+    if (matterError || !matter) {
+      return NextResponse.json({ error: 'Matter not found' }, { status: 404 });
+    }
+
+    // Delete the task
+    const { error: deleteError } = await supabase
       .from('matter_tasks')
       .delete()
       .eq('id', params.taskId)
       .eq('matter_id', params.id);
 
-    if (error) throw error;
+    if (deleteError) {
+      console.error('Error deleting task:', deleteError);
+      return NextResponse.json(
+        { error: 'Failed to delete task' },
+        { status: 500 }
+      );
+    }
 
     // Update matter progress
     await updateMatterProgress(params.id);
@@ -201,7 +169,7 @@ export async function DELETE(
   } catch (error) {
     console.error('Error deleting task:', error);
     return NextResponse.json(
-      { error: 'Failed to delete task' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

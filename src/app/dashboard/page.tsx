@@ -595,8 +595,9 @@ export default function Dashboard() {
                         {priority}
                       </span>
                     </p>
-                    <div className="my-2">
+                    <div className="my-2 cursor-pointer group" onClick={() => router.push(`/matters/${id}`)} title="View Matter Details">
                       <ProgressBar compact progress={progress || { overall: 0, by_stage: {}, completed_tasks: 0, total_tasks: 0, completed_weight: 0, total_weight: 0 }} />
+                      <span className="block text-xs text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity mt-1">Go to Matter Details</span>
                     </div>
                   </div>
                 </div>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { supabase, getProfileId } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 export async function GET(req: NextRequest) {
   try {
@@ -26,7 +27,20 @@ export async function GET(req: NextRequest) {
         .lte('end_time', end);
     }
 
+    // Auto-delete expired schedules (workaround for Supabase Free)
+    const supabaseClient = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+    const { error: deleteError } = await supabaseClient
+      .from('schedules')
+      .delete()
+      .lt('end_time', new Date().toISOString());
+    if (deleteError) {
+      console.error('Error auto-deleting expired schedules:', deleteError);
+    }
+
     const { data, error } = await query.order('start_time', { ascending: true });
+
+    // Debug: Log the result of the GET query
+    console.log('[DEBUG][GET /api/schedules] profileId:', profileId, 'start:', start, 'end:', end, 'data:', data, 'error:', error);
 
     if (error) {
       console.error('Schedules fetch error:', error);
@@ -51,6 +65,8 @@ export async function POST(req: NextRequest) {
     const profileId = await getProfileId(userId);
 
     const body = await req.json();
+    // Debug: Log the full request body
+    console.log('[DEBUG][POST /api/schedules] Request body:', body);
     const { 
       title, 
       start_time, 
@@ -63,7 +79,8 @@ export async function POST(req: NextRequest) {
       is_recurring = false,
       recurrence_pattern,
       reminder_time,
-      reminder_type = []
+      reminder_type = [],
+      metadata = null
     } = body;
 
     // Validate required fields
@@ -90,10 +107,14 @@ export async function POST(req: NextRequest) {
         recurrence_pattern,
         reminder_time,
         reminder_type,
-        reminder_sent: false
+        reminder_sent: false,
+        metadata // Save metadata
       })
       .select()
       .single();
+
+    // Debug: Log the result of the insert operation
+    console.log('[DEBUG][POST /api/schedules] Insert result:', { data, error });
 
     if (error) {
       console.error('Schedule creation error:', error);

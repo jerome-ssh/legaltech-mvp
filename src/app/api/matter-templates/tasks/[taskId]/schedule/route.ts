@@ -43,7 +43,10 @@ export async function POST(
       is_recurring = false,
       recurrence_pattern,
       reminder_time,
-      reminder_type = []
+      reminder_type = [],
+      matter_id,
+      matter_title,
+      matter_link
     } = await request.json();
 
     // Validate required fields
@@ -61,7 +64,8 @@ export async function POST(
         id,
         matter:matters!inner (
           id,
-          profile_id
+          profile_id,
+          title
         )
       `)
       .eq('id', params.taskId)
@@ -71,9 +75,19 @@ export async function POST(
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
     }
 
-    if (task.matter.profile_id !== profile.id) {
+    if (!Array.isArray(task.matter) || !task.matter[0]) {
+      return NextResponse.json({ error: 'Matter not found' }, { status: 404 });
+    }
+    if (task.matter[0].profile_id !== profile.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // Compose metadata
+    const metadata = {
+      matter_id: matter_id || task.matter[0].id,
+      matter_title: matter_title || task.matter[0].title,
+      matter_link: matter_link || `/matters/${task.matter[0].id}`
+    };
 
     // Create schedule
     const { data: schedule, error: scheduleError } = await supabase
@@ -92,7 +106,8 @@ export async function POST(
         recurrence_pattern,
         reminder_time,
         reminder_type,
-        reminder_sent: false
+        reminder_sent: false,
+        metadata // Store matter metadata
       })
       .select()
       .single();
@@ -173,7 +188,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
     }
 
-    if (task.matter.profile_id !== profile.id) {
+    if (!Array.isArray(task.matter) || !task.matter[0]) {
+      return NextResponse.json({ error: 'Matter not found' }, { status: 404 });
+    }
+    if (task.matter[0].profile_id !== profile.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

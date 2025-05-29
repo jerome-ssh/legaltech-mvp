@@ -31,6 +31,13 @@ interface Schedule {
   location?: string;
   created_at: string;
   recurrence?: string;
+  metadata?: {
+    matter_id?: string;
+    matter_title?: string;
+    matter_link?: string;
+    task_id?: string;
+    [key: string]: any;
+  };
 }
 
 type ViewMode = 'list' | 'calendar';
@@ -640,6 +647,23 @@ function SchedulesTabContent({ shouldFetch }: SchedulesTabContentProps) {
                               {schedule.status}
                             </span>
                           </div>
+                          {/* Matter metadata badge */}
+                          {schedule.metadata?.matter_title && (
+                            <div className="mb-2">
+                              <a
+                                href={
+                                  schedule.metadata.task_id
+                                    ? `/matters/${schedule.metadata.matter_id}?tab=tasks&taskId=${schedule.metadata.task_id}`
+                                    : schedule.metadata.matter_link || '#'
+                                }
+                                className="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded hover:underline"
+                                title={schedule.metadata.matter_title}
+                                onClick={e => e.stopPropagation()}
+                              >
+                                {schedule.metadata.matter_title}
+                              </a>
+                            </div>
+                          )}
                           <p className="text-sm text-gray-600 dark:text-gray-200 mb-4">
                             {schedule.description}
                           </p>

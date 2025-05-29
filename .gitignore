@@ -55,3 +55,22 @@ server log.js
 
 # Supabase
 .supabase/
+
+# Environment variables
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+
+# Supabase
+supabase/.temp/
+supabase/.env.keys
+supabase/.env
+
+# Secrets and keys
+*.pem
+*.key
+*secret*
+*password*
+*credential*

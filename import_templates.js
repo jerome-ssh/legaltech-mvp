@@ -1,19 +1,26 @@
-const { Client } = require('pg');
+const { Client, Pool } = require('pg');
 const fs = require('fs');
 const path = require('path');
+
+// Validate environment variables
+if (!process.env.DATABASE_URL) {
+  console.error('Error: DATABASE_URL environment variable is not set');
+  console.error('Please set it in your .env file or environment');
+  process.exit(1);
+}
 
 // Load your JSON file
 const templates = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'src/data/update_templates.json'), 'utf8')
 );
 
-// Your Supabase/Postgres connection string
-const client = new Client({
-  connectionString: 'postgresql://postgres.ueqzjuclosoedybixqgs:2u2JC6W1IxVqHtlE@aws-0-us-east-2.pooler.supabase.com:6543/postgres'
+// Initialize database connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL
 });
 
 async function importTemplates() {
-  await client.connect();
+  await pool.connect();
   
   const results = {
     skipped: [],
@@ -24,7 +31,7 @@ async function importTemplates() {
   for (const tpl of templates) {
     try {
       // Check if template exists
-      const existingTemplate = await client.query(
+      const existingTemplate = await pool.query(
         `SELECT id FROM matter_task_templates 
          WHERE matter_type_id = $1 AND sub_type_id = $2`,
         [tpl.matter_type_id, tpl.sub_type_id]
@@ -42,7 +49,7 @@ async function importTemplates() {
       }
 
       // Insert new template
-      const res = await client.query(
+      const res = await pool.query(
         `INSERT INTO matter_task_templates (matter_type_id, sub_type_id, template_name)
          VALUES ($1, $2, $3)
          RETURNING id`,
@@ -53,7 +60,7 @@ async function importTemplates() {
       // Insert tasks
       for (let i = 0; i < tpl.tasks.length; i++) {
         const task = tpl.tasks[i];
-        await client.query(
+        await pool.query(
           `INSERT INTO matter_task_template_items (template_id, label, stage, default_weight, position)
            VALUES ($1, $2, $3, $4, $5)`,
           [templateId, task.label, task.stage, task.default_weight, i + 1]
@@ -80,7 +87,7 @@ async function importTemplates() {
     }
   }
 
-  await client.end();
+  await pool.end();
 
   // Log results
   console.log('\nImport Results:');

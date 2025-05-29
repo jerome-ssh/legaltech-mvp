@@ -3,7 +3,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Tabs,
   TabsList,
@@ -47,7 +47,7 @@ import {
   Save,
   CalendarDays,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from '@/components/ui/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
@@ -141,6 +141,7 @@ const getStatusColor = (status?: string) => {
 
 export default function MatterDetailsPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const { user } = useUser();
   const [matter, setMatter] = useState<Matter | null>(null);
@@ -158,6 +159,8 @@ export default function MatterDetailsPage({ params }: { params: { id: string } }
   const [reviewTasks, setReviewTasks] = useState<any[]>([]);
   const [templateApplied, setTemplateApplied] = useState(false);
   const [showCustomTaskList, setShowCustomTaskList] = useState(false);
+  const tasksTabRef = useRef<HTMLDivElement>(null);
+  const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     const fetchMatter = async () => {
@@ -175,6 +178,27 @@ export default function MatterDetailsPage({ params }: { params: { id: string } }
 
     fetchMatter();
   }, [params.id]);
+
+  useEffect(() => {
+    const tab = searchParams?.get('tab');
+    const taskId = searchParams?.get('taskId');
+    if (tab === 'tasks') {
+      setActiveTab('tasks');
+      // Wait for the tab to render, then scroll to the task
+      setTimeout(() => {
+        if (taskId) {
+          const el = document.getElementById(`task-${taskId}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('ring-2', 'ring-blue-400', 'bg-blue-50');
+            setTimeout(() => {
+              el.classList.remove('ring-2', 'ring-blue-400', 'bg-blue-50');
+            }, 2000);
+          }
+        }
+      }, 500);
+    }
+  }, [searchParams]);
 
   // Demo AI/insights/activity data (replace with real AI endpoints in future)
   const insights = {
@@ -569,7 +593,7 @@ export default function MatterDetailsPage({ params }: { params: { id: string } }
         </div>
 
           {/* Tabs for all matter tools and insights */}
-          <Tabs value={tab} onValueChange={setTab} className="w-full mt-2">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-2">
             <TabsList className="flex justify-between bg-white/5 dark:bg-white/5 backdrop-blur rounded-xl p-1 shadow-lg dark:border dark:border-white/10">
               {["overview", "documents", "tasks", "notes", "billing", "communications", "ai", "timeline"].map((t) => (
                 <TabsTrigger
@@ -645,75 +669,15 @@ export default function MatterDetailsPage({ params }: { params: { id: string } }
             </TabsContent>
 
             {/* Tasks Tab */}
-            <TabsContent value="tasks" className="pt-6">
-              <Card className="rounded-xl shadow-lg border border-gray-200/20 dark:border-gray-800/20 animate-fade-in p-4 space-y-2 backdrop-blur-sm bg-gradient-to-br from-white via-blue-50 to-pink-100/50 dark:bg-[#1a2540]/50 text-foreground transition-colors hover:shadow-xl">
-                <CardContent className="p-6">
-                  <h2 className="text-primary font-semibold text-lg mb-4 flex items-center gap-2"><CheckCircle2Icon className="w-5 h-5 text-blue-400" /> Tasks</h2>
-                  {/* Curated Task Review UI */}
-                  {reviewMode && (
-                <div className="space-y-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <h3 className="font-semibold text-blue-700">Review & Edit Task List</h3>
-                        <Button variant="outline" onClick={handleAddTask}><Plus className="w-4 h-4 mr-1" /> Add Task</Button>
-                      </div>
-                      <div className="space-y-2">
-                        {reviewTasks.map((task, idx) => (
-                          <div key={idx} className="flex items-center gap-2 bg-white rounded shadow p-2">
-                            <Input
-                              className="flex-1"
-                              value={task.label}
-                              placeholder="Task label"
-                              onChange={e => handleEditTask(idx, 'label', e.target.value)}
-                            />
-                            <Select value={task.stage} onValueChange={v => handleEditTask(idx, 'stage', v)}>
-                              <SelectTrigger className="w-[120px]"><SelectValue placeholder="Stage" /></SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Intake">Intake</SelectItem>
-                                <SelectItem value="Planning">Planning</SelectItem>
-                                <SelectItem value="Active Work">Active Work</SelectItem>
-                                <SelectItem value="Closure">Closure</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <Input
-                              type="number"
-                              className="w-16"
-                              value={task.weight}
-                              min={1}
-                              onChange={e => handleEditTask(idx, 'weight', parseInt(e.target.value))}
-                            />
-                            <Button variant="ghost" size="icon" onClick={() => handleEditTask(idx, 'due_date', prompt('Set due date (YYYY-MM-DD):', task.due_date) || task.due_date)}><CalendarIcon className="w-4 h-4" /></Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleAddToCalendar(idx)}><CalendarDays className="w-4 h-4 text-blue-500" /></Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleDeleteTask(idx)}><Trash2 className="w-4 h-4 text-red-500" /></Button>
-                          </div>
-                        ))}
-                        </div>
-                      <div className="flex gap-2 mt-4">
-                        {showCustomTaskList ? (
-                          <Button onClick={handleApplyCustomTasks} className="bg-green-600 text-white"><Save className="w-4 h-4 mr-1" /> Save Custom Tasks</Button>
-                        ) : (
-                          <Button onClick={handleApplyTemplate} className="bg-blue-600 text-white"><Save className="w-4 h-4 mr-1" /> Apply to Matter</Button>
-                        )}
-                        <Button variant="outline" onClick={() => { setReviewMode(false); setShowCustomTaskList(false); }}>Cancel</Button>
-                      </div>
-                    </div>
-                  )}
-                  {/* Show Use Template button if not applied and not in review mode */}
-                  {!reviewMode && !templateApplied && (
-                    <div className="flex flex-col gap-4">
-                      <Button onClick={handleUseTemplate} className="w-fit" disabled={templateLoading}>
-                        {templateLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle2Icon className="w-4 h-4 mr-1" />} Use Template Task List
-                      </Button>
-                      <Button variant="outline" onClick={handleCreateCustomTaskList} className="w-fit"><Plus className="w-4 h-4 mr-1" /> Create Custom Task List</Button>
-                    </div>
-                  )}
-                  {/* Show TaskList if template is applied and not in review mode */}
-                  {!reviewMode && templateApplied && (
-                    <div className="mt-4">
-                      <TaskList matterId={params.id} />
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+            <TabsContent value="tasks" className="space-y-4" ref={tasksTabRef}>
+              <TaskList
+                matterId={params.id}
+                matterTitle={matter?.title || ''}
+                matterLink={`/matters/${params.id}`}
+                hasTemplate={!!matter?.applied_template_id}
+                onTemplateSelect={handleUseTemplate}
+                onCustomTaskList={() => setShowCustomTaskList(true)}
+              />
             </TabsContent>
 
             {/* Matter Notes Tab */}
