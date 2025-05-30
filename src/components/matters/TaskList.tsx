@@ -15,9 +15,7 @@ interface TaskListProps {
   matterId: string;
   matterTitle: string;
   matterLink: string;
-  hasTemplate: boolean;
-  onTemplateSelect?: () => void;
-  onCustomTaskList?: () => void;
+  hasTemplate?: boolean;
 }
 
 interface TaskWithSchedule extends Task {
@@ -49,7 +47,7 @@ interface TaskData {
   };
 }
 
-export function TaskList({ matterId, matterTitle, matterLink, hasTemplate, onTemplateSelect, onCustomTaskList }: TaskListProps) {
+export function TaskList({ matterId, matterTitle, matterLink, hasTemplate }: TaskListProps) {
   const [tasks, setTasks] = useState<TaskWithSchedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [addTaskStage, setAddTaskStage] = useState<string | null>(null);
@@ -425,12 +423,8 @@ export function TaskList({ matterId, matterTitle, matterLink, hasTemplate, onTem
           <p className="text-sm text-gray-500">Choose how you want to manage this matter's tasks</p>
         </div>
         <div className="flex gap-4 justify-center">
-          <Button onClick={onTemplateSelect} className="flex items-center gap-2">
+          <Button onClick={() => setShowTaskForm(true)} className="flex items-center gap-2">
             <FileText className="w-4 h-4" />
-            Use Template
-          </Button>
-          <Button onClick={onCustomTaskList} variant="outline" className="flex items-center gap-2">
-            <Plus className="w-4 h-4" />
             Create Custom Tasks
           </Button>
         </div>
