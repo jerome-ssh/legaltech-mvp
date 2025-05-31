@@ -449,6 +449,12 @@ function EditorErrorBoundary({ children }: { children: React.ReactNode }) {
 
 const MAX_PASTE_LENGTH = 50000;
 
+// Add a threshold for large content
+const LARGE_CONTENT_LENGTH = 5000;
+
+// Helper for localStorage key
+const getNoteDraftKey = (noteId: string | undefined, matterId: string) => `note-draft-${matterId}-${noteId || 'new'}`;
+
 export default function NoteDetailModal({ open, onOpenChange, note, onSave, matterId }: NoteDetailModalProps) {
   const { user } = useUser();
   const { toast } = useToast ? useToast() : { toast: (args: any) => alert(args.title + (args.description ? ': ' + args.description : '')) };
@@ -480,6 +486,7 @@ export default function NoteDetailModal({ open, onOpenChange, note, onSave, matt
   const lastSavedContent = useRef(note?.content || '');
   const lastSavedTitle = useRef(note?.title || '');
   const [fullscreen, setFullscreen] = useState(false);
+  const [isScrollable, setIsScrollable] = useState(false);
 
   // Auto-save when modal closes
   const prevOpenRef = useRef(open);
@@ -538,6 +545,14 @@ export default function NoteDetailModal({ open, onOpenChange, note, onSave, matt
     onUpdate: ({ editor }) => {
       try {
         setHasUnsavedChanges(true);
+        // Check if content is large
+        const html = editor.getHTML();
+        if (html.length > LARGE_CONTENT_LENGTH) {
+          setIsScrollable(true);
+          setFullscreen(true);
+        } else {
+          setIsScrollable(false);
+        }
       } catch (err: any) {
         toast({
           title: 'Editor Error',
@@ -842,6 +857,7 @@ export default function NoteDetailModal({ open, onOpenChange, note, onSave, matt
         lastSavedContent.current = noteData.content;
         lastSavedTitle.current = noteData.title;
         setHasUnsavedChanges(false);
+        clearDraft(); // Clear draft after save
       } else {
         const res = await fetch(`/api/matters/${matterId}/notes`, {
           method: 'POST',
@@ -857,6 +873,7 @@ export default function NoteDetailModal({ open, onOpenChange, note, onSave, matt
         lastSavedContent.current = noteData.content;
         lastSavedTitle.current = noteData.title;
         setHasUnsavedChanges(false);
+        clearDraft(); // Clear draft after save
       }
 
       // Upload pending audio files
@@ -1252,6 +1269,39 @@ export default function NoteDetailModal({ open, onOpenChange, note, onSave, matt
     }
   };
 
+  // Load draft from localStorage on open
+  useEffect(() => {
+    if (open) {
+      const draftKey = getNoteDraftKey(note?.id, matterId);
+      const draft = localStorage.getItem(draftKey);
+      if (draft) {
+        try {
+          const parsed = JSON.parse(draft);
+          if (parsed.title) setTitle(parsed.title);
+          if (parsed.content && editor) editor.commands.setContent(parsed.content);
+        } catch {}
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, note?.id, matterId, editor]);
+
+  // Save draft to localStorage on change
+  useEffect(() => {
+    if (!open) return;
+    const draftKey = getNoteDraftKey(note?.id, matterId);
+    const draft = {
+      title,
+      content: editor?.getHTML() || '',
+    };
+    localStorage.setItem(draftKey, JSON.stringify(draft));
+  }, [title, editor, open, note?.id, matterId]);
+
+  // Clear draft on save or delete
+  const clearDraft = () => {
+    const draftKey = getNoteDraftKey(note?.id, matterId);
+    localStorage.removeItem(draftKey);
+  };
+
   return (
     <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm${fullscreen ? ' !p-0' : ''}`}
       style={fullscreen ? { padding: 0 } : {}}>
@@ -1316,7 +1366,7 @@ export default function NoteDetailModal({ open, onOpenChange, note, onSave, matt
           <div className="p-6">
             <EditorErrorBoundary>
               <div
-                className="border-2 border-purple-400 rounded-xl min-h-[400px] h-[400px] bg-white text-gray-800 font-sans text-base leading-relaxed shadow-sm prose max-w-none focus-within:ring-2 focus-within:ring-purple-400 transition-all flex flex-col"
+                className={`border-2 border-purple-400 rounded-xl min-h-[400px] h-[400px] bg-white text-gray-800 font-sans text-base leading-relaxed shadow-sm prose max-w-none focus-within:ring-2 focus-within:ring-purple-400 transition-all flex flex-col${isScrollable ? ' overflow-y-auto max-h-[70vh]' : ''}${fullscreen ? ' resize-y min-h-[300px] max-h-[90vh]' : ''}`}
                 onClick={() => editor?.commands.focus()}
                 style={{ cursor: 'text' }}
               >
@@ -1331,8 +1381,8 @@ export default function NoteDetailModal({ open, onOpenChange, note, onSave, matt
                         ref={editorContainerRef}
                         editor={editor}
                         className={cn(
-                          "flex-1 w-full bg-transparent outline-none border-none px-6 pb-6 pt-2 tiptap",
-                          fullscreen ? "resize-y overflow-auto min-h-[300px] max-h-[80vh]" : "min-h-[300px]"
+                          `flex-1 w-full bg-transparent outline-none border-none px-6 pb-6 pt-2 tiptap`,
+                          fullscreen ? 'resize-y overflow-auto min-h-[300px] max-h-[80vh]' : 'min-h-[300px]'
                         )}
                         style={{ boxShadow: 'none', border: 'none', background: 'transparent' }}
                       />

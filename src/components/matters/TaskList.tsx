@@ -10,6 +10,7 @@ import { Trash2, Plus, FileText, Briefcase, CheckCircle, CalendarIcon, Pencil, T
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { ScheduleEventModal } from '@/components/crm/ScheduleEventModal';
 import { TaskForm } from './TaskForm';
+import { Dialog as ConfirmDialog, DialogContent as ConfirmDialogContent, DialogHeader } from '@/components/ui/dialog';
 
 interface TaskListProps {
   matterId: string;
@@ -60,6 +61,8 @@ export function TaskList({ matterId, matterTitle, matterLink, hasTemplate }: Tas
   });
   const [dueDateFilter, setDueDateFilter] = useState<string>('all');
   const [sortByDueDate, setSortByDueDate] = useState<boolean>(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTasks();
@@ -105,61 +108,48 @@ export function TaskList({ matterId, matterTitle, matterLink, hasTemplate }: Tas
   };
 
   const handleTaskStatusChange = async (taskId: string, checked: boolean | 'indeterminate') => {
-    console.log('[TaskList] Status change requested:', { taskId, checked });
-    
-    if (checked === 'indeterminate') {
-      console.log('[TaskList] Indeterminate state, ignoring');
+    // Only show modal if checking (completing) the task
+    if (checked === true) {
+      setPendingTaskId(taskId);
+      setShowConfirmModal(true);
       return;
     }
-    
-    const newStatus = checked ? 'Completed' : 'Not Started';
-    console.log('[TaskList] New status will be:', newStatus);
-    
-    // Optimistically update the UI
-    setTasks(tasks.map(task => 
-      task.id === taskId 
-        ? { ...task, status: newStatus }
-        : task
-    ));
+    // If unchecking, do nothing (feature: cannot uncheck)
+  };
 
+  // Actually mark as completed after confirmation
+  const confirmCompleteTask = async () => {
+    if (!pendingTaskId) return;
+    const taskId = pendingTaskId;
+    setShowConfirmModal(false);
+    setPendingTaskId(null);
+    const newStatus = 'Completed';
+    const taskToUpdate = tasks.find(task => task.id === taskId);
+    if (!taskToUpdate) return;
+    setTasks(prevTasks => prevTasks.map(task =>
+      task.id === taskId ? { ...task, status: newStatus } : task
+    ));
     try {
-      console.log('[TaskList] Sending PATCH request to update task status');
       const response = await fetch(`/api/matters/${matterId}/tasks/${taskId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       });
-
       if (!response.ok) {
         const error = await response.json();
-        console.error('[TaskList] Server error response:', error);
         throw new Error(error.error || 'Failed to update task');
       }
-      
       const updatedTask = await response.json();
-      console.log('[TaskList] Server response:', updatedTask);
-      
-      // Update with server response
-      setTasks(tasks.map(task => 
-        task.id === taskId ? updatedTask : task
+      setTasks(prevTasks => prevTasks.map(task =>
+        task.id === taskId ? { ...task, status: updatedTask.status } : task
       ));
-      
-      toast.success(checked ? 'Task completed' : 'Task marked as incomplete');
-
-      if (checked) {
-        // If marking as completed, delete the schedule
-        const completedTask = tasks.find(task => task.id === taskId);
-        if (completedTask) {
-          await deleteScheduleByTask(completedTask);
-        }
+      toast.success('Task completed');
+      if (taskToUpdate.schedule_id) {
+        await deleteScheduleByTask(taskToUpdate);
       }
     } catch (error) {
-      console.error('[TaskList] Error updating task:', error);
-      // Revert optimistic update on error
-      setTasks(tasks.map(task => 
-        task.id === taskId 
-          ? { ...task, status: checked ? 'Not Started' : 'Completed' }
-          : task
+      setTasks(prevTasks => prevTasks.map(task =>
+        task.id === taskId ? { ...task, status: taskToUpdate.status } : task
       ));
       toast.error(error instanceof Error ? error.message : 'Failed to update task');
     }
@@ -436,22 +426,54 @@ export function TaskList({ matterId, matterTitle, matterLink, hasTemplate }: Tas
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <Select value={dueDateFilter} onValueChange={setDueDateFilter}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Filter by due date" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="overdue">Overdue</SelectItem>
-            <SelectItem value="dueToday">Due Today</SelectItem>
-            <SelectItem value="dueThisWeek">Due This Week</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button onClick={() => setSortByDueDate(!sortByDueDate)}>
-          {sortByDueDate ? 'Sort Oldest First' : 'Sort Newest First'}
-        </Button>
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-2">
+        <div className="flex gap-2 items-center">
+          <Select value={dueDateFilter} onValueChange={setDueDateFilter}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Filter by due date" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="overdue">Overdue</SelectItem>
+              <SelectItem value="dueToday">Due Today</SelectItem>
+              <SelectItem value="dueThisWeek">Due This Week</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex-1 flex justify-center">
+          <div
+            className="backdrop-blur-md bg-white/30 text-gray-500 text-xs font-medium shadow-lg rounded-xl px-4 py-2 text-center max-w-xl"
+            style={{
+              border: 'none',
+              boxShadow: '0 4px 24px 0 rgba(0,0,0,0.04)',
+              WebkitBackdropFilter: 'blur(8px)',
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            Tasks cannot be unchecked once marked as completed. Please ensure the task is truly complete before marking it as done.
+          </div>
+        </div>
+        <div>
+          <Button onClick={() => setSortByDueDate(!sortByDueDate)}>
+            {sortByDueDate ? 'Sort Oldest First' : 'Sort Newest First'}
+          </Button>
+        </div>
       </div>
+      {/* Confirmation Modal */}
+      <ConfirmDialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+        <ConfirmDialogContent className="max-w-md w-full rounded-xl">
+          <DialogHeader>
+            <div className="text-lg font-semibold text-gray-900 mb-2">Mark Task as Completed?</div>
+          </DialogHeader>
+          <div className="text-gray-600 text-sm mb-4">
+            Are you sure you want to mark this task as completed? This action cannot be undone and the task cannot be unchecked later.
+          </div>
+          <div className="flex gap-4 justify-end mt-4">
+            <Button variant="outline" onClick={() => { setShowConfirmModal(false); setPendingTaskId(null); }}>No</Button>
+            <Button variant="default" onClick={confirmCompleteTask} autoFocus>Yes</Button>
+          </div>
+        </ConfirmDialogContent>
+      </ConfirmDialog>
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {stages.map(stage => (

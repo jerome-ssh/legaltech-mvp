@@ -40,7 +40,7 @@ export default function DocumentVersionList({ documentId }: DocumentVersionListP
   if (versions.length === 0) return <div className="text-gray-500">No versions found.</div>;
 
   return (
-    <Card className="mt-4">
+    <Card className="mt-4 border-4 shadow-2xl rounded-2xl transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400">
       <CardHeader>
         <CardTitle>Document Versions</CardTitle>
       </CardHeader>

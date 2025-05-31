@@ -61,57 +61,23 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { TaskList } from '@/components/matters/TaskList';
+import MatterNotes from '@/components/matters/MatterNotes';
+import type { Matter, MatterProgress } from '@/types/matter';
+import MatterDocuments from '@/components/matters/MatterDocuments';
 
 const LayoutWithSidebar = dynamic(() => import('@/components/LayoutWithSidebar'), {
   ssr: false,
   loading: () => <div className="h-screen bg-gray-100 dark:bg-gray-800 animate-pulse" />
 });
 
-interface Matter {
-  id: string;
-  title: string;
-  description?: string;
-  status: string;
-  priority?: { id: string; name: string } | null;
-  client_name?: string;
-  created_at: string;
-  updated_at: string;
-  matter_status?: {
-    status: string;
-    changed_at: string;
-    notes?: string;
-    changed_by?: string;
-  }[];
-  matter_billing?: any;
-  matter_intake_links?: any[];
-  matter_type?: string;
-  matter_sub_type?: string;
-  applied_template_id?: number | null;
-  client?: {
-    id: string;
-    first_name?: string;
-    last_name?: string;
-    avatar_url?: string;
-    email?: string;
-    phone_number?: string;
-    address?: string;
-    tags?: string[];
-    date_of_birth?: string;
-    title?: { id: string; label: string };
-    client_type?: { id: string; label: string };
-    preferred_language?: { id: string; label: string };
-  };
-  tags?: string[];
-  progress?: any;
-  assigned_to?: string;
-  estimated_value?: number;
-  jurisdiction?: string;
-  deadline?: string;
-}
-
-const getPriorityColor = (priority?: { id: string; name: string } | null) => {
-  if (!priority || typeof priority !== 'object') return 'bg-gray-100 text-gray-800';
-  switch (priority.name.toLowerCase()) {
+const getPriorityColor = (priority?: { id?: string; name: string } | string | null) => {
+  let name = 'unspecified';
+  if (typeof priority === 'object' && priority && 'name' in priority) {
+    name = priority.name.toLowerCase();
+  } else if (typeof priority === 'string') {
+    name = priority.toLowerCase();
+  }
+  switch (name) {
     case 'high':
       return 'bg-red-100 text-red-800';
     case 'medium':
@@ -139,12 +105,44 @@ const getStatusColor = (status?: string) => {
   }
 };
 
+type UIMatter = Matter & {
+  client?: {
+    id: string;
+    first_name?: string;
+    last_name?: string;
+    avatar_url?: string;
+    email?: string;
+    phone_number?: string;
+    address?: string;
+    tags?: string[];
+    date_of_birth?: string;
+    title?: { id: string; label: string };
+    client_type?: { id: string; label: string };
+    preferred_language?: { id: string; label: string };
+  };
+  priority?: { id: string; name: string } | string;
+  matter_status?: {
+    status: string;
+    changed_at: string;
+    notes?: string;
+    changed_by?: string;
+  }[];
+  assigned_to?: string;
+  applied_template_id?: number | null;
+};
+
+// Helper to format percent for display
+const formatPercent = (value: number | undefined | null) => {
+  if (typeof value !== 'number' || isNaN(value)) return '0';
+  return value % 1 === 0 ? Math.round(value).toString() : value.toFixed(1);
+};
+
 export default function MatterDetailsPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const { user } = useUser();
-  const [matter, setMatter] = useState<Matter | null>(null);
+  const [matter, setMatter] = useState<UIMatter | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState("overview");
@@ -155,22 +153,71 @@ export default function MatterDetailsPage({ params }: { params: { id: string } }
   const [showConfetti, setShowConfetti] = useState(false);
   const tasksTabRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [nextTaskDue, setNextTaskDue] = useState<string>('No deadline');
 
   useEffect(() => {
+    let isMounted = true;
     const fetchMatter = async () => {
       try {
         const res = await fetch(`/api/matters/${params.id}`);
         if (!res.ok) throw new Error('Failed to fetch matter');
         const data = await res.json();
-        setMatter(data.matter);
-        setLoading(false);
+        
+        if (isMounted) {
+          // Ensure we preserve the client data and handle null/undefined cases
+          setMatter(prevMatter => {
+            const newMatter = data.matter;
+            // If the new data has client info, use it; otherwise keep the existing client data
+            const clientData = newMatter.client || prevMatter?.client;
+            return {
+              ...newMatter,
+              client: clientData
+            };
+          });
+          setLoading(false);
+        }
       } catch (e) {
-        setError('Failed to load matter details');
-        setLoading(false);
+        if (isMounted) {
+          setError('Failed to load matter details');
+          setLoading(false);
+        }
       }
     };
 
     fetchMatter();
+    
+    // Cleanup function to prevent state updates after unmount
+    return () => {
+      isMounted = false;
+    };
+  }, [params.id]);
+
+  useEffect(() => {
+    // Fetch all tasks for this matter to determine next due date
+    const fetchTasks = async () => {
+      try {
+        const res = await fetch(`/api/matters/${params.id}/tasks`);
+        if (!res.ok) throw new Error('Failed to fetch tasks');
+        const data = await res.json();
+        setTasks(data.tasks);
+        // Find the next due date among incomplete tasks
+        const now = new Date();
+        const upcoming = data.tasks
+          .filter((t: any) => t.status !== 'Completed' && t.due_date)
+          .map((t: any) => new Date(t.due_date))
+          .filter((d: Date) => d > now)
+          .sort((a: Date, b: Date) => a.getTime() - b.getTime());
+        if (upcoming.length > 0) {
+          setNextTaskDue(upcoming[0].toLocaleDateString());
+        } else {
+          setNextTaskDue('No deadline');
+        }
+      } catch (e) {
+        setNextTaskDue('No deadline');
+      }
+    };
+    fetchTasks();
   }, [params.id]);
 
   useEffect(() => {
@@ -250,10 +297,20 @@ export default function MatterDetailsPage({ params }: { params: { id: string } }
   // Compose client name and initials
   const clientName = matter.client ? `${matter.client.first_name || ''} ${matter.client.last_name || ''}`.trim() : 'Unknown';
   const clientInitials = matter.client ? `${matter.client.first_name?.[0] || ''}${matter.client.last_name?.[0] || ''}`.toUpperCase() : '??';
-  const priority = matter.priority?.name || 'Unspecified';
+  const priorityObj = typeof matter.priority === 'object' && matter.priority !== null && 'name' in matter.priority
+    ? matter.priority
+    : { id: '', name: typeof matter.priority === 'string' ? matter.priority : 'Unspecified' };
+  const priority = priorityObj.name;
   const status = matter.matter_status?.[0]?.status || matter.status || 'Unspecified';
   const tags = matter.tags || [];
-  const progress = matter.progress || 0;
+  const progress: MatterProgress = (matter.progress && typeof matter.progress === 'object') ? matter.progress : {
+    overall: 0,
+    by_stage: {},
+    completed_tasks: 0,
+    total_tasks: 0,
+    completed_weight: 0,
+    total_weight: 0,
+  };
   const team = matter.assigned_to || 'Unassigned';
   const value = matter.estimated_value ? `$${matter.estimated_value.toLocaleString()}` : 'N/A';
   const jurisdiction = getCountryNameByCode(matter.jurisdiction || '') || matter.jurisdiction || 'N/A';
@@ -269,10 +326,9 @@ export default function MatterDetailsPage({ params }: { params: { id: string } }
       {matter && (
         <MatterAIAssistantPrompt
           matterId={matter.id}
-          appliedTemplateId={typeof matter.applied_template_id === 'number' ? matter.applied_template_id : null}
+          appliedTemplateId={typeof (matter.applied_template_id) === 'number' ? matter.applied_template_id : null}
           userFirstName={user?.firstName ?? undefined}
           onTemplateApplied={async () => {
-            // Refetch matter data after template is applied
             setLoading(true);
             try {
               const res = await fetch(`/api/matters/${params.id}`);
@@ -292,7 +348,7 @@ export default function MatterDetailsPage({ params }: { params: { id: string } }
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-bold text-primary tracking-tight drop-shadow-sm">{matter.title}</h1>
             <Badge className="bg-blue-500/10 text-blue-500 font-semibold animate-pulse">{status}</Badge>
-            <Badge className={getPriorityColor(matter.priority)}>Priority: {priority}</Badge>
+            <Badge className={getPriorityColor(priorityObj)}>Priority: {priority}</Badge>
           </div>
           <div className="flex gap-2">
             <div className="flex gap-2">
@@ -386,7 +442,7 @@ export default function MatterDetailsPage({ params }: { params: { id: string } }
           {/* Main Cards */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             {/* Client Details */}
-            <Card className="rounded-xl shadow-lg border border-gray-200/20 dark:border-gray-800/20 p-4 space-y-2 backdrop-blur-sm bg-gradient-to-br from-white via-blue-50 to-pink-100/50 dark:bg-[#1a2540]/50 text-foreground transition-colors hover:shadow-xl">
+            <Card className="rounded-3xl shadow-2xl border-4 border-blue-100 dark:border-blue-900 bg-white/80 dark:bg-[#232f4b]/80 backdrop-blur-xl p-8 relative overflow-hidden animate-fade-in transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400">
               <h2 className="text-primary text-lg font-semibold mb-3">Client Details</h2>
               <div className="flex items-center gap-4 mb-4">
                 {matter.client?.avatar_url ? (
@@ -445,7 +501,7 @@ export default function MatterDetailsPage({ params }: { params: { id: string } }
             </Card>
 
             {/* Matter Information */}
-            <Card className="rounded-xl shadow-lg border border-gray-200/20 dark:border-gray-800/20 p-4 space-y-2 backdrop-blur-sm bg-gradient-to-br from-white via-blue-50 to-pink-100/50 dark:bg-[#1a2540]/50 text-foreground transition-colors hover:shadow-xl">
+            <Card className="rounded-3xl shadow-2xl border-4 border-blue-100 dark:border-blue-900 bg-white/80 dark:bg-[#232f4b]/80 backdrop-blur-xl p-8 relative overflow-hidden animate-fade-in transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400">
               <h2 className="text-primary text-lg font-semibold mb-3">Matter Information</h2>
               <p className="text-muted-foreground flex items-center">
                 <FolderIcon className="inline mr-2" size={16}/>
@@ -467,11 +523,23 @@ export default function MatterDetailsPage({ params }: { params: { id: string } }
             </Card>
 
             {/* Matter Progress */}
-            <Card className="rounded-xl shadow-lg border border-gray-200/20 dark:border-gray-800/20 p-4 space-y-2 backdrop-blur-sm bg-gradient-to-br from-white via-blue-50 to-pink-100/50 dark:bg-[#1a2540]/50 text-foreground transition-colors hover:shadow-xl">
+            <Card className="rounded-3xl shadow-2xl border-4 border-blue-100 dark:border-blue-900 bg-white/80 dark:bg-[#232f4b]/80 backdrop-blur-xl p-8 relative overflow-hidden animate-fade-in transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400">
               <h2 className="text-primary text-lg font-semibold mb-3">Matter Progress</h2>
-              <ProgressBar progress={matter.progress || {}} />
-              <p className="text-xs text-muted-foreground mt-1">{(matter.progress?.overall ?? 0)}% Complete</p>
-              <p className="text-xs text-red-500 mt-2">Next Task: {deadline}</p>
+              <ProgressBar progress={{
+                ...(progress as any),
+                activity_trend: (progress as any).activity_trend || [
+                  { week: 'W1', completed: 2, total: 5, aiHealth: 70 },
+                  { week: 'W2', completed: 4, total: 6, aiHealth: 80 },
+                  { week: 'W3', completed: 5, total: 7, aiHealth: 85 },
+                  { week: 'W4', completed: 7, total: 8, aiHealth: 92 },
+                ],
+                aiHealth: (progress as any).aiHealth || 92,
+                matterHealth: (progress as any).matterHealth || 87,
+                predictedBilling: (progress as any).predictedBilling || 5000,
+                riskLevel: (progress as any).riskLevel || 'Low',
+                clientSatisfaction: (progress as any).clientSatisfaction || 92,
+              }} />
+              <p className="text-xs text-red-500 mt-2">Next Task: {nextTaskDue}</p>
               <div className="grid grid-cols-2 gap-2 mt-4">
                 <Button size="sm" variant="outline"><FileTextIcon className="w-4 h-4 mr-1 text-primary" /> Summary</Button>
                 <Button size="sm" variant="outline"><DownloadIcon className="w-4 h-4 mr-1 text-primary" /> Export</Button>
@@ -498,7 +566,7 @@ export default function MatterDetailsPage({ params }: { params: { id: string } }
             {/* Overview Tab */}
             <TabsContent value="overview" className="pt-6 space-y-6">
               {/* Futuristic Matter Health & Activity Chart */}
-              <Card className="rounded-3xl shadow-2xl border border-blue-100 dark:border-blue-900 bg-white/80 dark:bg-[#232f4b]/80 backdrop-blur-xl p-8 relative overflow-hidden animate-fade-in">
+              <Card className="rounded-3xl shadow-2xl border-4 border-blue-100 dark:border-blue-900 bg-white/80 dark:bg-[#232f4b]/80 backdrop-blur-xl p-8 relative overflow-hidden animate-fade-in transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400">
                 <CardContent className="p-0">
                   <div className="absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-br from-sky-400/30 via-pink-400/20 to-transparent rounded-full blur-2xl z-0 animate-pulse" />
                   <div className="relative z-10">
@@ -552,7 +620,7 @@ export default function MatterDetailsPage({ params }: { params: { id: string } }
                             <span className="text-xs text-gray-500">Total Tasks</span>
                           </div>
                           <div className="flex flex-col items-center">
-                            <span className="text-lg font-bold text-green-500">{matter.progress?.overall ?? 0}%</span>
+                            <span className="text-lg font-bold text-green-500">{formatPercent(matter.progress?.overall)}%</span>
                             <span className="text-xs text-gray-500">Progress</span>
                           </div>
                         </div>
@@ -565,7 +633,7 @@ export default function MatterDetailsPage({ params }: { params: { id: string } }
               {/* End Futuristic Chart */}
 
               {/* Predictive Insights Section */}
-              <Card className="rounded-3xl shadow-2xl border border-blue-100 dark:border-blue-900 bg-white/80 dark:bg-[#232f4b]/80 backdrop-blur-xl p-8 relative overflow-hidden animate-fade-in">
+              <Card className="rounded-3xl shadow-2xl border-4 border-blue-100 dark:border-blue-900 bg-white/80 dark:bg-[#232f4b]/80 backdrop-blur-xl p-8 relative overflow-hidden animate-fade-in transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400">
                 <CardContent className="p-0">
                   <div className="absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-br from-sky-400/30 via-pink-400/20 to-transparent rounded-full blur-2xl z-0 animate-pulse" />
                   <div className="relative z-10">
@@ -606,17 +674,7 @@ export default function MatterDetailsPage({ params }: { params: { id: string } }
 
             {/* Documents Tab */}
             <TabsContent value="documents" className="pt-6">
-              <Card className="rounded-xl shadow-lg border border-gray-200/20 dark:border-gray-800/20 animate-fade-in p-4 space-y-2 backdrop-blur-sm bg-gradient-to-br from-white via-blue-50 to-pink-100/50 dark:bg-[#1a2540]/50 text-foreground transition-colors hover:shadow-xl">
-                <CardContent className="p-6">
-                  <h2 className="text-primary font-semibold text-lg mb-4 flex items-center gap-2"><FileTextIcon className="w-5 h-5 text-blue-400" /> Documents</h2>
-                  {/* TODO: List, upload, generate, and AI-draft documents */}
-                  <div className="flex flex-col gap-4">
-                    <Button variant="outline" className="w-fit"><FilePlus2Icon className="w-4 h-4 mr-1" /> Upload Document</Button>
-                    <Button variant="outline" className="w-fit"><FileSignatureIcon className="w-4 h-4 mr-1" /> AI Draft Contract</Button>
-                    <div className="text-slate-500 mt-4">Document management coming soon...</div>
-                      </div>
-                </CardContent>
-              </Card>
+              <MatterDocuments matterId={params.id} />
             </TabsContent>
 
             {/* Tasks Tab */}
@@ -630,21 +688,12 @@ export default function MatterDetailsPage({ params }: { params: { id: string } }
 
             {/* Matter Notes Tab */}
             <TabsContent value="notes" className="pt-6">
-              <Card className="rounded-xl shadow-lg border border-gray-200/20 dark:border-gray-800/20 animate-fade-in p-4 space-y-2 backdrop-blur-sm bg-gradient-to-br from-white via-blue-50 to-pink-100/50 dark:bg-[#1a2540]/50 text-foreground transition-colors hover:shadow-xl">
-                <CardContent className="p-6">
-                  <h2 className="text-primary font-semibold text-lg mb-4 flex items-center gap-2"><FileTextIcon className="w-5 h-5 text-blue-400" /> Matter Notes</h2>
-                  {/* TODO: Add notes functionality */}
-                  <div className="flex flex-col gap-4">
-                    <Button variant="outline" className="w-fit"><FilePlus2Icon className="w-4 h-4 mr-1" /> Add Note</Button>
-                    <div className="text-slate-500 mt-4">Notes functionality coming soon...</div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              <MatterNotes matterId={params.id} />
+            </TabsContent>
 
             {/* Billing Tab */}
             <TabsContent value="billing" className="pt-6">
-              <Card className="rounded-xl shadow-lg border border-gray-200/20 dark:border-gray-800/20 p-4 space-y-2 backdrop-blur-sm bg-gradient-to-br from-white via-blue-50 to-pink-100/50 dark:bg-[#1a2540]/50 text-foreground transition-colors hover:shadow-xl">
+              <Card className="rounded-3xl shadow-2xl border-4 border-blue-100 dark:border-blue-900 bg-white/80 dark:bg-[#232f4b]/80 backdrop-blur-xl p-8 relative overflow-hidden animate-fade-in transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400">
                 <CardContent className="p-6">
                   <h2 className="text-primary font-semibold text-lg mb-4 flex items-center gap-2"><DollarSign className="w-5 h-5 text-blue-400" /> Billing & Time Tracking</h2>
                   {/* TODO: Show billing details, invoices, time tracking, payments */}
@@ -659,7 +708,7 @@ export default function MatterDetailsPage({ params }: { params: { id: string } }
 
             {/* Communications Tab */}
             <TabsContent value="communications" className="pt-6">
-              <Card className="rounded-xl shadow-lg border border-gray-200/20 dark:border-gray-800/20 animate-fade-in p-4 space-y-2 backdrop-blur-sm bg-gradient-to-br from-white via-blue-50 to-pink-100/50 dark:bg-[#1a2540]/50 text-foreground transition-colors hover:shadow-xl">
+              <Card className="rounded-3xl shadow-2xl border-4 border-blue-100 dark:border-blue-900 bg-white/80 dark:bg-[#232f4b]/80 backdrop-blur-xl p-8 relative overflow-hidden animate-fade-in transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400">
                 <CardContent className="p-6">
                   <h2 className="text-primary font-semibold text-lg mb-4 flex items-center gap-2"><MessageCircleIcon className="w-5 h-5 text-blue-400" /> Communications</h2>
                   {/* TODO: Show messages, notes, calls, emails */}
@@ -674,7 +723,7 @@ export default function MatterDetailsPage({ params }: { params: { id: string } }
 
             {/* AI Tools Tab */}
             <TabsContent value="ai" className="pt-6">
-              <Card className="rounded-xl shadow-lg border border-gray-200/20 dark:border-gray-800/20 p-4 space-y-2 backdrop-blur-sm bg-gradient-to-br from-white via-blue-50 to-pink-100/50 dark:bg-[#1a2540]/50 text-foreground transition-colors hover:shadow-xl">
+              <Card className="rounded-3xl shadow-2xl border-4 border-blue-100 dark:border-blue-900 bg-white/80 dark:bg-[#232f4b]/80 backdrop-blur-xl p-8 relative overflow-hidden animate-fade-in transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400">
                 <CardContent className="p-6">
                   <h2 className="text-primary font-semibold text-lg mb-4 flex items-center gap-2"><BotIcon className="w-5 h-5 text-blue-400" /> AI Tools</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -695,7 +744,7 @@ export default function MatterDetailsPage({ params }: { params: { id: string } }
 
             {/* Timeline Tab */}
             <TabsContent value="timeline" className="pt-6">
-              <Card className="rounded-xl shadow-lg border border-gray-200/20 dark:border-gray-800/20 animate-fade-in p-4 space-y-2 backdrop-blur-sm bg-gradient-to-br from-white via-blue-50 to-pink-100/50 dark:bg-[#1a2540]/50 text-foreground transition-colors hover:shadow-xl">
+              <Card className="rounded-3xl shadow-2xl border-4 border-blue-100 dark:border-blue-900 bg-white/80 dark:bg-[#232f4b]/80 backdrop-blur-xl p-8 relative overflow-hidden animate-fade-in transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400">
                 <CardContent className="p-6">
                   <h2 className="text-primary font-semibold text-lg mb-4 flex items-center gap-2"><HistoryIcon className="w-5 h-5 text-blue-400" /> Timeline & Activity</h2>
                   {/* TODO: Show all matter activity, status changes, document uploads, etc. */}

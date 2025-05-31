@@ -89,7 +89,7 @@ export function MatterCard({ matter: initialMatter, onStatusChange }: MatterCard
   const cardBg = 'bg-gradient-to-br from-blue-50 via-white to-purple-50 border border-blue-100 shadow-md';
 
   return (
-    <Card className={`overflow-hidden ${cardBg} hover:shadow-xl transition-shadow duration-200 cursor-pointer rounded-xl`} onClick={() => router.push(`/matters/${matter.id}`)}>
+    <Card className={`overflow-hidden ${cardBg} border-4 shadow-2xl rounded-2xl transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400 cursor-pointer`} onClick={() => router.push(`/matters/${matter.id}`)}>
       <CardContent className="p-4 sm:p-5 space-y-3">
         {/* Top: Client avatar, status, priority */}
         <div className="flex justify-between items-start gap-2">

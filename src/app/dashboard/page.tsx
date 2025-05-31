@@ -365,28 +365,7 @@ export default function Dashboard() {
             </>
           ) : (
             <>
-              <Card className="shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100/50">
-                <CardContent className="p-4 flex items-center gap-4">
-                  <FolderOpen className="text-blue-500 w-6 h-6" />
-                  <div>
-                    <p className="text-sm text-gray-500">Open Matters</p>
-                    <p className="text-xl font-bold">{dashboardData.openMatters}</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100/50">
-                <CardContent className="p-4 flex items-center gap-4">
-                  <CalendarCheck className="text-green-500 w-6 h-6" />
-                  <div>
-                    <p className="text-sm text-gray-500">Upcoming Deadlines</p>
-                    <p className="text-xl font-bold">{dashboardData.deadlines}</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card 
-                className="shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100/50 cursor-pointer hover:shadow-lg transition-shadow duration-200"
-                onClick={() => router.push('/crm?tab=messages')}
-              >
+              <Card className="shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100/50 border-4 shadow-2xl rounded-2xl transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400 cursor-pointer hover:shadow-lg transition-shadow duration-200" onClick={() => router.push('/crm?tab=messages')}>
                 <CardContent className="p-4 flex items-center gap-4">
                   <MessageSquare className="text-yellow-500 w-6 h-6" />
                   <div>
@@ -395,7 +374,25 @@ export default function Dashboard() {
                   </div>
                 </CardContent>
               </Card>
-              <Card className="shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100/50">
+              <Card className="shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100/50 border-4 shadow-2xl rounded-2xl transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400">
+                <CardContent className="p-4 flex items-center gap-4">
+                  <FolderOpen className="text-blue-500 w-6 h-6" />
+                  <div>
+                    <p className="text-sm text-gray-500">Open Matters</p>
+                    <p className="text-xl font-bold">{dashboardData.openMatters}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100/50 border-4 shadow-2xl rounded-2xl transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400">
+                <CardContent className="p-4 flex items-center gap-4">
+                  <CalendarCheck className="text-green-500 w-6 h-6" />
+                  <div>
+                    <p className="text-sm text-gray-500">Upcoming Deadlines</p>
+                    <p className="text-xl font-bold">{dashboardData.deadlines}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100/50 border-4 shadow-2xl rounded-2xl transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400">
                 <CardContent className="p-4 flex items-center gap-4">
                   <CreditCard className="text-red-500 w-6 h-6" />
                   <div>
@@ -411,7 +408,7 @@ export default function Dashboard() {
         {/* Bottom Sections */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Recent Activity */}
-          <Card className="lg:col-span-1 shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100/50">
+          <Card className="lg:col-span-1 shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100/50 border-4 shadow-2xl rounded-2xl transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400">
             <CardContent className="p-4">
               <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
               {loading ? (
@@ -437,7 +434,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Upcoming Tasks */}
-          <Card className="lg:col-span-1 shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100/50">
+          <Card className="lg:col-span-1 shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100/50 border-4 shadow-2xl rounded-2xl transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400">
             <CardContent className="p-4">
               <h2 className="text-xl font-semibold mb-4">Upcoming Tasks</h2>
               {loading ? (
@@ -466,7 +463,7 @@ export default function Dashboard() {
           </Card>
 
           {/* AI Assistant Panel */}
-          <Card className="lg:col-span-1 shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100/50">
+          <Card className="lg:col-span-1 shadow-md bg-gradient-to-br from-white via-blue-50 to-pink-100/50 border-4 shadow-2xl rounded-2xl transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-3">
                 <Bot className="text-blue-500" />

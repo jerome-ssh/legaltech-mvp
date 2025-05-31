@@ -56,7 +56,12 @@ const updateProfile = async (profileData: ProfileFormData) => {
       throw new Error(`Failed to fetch user mapping: ${mappingError.message}`);
     }
   } else {
-    supabaseUserId = mapping.supabase_user_id;
+    if (mapping) {
+      supabaseUserId = mapping.supabase_user_id;
+    } else {
+      console.error('User mapping is null');
+      return;
+    }
   }
 
   console.log('Using Supabase User ID:', supabaseUserId);
@@ -114,84 +119,98 @@ const updateProfile = async (profileData: ProfileFormData) => {
   return data;
 };
 
-useEffect(() => {
-  const createInitialProfile = async () => {
-    const { user } = useUser();
+export default function ProfilePage() {
+  useEffect(() => {
+    const createInitialProfile = async () => {
+      const { user } = useUser();
 
-    if (!user) {
-      return;
-    }
-
-    console.log('Creating initial profile for user:', user.id);
-
-    // First, check if we have a mapping
-    const { data: mapping, error: mappingError } = await supabase
-      .from('user_mappings')
-      .select('supabase_user_id')
-      .eq('clerk_user_id', user.id)
-      .single();
-
-    if (mappingError && mappingError.code !== 'PGRST116') {
-      console.error('Failed to fetch user mapping:', mappingError);
-      return;
-    }
-
-    let supabaseUserId;
-
-    if (mappingError && mappingError.code === 'PGRST116') {
-      // Create new mapping
-      const { data: newMapping, error: createMappingError } = await supabase
-        .from('user_mappings')
-        .insert([
-          {
-            clerk_user_id: user.id,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-        ])
-        .select('supabase_user_id')
-        .single();
-
-      if (createMappingError) {
-        console.error('Failed to create user mapping:', createMappingError);
+      if (!user) {
         return;
       }
 
-      supabaseUserId = newMapping.supabase_user_id;
-    } else {
-      supabaseUserId = mapping.supabase_user_id;
-    }
+      console.log('Creating initial profile for user:', user.id);
 
-    const { data: existingProfile, error: fetchError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('user_id', supabaseUserId)
-      .single();
+      // First, check if we have a mapping
+      const { data: mapping, error: mappingError } = await supabase
+        .from('user_mappings')
+        .select('supabase_user_id')
+        .eq('clerk_user_id', user.id)
+        .single();
 
-    if (fetchError && fetchError.code !== 'PGRST116') {
-      console.error('Failed to fetch profile:', fetchError);
-      return;
-    }
-
-    if (!existingProfile) {
-      const { error: createError } = await supabase
-        .from('profiles')
-        .insert([
-          {
-            user_id: supabaseUserId,
-            first_name: user.firstName,
-            last_name: user.lastName,
-            email: user.emailAddresses[0]?.emailAddress,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-        ]);
-
-      if (createError) {
-        console.error('Failed to create profile:', createError);
+      if (mappingError && mappingError.code !== 'PGRST116') {
+        console.error('Failed to fetch user mapping:', mappingError);
+        return;
       }
-    }
-  };
 
-  createInitialProfile();
-}, []); 
+      let supabaseUserId;
+
+      if (mappingError && mappingError.code === 'PGRST116') {
+        // Create new mapping
+        const { data: newMapping, error: createMappingError } = await supabase
+          .from('user_mappings')
+          .insert([
+            {
+              clerk_user_id: user.id,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }
+          ])
+          .select('supabase_user_id')
+          .single();
+
+        if (createMappingError) {
+          console.error('Failed to create user mapping:', createMappingError);
+          return;
+        }
+
+        supabaseUserId = newMapping.supabase_user_id;
+      } else {
+        if (mapping) {
+          supabaseUserId = mapping.supabase_user_id;
+        } else {
+          console.error('User mapping is null');
+          return;
+        }
+      }
+
+      const { data: existingProfile, error: fetchError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', supabaseUserId)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error('Failed to fetch profile:', fetchError);
+        return;
+      }
+
+      if (!existingProfile) {
+        const { error: createError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              user_id: supabaseUserId,
+              first_name: user.firstName,
+              last_name: user.lastName,
+              email: user.emailAddresses[0]?.emailAddress,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+          ]);
+
+        if (createError) {
+          console.error('Failed to create profile:', createError);
+        }
+      }
+    };
+
+    createInitialProfile();
+  }, []);
+
+  return (
+    <div>
+      <h1>Profile Page</h1>
+      {/* Add your profile form or info here */}
+    </div>
+  );
+} 

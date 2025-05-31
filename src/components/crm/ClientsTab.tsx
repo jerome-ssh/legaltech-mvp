@@ -177,7 +177,7 @@ function ClientsTabContent({ shouldFetch }: ClientsTabContentProps) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {[...Array(6)].map((_, i) => (
-          <Card key={i} className="bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg">
+          <Card key={i} className="bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg border-4 shadow-2xl rounded-2xl transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400">
             <CardContent className="p-6">
               <Skeleton className="h-6 w-3/4 mb-4" />
               <Skeleton className="h-4 w-1/2 mb-2" />
@@ -233,7 +233,7 @@ function ClientsTabContent({ shouldFetch }: ClientsTabContentProps) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <Card className="bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg hover:shadow-xl transition-all duration-300">
+              <Card className="bg-gray-50/50 dark:bg-[#1a2540]/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-800/20 shadow-lg border-4 shadow-2xl rounded-2xl transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400 cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex flex-col h-full">
                     <div className="flex-1">

@@ -15,6 +15,7 @@ export function MatterAIAssistantPrompt({ matterId, appliedTemplateId, userFirst
   const [template, setTemplate] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [customTasks, setCustomTasks] = useState<any[]>([]);
 
   useEffect(() => {
     if (!matterId || appliedTemplateId) return;
@@ -105,9 +106,30 @@ export function MatterAIAssistantPrompt({ matterId, appliedTemplateId, userFirst
           <Button
             variant="outline"
             disabled={actionLoading}
-            onClick={() => {
-              setShow(false);
-              // Optionally, trigger a callback for custom task creation
+            onClick={async () => {
+              if (!customTasks || customTasks.length === 0) {
+                setError('Please add at least one task to create a custom template.');
+                return;
+              }
+              setActionLoading(true);
+              try {
+                const res = await fetch(`/api/matter-templates/custom/${matterId}`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ tasks: customTasks })
+                });
+                if (res.ok) {
+                  setShow(false);
+                  onTemplateApplied?.();
+                } else {
+                  const data = await res.json();
+                  setError(data.error || 'Failed to create custom template.');
+                }
+              } catch (err) {
+                setError('Failed to create custom template.');
+              } finally {
+                setActionLoading(false);
+              }
             }}
             className="flex items-center gap-2"
           >

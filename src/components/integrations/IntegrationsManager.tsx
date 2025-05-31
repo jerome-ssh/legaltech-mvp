@@ -113,7 +113,7 @@ export function IntegrationsManager() {
         </TabsList>
 
         <TabsContent value="calendar">
-          <Card>
+          <Card className="border-4 shadow-2xl rounded-2xl transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400">
             <CardHeader>
               <CardTitle>Calendar Integrations</CardTitle>
             </CardHeader>
@@ -144,7 +144,7 @@ export function IntegrationsManager() {
         </TabsContent>
 
         <TabsContent value="email">
-          <Card>
+          <Card className="border-4 shadow-2xl rounded-2xl transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400">
             <CardHeader>
               <CardTitle>Email Integrations</CardTitle>
             </CardHeader>
@@ -175,7 +175,7 @@ export function IntegrationsManager() {
         </TabsContent>
 
         <TabsContent value="payment">
-          <Card>
+          <Card className="border-4 shadow-2xl rounded-2xl transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400">
             <CardHeader>
               <CardTitle>Payment Integrations</CardTitle>
             </CardHeader>

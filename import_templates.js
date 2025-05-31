@@ -50,22 +50,22 @@ async function importTemplates() {
 
       // Insert new template
       const res = await pool.query(
-        `INSERT INTO matter_task_templates (matter_type_id, sub_type_id, template_name)
-         VALUES ($1, $2, $3)
-         RETURNING id`,
-        [tpl.matter_type_id, tpl.sub_type_id, `${tpl.matter_type_label} - ${tpl.sub_type_label}`]
-      );
-      const templateId = res.rows[0].id;
+      `INSERT INTO matter_task_templates (matter_type_id, sub_type_id, template_name)
+       VALUES ($1, $2, $3)
+       RETURNING id`,
+      [tpl.matter_type_id, tpl.sub_type_id, `${tpl.matter_type_label} - ${tpl.sub_type_label}`]
+    );
+    const templateId = res.rows[0].id;
 
-      // Insert tasks
-      for (let i = 0; i < tpl.tasks.length; i++) {
-        const task = tpl.tasks[i];
+    // Insert tasks
+    for (let i = 0; i < tpl.tasks.length; i++) {
+      const task = tpl.tasks[i];
         await pool.query(
-          `INSERT INTO matter_task_template_items (template_id, label, stage, default_weight, position)
-           VALUES ($1, $2, $3, $4, $5)`,
-          [templateId, task.label, task.stage, task.default_weight, i + 1]
-        );
-      }
+        `INSERT INTO matter_task_template_items (template_id, label, stage, default_weight, position)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [templateId, task.label, task.stage, task.default_weight, i + 1]
+      );
+    }
 
       results.added.push({
         matter_type_id: tpl.matter_type_id,

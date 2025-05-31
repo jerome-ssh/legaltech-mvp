@@ -28,7 +28,7 @@ export class CRMErrorBoundary extends React.Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <Card className="p-4">
+        <Card className="p-4 border-4 shadow-2xl rounded-2xl transition-all duration-200 hover:scale-[1.03] focus-within:ring-2 focus-within:ring-blue-400">
           <CardContent>
             <h2 className="text-lg font-semibold mb-2">Something went wrong</h2>
             <p className="text-sm text-muted-foreground mb-4">

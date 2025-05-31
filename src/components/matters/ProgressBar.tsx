@@ -64,10 +64,14 @@ export function ProgressBar({ progress, showDetails = false, compact = false }: 
     allStages.forEach(stage => { if (!(stage in byStage)) byStage[stage] = 0; });
   }
 
-  // Calculate weighted overall progress
-  const overall = Math.round(
-    allStages.reduce((sum, stage) => sum + (byStage[stage] || 0) * (stageWeights[stage] / 100), 0)
-  );
+  // Use the overall progress from the database
+  let overall = progress?.overall || 0;
+  overall = (overall % 1 === 0) ? Math.round(overall) : Math.round(overall * 10) / 10;
+
+  // Helper to format percent for display
+  const formatPercent = (value: number) => {
+    return value % 1 === 0 ? Math.round(value) : value.toFixed(1);
+  };
 
   // Use custom color for Intake and handle gradient transitions
   const intakeColor = 'rgba(240, 105, 177, 0.7)'; // #f069b1 with reduced opacity
@@ -108,7 +112,7 @@ export function ProgressBar({ progress, showDetails = false, compact = false }: 
       <div className="space-y-1">
         <div className="flex justify-between items-center">
           <h3 className={compact ? "text-[11px] font-medium text-blue-600 opacity-70" : "text-xs font-medium text-blue-700"}>Overall Progress</h3>
-          <span className={compact ? "text-[11px] text-gray-400 font-mono" : "text-xs text-gray-500 font-mono"}>{overall}%</span>
+          <span className={compact ? "text-[11px] text-gray-400 font-mono" : "text-xs text-gray-500 font-mono"}>{formatPercent(overall)}%</span>
         </div>
         <div
           className={compact ? "h-2 rounded-full overflow-hidden shadow bg-gray-200 flex" : "h-3 bg-gray-300 rounded-full overflow-hidden shadow-sm flex"}
@@ -128,9 +132,9 @@ export function ProgressBar({ progress, showDetails = false, compact = false }: 
               borderBottomRightRadius: overall === 100 ? 999 : 0,
               transition: 'width 0.7s cubic-bezier(0.4,0,0.2,1)',
             }}
-            aria-label={`Completed progress: ${overall}%`}
+            aria-label={`Completed progress: ${formatPercent(overall)}%`}
           >
-            <span className="sr-only">Completed {overall}%</span>
+            <span className="sr-only">Completed {formatPercent(overall)}%</span>
           </div>
           <div
             className={compact ? `h-full transition-all duration-700 ease-in-out` : `h-full ${barAnim}`}
@@ -141,9 +145,9 @@ export function ProgressBar({ progress, showDetails = false, compact = false }: 
               borderBottomRightRadius: 999,
               transition: 'width 0.7s cubic-bezier(0.4,0,0.2,1)',
             }}
-            aria-label={`Remaining progress: ${100 - overall}%`}
+            aria-label={`Remaining progress: ${formatPercent(100 - overall)}%`}
           >
-            <span className="sr-only">Remaining {100 - overall}%</span>
+            <span className="sr-only">Remaining {formatPercent(100 - overall)}%</span>
           </div>
         </div>
       </div>
@@ -156,13 +160,13 @@ export function ProgressBar({ progress, showDetails = false, compact = false }: 
                   {getStageIcon(stage)}
                   <span title={stage} className="text-xs font-medium text-gray-700 cursor-help">{stage}</span>
                 </div>
-                <span className="text-xs text-gray-500 font-mono">{typeof value === 'number' && !isNaN(value) ? Math.round(value) : 0}%</span>
+                <span className="text-xs text-gray-500 font-mono">{typeof value === 'number' && !isNaN(value) ? formatPercent(value) : 0}%</span>
               </div>
               <div className="h-2 bg-gray-200 rounded-full overflow-hidden shadow-sm">
                 <div
                   className={`h-full ${barAnim} rounded-full`}
                   style={{ width: `${typeof value === 'number' && !isNaN(value) ? value : 0}%` }}
-                  aria-label={`${stage} progress: ${Math.round(value)}%`}
+                  aria-label={`${stage} progress: ${formatPercent(value)}%`}
                 />
               </div>
             </div>

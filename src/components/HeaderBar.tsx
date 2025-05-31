@@ -17,7 +17,7 @@ export default function HeaderBar() {
           className="hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full p-1 transition-colors"
           aria-label="Notifications"
         >
-          <Bell className="w-6 h-6 text-gray-600 dark:text-white" />
+        <Bell className="w-6 h-6 text-gray-600 dark:text-white" />
         </button>
         <TopBar />
         <SignOutButton>

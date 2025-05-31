@@ -15,6 +15,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useFormOptions } from '@/hooks/useFormOptions';
 import { MatterList } from '@/components/matters/MatterList';
 import { Input } from '@/components/ui/input';
+import type { Matter, MatterProgress } from '@/types/matter';
 
 const LayoutWithSidebar = dynamic(() => import('@/components/LayoutWithSidebar'), {
   ssr: false,
@@ -23,16 +24,6 @@ const LayoutWithSidebar = dynamic(() => import('@/components/LayoutWithSidebar')
 
 // NOTE: 'case' = 'matter' in UI/UX/backend
 // This file handles the main matters listing page
-
-interface Matter {
-  id: string;
-  title: string;
-  status: string;
-  priority: string;
-  created_at: string;
-  profile_id: string;
-  client_name?: string;
-}
 
 interface PaginationInfo {
   total: number;
@@ -96,7 +87,23 @@ export default function Matters() {
       if (!response.ok) throw new Error('Failed to fetch matters');
 
       const data = await response.json();
-      setMatters(data.matters);
+      const defaultProgress: MatterProgress = {
+        overall: 0,
+        by_stage: {},
+        completed_tasks: 0,
+        total_tasks: 0,
+        completed_weight: 0,
+        total_weight: 0,
+      };
+      setMatters(
+        data.matters.map((matter: any) => ({
+          ...matter,
+          progress:
+            typeof matter.progress === 'object' && matter.progress !== null
+              ? matter.progress
+              : defaultProgress,
+        }))
+      );
       setTotalPages(data.pagination.totalPages);
       setCurrentPage(data.pagination.page);
       setPagination(data.pagination);

@@ -68,19 +68,6 @@ CREATE TABLE IF NOT EXISTS messages (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create notes table
-CREATE TABLE IF NOT EXISTS notes (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    case_id UUID REFERENCES cases(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL,
-    title TEXT NOT NULL,
-    content TEXT NOT NULL,
-    is_private BOOLEAN DEFAULT FALSE,
-    status TEXT NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
 -- Create calendar_events table
 CREATE TABLE IF NOT EXISTS calendar_events (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -132,11 +119,6 @@ CREATE TRIGGER update_messages_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_notes_updated_at
-    BEFORE UPDATE ON notes
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
-
 CREATE TRIGGER update_calendar_events_updated_at
     BEFORE UPDATE ON calendar_events
     FOR EACH ROW
@@ -148,7 +130,6 @@ ALTER TABLE practice_areas ENABLE ROW LEVEL SECURITY;
 ALTER TABLE cases ENABLE ROW LEVEL SECURITY;
 ALTER TABLE case_participants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
-ALTER TABLE notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE calendar_events ENABLE ROW LEVEL SECURITY;
 
 -- Create policies
@@ -210,18 +191,6 @@ CREATE POLICY "Participants can manage their messages" ON messages
         auth.uid() = sender_id
     );
 
-CREATE POLICY "Notes are viewable by participants" ON notes
-    FOR SELECT USING (
-        auth.uid() IN (
-            SELECT user_id FROM case_participants WHERE case_id = case_id
-        )
-    );
-
-CREATE POLICY "Participants can manage their notes" ON notes
-    FOR ALL USING (
-        auth.uid() = user_id
-    );
-
 CREATE POLICY "Calendar events are viewable by participants" ON calendar_events
     FOR SELECT USING (
         auth.uid() IN (
@@ -232,4 +201,8 @@ CREATE POLICY "Calendar events are viewable by participants" ON calendar_events
 CREATE POLICY "Participants can manage their calendar events" ON calendar_events
     FOR ALL USING (
         auth.uid() = user_id
-    ); 
+    );
+
+-- Removed duplicate foreign key constraint for matter_notes
+-- ALTER TABLE matter_notes
+-- ADD CONSTRAINT matter_notes_matter_id_fkey FOREIGN KEY (matter_id) REFERENCES matters(id); 

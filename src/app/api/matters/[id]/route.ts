@@ -127,15 +127,22 @@ export async function GET(
     // --- Predictive Insights Logic ---
     // Fetch tasks for this matter
     const { data: tasks, error: tasksError } = await supabase
-      .from('tasks')
-      .select('id, status, due_date, weight')
+      .from('matter_tasks')
+      .select('id, status, due_date, weight, stage')
       .eq('matter_id', params.id);
+
+    if (tasksError) {
+      console.error('Error fetching tasks:', tasksError);
+      return NextResponse.json({ error: 'Failed to fetch tasks' }, { status: 500 });
+    }
+
     // Fetch billing for this matter
     const { data: billing, error: billingError } = await supabase
       .from('matter_billing')
       .select('rate_value, billing_method:billing_methods(label), currency:currencies(label), total_billed, hours_logged')
       .eq('matter_id', params.id)
       .single();
+
     // Fetch client feedback for this matter's client
     let clientSatisfaction = null;
     if (matter.client && matter.client.id) {
@@ -148,24 +155,28 @@ export async function GET(
         clientSatisfaction = Math.round(clientSatisfaction * 10) / 10;
       }
     }
-    // Compute progress/insights
-    let completedTasks = 0, totalTasks = 0, overdueTasks = 0, totalWeight = 0, completedWeight = 0;
-    if (tasks && Array.isArray(tasks)) {
-      totalTasks = tasks.length;
+
+    // Use the progress from the matter object (calculated by database trigger)
+    const progress = matter.progress || {
+      overall: 0,
+      by_stage: { Intake: 0, Planning: 0, 'Active Work': 0, Closure: 0 },
+      completed_tasks: 0,
+      total_tasks: 0,
+      completed_weight: 0,
+      total_weight: 0
+    };
+
+    // Health index: weighted completion, penalize overdue
+    let matterHealth = progress.total_tasks > 0 ? (progress.completed_tasks / progress.total_tasks) * 100 : 87;
+    if (tasks) {
       const now = new Date();
-      for (const t of tasks) {
-        if (t.status === 'completed') completedTasks++;
-        if (t.status !== 'completed' && t.due_date && new Date(t.due_date) < now) overdueTasks++;
-        if (t.weight) {
-          totalWeight += t.weight;
-          if (t.status === 'completed') completedWeight += t.weight;
-        }
+      const overdueTasks = tasks.filter(t => t.status !== 'completed' && t.due_date && new Date(t.due_date) < now).length;
+      if (overdueTasks > 0 && progress.total_tasks > 0) {
+        matterHealth -= Math.min(20, (overdueTasks / progress.total_tasks) * 30);
       }
     }
-    // Health index: weighted completion, penalize overdue
-    let matterHealth = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 87;
-    if (overdueTasks > 0 && totalTasks > 0) matterHealth -= Math.min(20, (overdueTasks / totalTasks) * 30);
     matterHealth = Math.max(0, Math.round(matterHealth));
+
     // Predicted billing: use rate * hours_logged or fallback
     let predictedBilling = 5000;
     if (billing && billing.rate_value && billing.hours_logged) {
@@ -173,33 +184,33 @@ export async function GET(
     } else if (billing && billing.total_billed) {
       predictedBilling = Math.round(billing.total_billed);
     }
+
     // Risk level: high if >20% overdue, medium if 5-20%, else low
     let riskLevel = 'Low';
-    if (totalTasks > 0) {
-      const overdueRatio = overdueTasks / totalTasks;
+    if (progress.total_tasks > 0) {
+      const overdueTasks = tasks ? tasks.filter(t => t.status !== 'completed' && t.due_date && new Date(t.due_date) < new Date()).length : 0;
+      const overdueRatio = overdueTasks / progress.total_tasks;
       if (overdueRatio > 0.2) riskLevel = 'High';
       else if (overdueRatio > 0.05) riskLevel = 'Medium';
     }
+
     // Client satisfaction: from feedback, else fallback
     if (clientSatisfaction === null) clientSatisfaction = 92;
-    // Compose progress object
-    const progress = {
+
+    // Compose progress object (full structure)
+    const progressWithInsights = {
+      ...progress,
       matterHealth,
       predictedBilling,
       riskLevel,
-      clientSatisfaction,
-      completed_tasks: completedTasks,
-      total_tasks: totalTasks,
-      overdue_tasks: overdueTasks,
-      overall: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
+      clientSatisfaction
     };
-    // --- End Predictive Insights Logic ---
 
     const responseMatter = {
       ...matter,
       matter_type,
       matter_sub_type,
-      progress,
+      progress: progressWithInsights,
     };
 
     return NextResponse.json({ matter: responseMatter });

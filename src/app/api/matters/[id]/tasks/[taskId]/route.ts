@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { auth } from '@clerk/nextjs';
 import { NextResponse } from 'next/server';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -13,12 +15,9 @@ export async function PATCH(
   request: Request,
   { params }: { params: { id: string; taskId: string } }
 ) {
-  console.log('[Task API] PATCH request received:', { matterId: params.id, taskId: params.taskId });
-  
   try {
     const { userId } = auth();
     if (!userId) {
-      console.log('[Task API] Unauthorized: No userId');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -30,7 +29,6 @@ export async function PATCH(
       .single();
 
     if (profileError) {
-      console.log('[Task API] Profile not found:', profileError);
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
@@ -43,69 +41,53 @@ export async function PATCH(
       .single();
 
     if (matterError || !matter) {
-      console.log('[Task API] Matter not found:', matterError);
       return NextResponse.json({ error: 'Matter not found' }, { status: 404 });
     }
 
-    const body = await request.json();
-    const { status, stage } = body;
-    console.log('[Task API] Request body:', { status, stage });
+    const { status, stage } = await request.json();
 
     if (!status && !stage) {
-      console.log('[Task API] Missing required fields');
       return NextResponse.json(
-        { error: 'Either status or stage must be provided' },
+        { error: 'Status or stage is required' },
         { status: 400 }
       );
     }
 
-    // Get current task to verify the update
-    const { data: currentTask, error: currentTaskError } = await supabase
+    // Get the current task to verify the update
+    const { data: currentTask, error: fetchError } = await supabase
       .from('matter_tasks')
       .select('*')
       .eq('id', params.taskId)
-      .eq('matter_id', params.id)
       .single();
 
-    if (currentTaskError) {
-      console.log('[Task API] Current task not found:', currentTaskError);
+    if (fetchError || !currentTask) {
       return NextResponse.json(
         { error: 'Task not found' },
         { status: 404 }
       );
     }
 
-    console.log('[Task API] Current task:', currentTask);
-
     // Update the task
-    const { data: task, error: updateError } = await supabase
+    const { data: updatedTask, error: updateError } = await supabase
       .from('matter_tasks')
       .update({
-        ...(status && { status }),
-        ...(stage && { stage }),
+        status: status || currentTask.status,
+        stage: stage || currentTask.stage,
         updated_at: new Date().toISOString()
       })
       .eq('id', params.taskId)
-      .eq('matter_id', params.id)
       .select()
       .single();
 
     if (updateError) {
-      console.error('[Task API] Error updating task:', updateError);
       return NextResponse.json(
         { error: 'Failed to update task' },
         { status: 500 }
       );
     }
 
-    console.log('[Task API] Task updated successfully:', task);
-
-    // Update matter progress
-    await updateMatterProgress(params.id);
-
-    return NextResponse.json(task);
+    return NextResponse.json(updatedTask);
   } catch (error) {
-    console.error('[Task API] Error in PATCH handler:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -67,13 +67,17 @@ export interface MatterTaskHistory {
 
 export interface MatterProgress {
   overall: number;
-  by_stage: {
-    [key: string]: number;
-  };
+  by_stage: Record<string, number>;
   completed_tasks: number;
   total_tasks: number;
   completed_weight: number;
   total_weight: number;
+  activity_trend?: Array<{ week: string; completed: number; total: number; aiHealth: number }>;
+  aiHealth?: number;
+  matterHealth?: number;
+  predictedBilling?: number;
+  riskLevel?: string;
+  clientSatisfaction?: number;
 }
 
 export interface Matter {

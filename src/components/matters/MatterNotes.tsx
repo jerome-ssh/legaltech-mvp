@@ -262,7 +262,7 @@ export default function MatterNotes({ matterId }: MatterNotesProps) {
                   <span className="text-xs text-gray-500">{new Date(note.created_at).toLocaleString()}</span>
                 </div>
                 <div className="prose prose-sm max-w-none mt-1">
-                  {note.content.replace(/<[^>]*>/g, '').split(' ').slice(0, 20).join(' ')}...
+                  {note.content.replace(/<[^>]*>/g, '').split(' ').slice(0, 3).join(' ')}...
                 </div>
               </div>
               <div className="flex gap-2">
